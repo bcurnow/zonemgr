@@ -1,0 +1,75 @@
+$ORIGIN 10.in-addr.arpa.
+$TTL 60	; 1 minute
+@		IN SOA	ns1.internal.curnowtopia.curnow. curnowtopia.gmail.com. (
+			162		; serial
+			7200		; refresh (2 hours)
+			600		; retry (10 minutes)
+			3600000		; expire (~42 days)
+			60		; minimum (2 hours)
+		)
+		NS	ns1.internal.curnowtopia.com.
+		NS	ns2.internal.curnowtopia.com.
+; Core Network
+$ORIGIN 0.0.10.in-addr.arpa.
+1	PTR	gateway.internal.curnowtopia.com.
+ 	PTR	firewall.internal.curnowtopia.com.
+2	PTR	core-switch.internal.curnowtopia.com.
+3       PTR     ns1.internal.curnowtopia.com.
+4       PTR     ns2.internal.curnowtopia.com.
+; PVE
+$ORIGIN 0.2.10.in-addr.arpa.
+10	PTR	pvectrl.internal.curnowtopia.com.
+20	PTR	pve1.internal.curnowtopia.com.
+30	PTR	pve2.internal.curnowtopia.com.
+40	PTR	pve3.internal.curnowtopia.com.
+50	PTR	pve4.internal.curnowtopia.com.
+60	PTR	pve5.internal.curnowtopia.com.
+61	PTR	pve5-mgmt.internal.curnowtopia.com.
+70	PTR	pve6.internal.curnowtopia.com.
+; PVE Cluster
+$ORIGIN 1.2.10.in-addr.arpa.
+10	PTR	pvectrl-c.internal.curnowtopia.com.
+20	PTR	pve1-c.internal.curnowtopia.com.
+30	PTR	pve2-c.internal.curnowtopia.com.
+40	PTR	pve3-c.internal.curnowtopia.com.
+50	PTR	pve4-c.internal.curnowtopia.com.
+60	PTR	pve5-c.internal.curnowtopia.com.
+70	PTR	pve6-c.internal.curnowtopia.com.
+; Private
+$ORIGIN 2.2.10.in-addr.arpa.
+10	PTR	kronk.internal.curnowtopia.com.
+20	PTR	yzma.internal.curnowtopia.com.
+25	PTR	atomicpi.internal.curnowtopia.com.
+26	PTR	devpi.internal.curnowtopia.com.
+        PTR     backup.internal.curnowtopia.com.
+70	PTR	k8sapi.internal.curnowtopia.com.
+71	PTR	k8sapi1.internal.curnowtopia.com.
+72	PTR	k8sapi2.internal.curnowtopia.com.
+73	PTR	k8sapi3.internal.curnowtopia.com.
+81	PTR	k8sworker1.internal.curnowtopia.com.
+82	PTR	k8sworker2.internal.curnowtopia.com.
+83	PTR	k8sworker3.internal.curnowtopia.com.
+100	PTR	ansible.internal.curnowtopia.com.
+101	PTR	talosmgr.internal.curnowtopia.com.
+224	PTR	debian-template.internal.curnowtopia.com
+; DMZ
+$ORIGIN 0.3.10.in-addr.arpa.
+10	PTR	dmzproxy.internal.curnowtopia.com.
+; Wireless
+$ORIGIN 0.20.10.in-addr.arpa.
+10	PTR	hasvr.internal.curnowtopia.com.
+20	PTR	mymac.internal.curnowtopia.com.
+21	PTR	octopi.internal.curnowtopia.com.
+	PTR	octoprint.internal.curnowtopia.com.
+70	PTR	kronk.internal.curnowtopia.com.
+75	PTR	atomicpi-wifi.internal.curnowtopia.com.
+94	PTR	yzma-wifi.internal.curnowtopia.com.
+209	PTR	kronk-wifi.internal.curnowtopia.com.
+210	PTR	kvm.internal.curnowtopia.com.
+; Kubernetes Load Balancer/Ingress
+$ORIGIN 0.98.10.in-addr.arpa.
+2 	PTR	ha.internal.curnowtopia.com.
+ 	PTR	ingress-nginx.internal.curnowtopia.com
+ 	PTR	keycloak.internal.curnowtopia.com
+ 	PTR	minio.internal.curnowtopia.com.
+ 	PTR	minio-console.internal.curnowtopia.com.

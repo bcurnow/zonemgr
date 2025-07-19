@@ -1,0 +1,30 @@
+- internal.curnowtopia.com  
+  ttl:
+    value: 60
+    comment: 1 minute
+  maintain_serial: true
+  reverse_lookup_zones: true
+  records:
+    - type: SOA
+      refresh:
+        value: 7200
+        comment: refresh (2hours)
+      retry:
+        value: 600
+        comment: retry (`0 minutes)
+      expire:
+        value: 3600000
+        comment: expire (~42 days)
+      minimum:
+        value: 60
+        comment: minimum (2 hours)
+    - type: NS
+      value: ns1.internal.curnowtopia.com.
+      comment:
+    -type: NS
+      value: ns2.internal.curnowtopia.com.
+      comment:
+    - type: A
+      name: ansible
+      value: 10.2.2.100
+      comment:
