@@ -33,3 +33,11 @@ go.work.sum
 
 # goreleaser
 dist/
+
+# temp/example files
+homelab.yaml
+example.com.
+0.0.10.in-addr.arpa
+0.20.10.in-addr.arpa
+2.2.10.in-addr.arpa
+internal.curnowtopia.com.
