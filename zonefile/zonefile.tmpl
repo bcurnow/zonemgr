@@ -1,0 +1,23 @@
+$ORIGIN {{ .Name }}
+{{- if .Zone.TTL.Value }}
+$TTL {{ .Zone.TTL.Value }}{{ if .Zone.TTL.Comment }} ; {{ .Zone.TTL.Comment }}{{- end }}
+{{- end }}
+@ {{ .Zone.Class }} SOA {{ .Zone.Nameserver }} {{ .Zone.Administrator }} (
+    {{ printf "%-20d" .Zone.Serial }} ; serial
+    {{ printf "%-20d" .Zone.Refresh.Value }}{{ if .Zone.Refresh.Comment }} ; {{ .Zone.Refresh.Comment }}{{ end }}
+    {{ printf "%-20d" .Zone.Retry.Value }}{{ if .Zone.Retry.Comment }} ; {{ .Zone.Retry.Comment }}{{ end }}
+    {{ printf "%-20d" .Zone.Expire.Value }}{{ if .Zone.Expire.Comment }} ; {{ .Zone.Expire.Comment }}{{ end }}
+    {{ printf "%-20d" .Zone.Minimum.Value }}{{ if .Zone.Minimum.Comment }} ; {{ .Zone.Minimum.Comment }}{{ end }}
+)
+{{- range .Zone.ResourceRecordsSortOrder }}
+{{- $name := . }}
+{{- $record := index $.Zone.ResourceRecords $name }}
+{{- with $record }}
+{{- if eq .Type "NS" }}
+{{ if .Value }}{{ printf "%-40s" .Value }} {{ else }}{{ printf "%-40s" ""}} {{ end }}{{ if .TTL }}{{ .TTL }} {{ end }}{{if .Class }}{{ .Class }} {{ end }}{{ printf "%-6s" .Type }} {{ $name }}{{ if .Comment }} ; {{ .Comment }}{{ end }}
+{{- else }}
+{{ printf "%-40s" $name }} {{ if .TTL }}{{ .TTL }} {{ end }}{{ if .Class }}{{ .Class }} {{ end }}{{ printf "%-6s" .Type }} {{ .Value }}{{ if .Comment }} ; {{ .Comment }}{{ end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
