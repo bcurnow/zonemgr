@@ -25,7 +25,6 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "zonemgr",
 	Short: "Converts YAML files to BIND zone files.",
-	Long:  `Converts YAML files to BIND zone files.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
