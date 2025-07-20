@@ -28,16 +28,18 @@ import (
 
 type ReverseZoneTemplateData struct {
 	Name            string
+	ForwardZone     string // This is the name of the original zone (e.g. example.com.) that we're creating the reverse zone for
 	Zone            *sourceyaml.Zone
 	ResourceRecords map[string]sourceyaml.ResourceRecord
 }
 
-func GenerateReverseLookupZones(zone *sourceyaml.Zone, outputDir string) error {
+// Generates a set of reverse zone files for the specific forward zone
+func GenerateReverseLookupZones(forwardZone string, zone *sourceyaml.Zone, outputDir string) error {
 	// Convert the full set of resource records for this zone into a set of reverse lookup zones
 	reverseLookupZones := toReverseZones(zone.ResourceRecords)
 
 	// Write the various reverse lookup zone file
-	err := toReverseZoneFiles(zone, reverseLookupZones, outputDir)
+	err := toReverseZoneFiles(forwardZone, zone, reverseLookupZones, outputDir)
 	if err != nil {
 		return fmt.Errorf("Error generating reverse lookup zone files: %w", err)
 	}
@@ -79,10 +81,11 @@ func reverseZoneName(ip string) string {
 		octets[i], octets[j] = octets[j], octets[i] // Swapping elements
 	}
 
-	return strings.Join(octets, ".") + ".in-addr.arpa"
+	// NOTE the zone must end with a dot (.) or it won't actually work, ORIGINs must be fully qualified!
+	return strings.Join(octets, ".") + ".in-addr.arpa."
 }
 
-func toReverseZoneFiles(zone *sourceyaml.Zone, reverseZones map[string]map[string]sourceyaml.ResourceRecord, outputDir string) error {
+func toReverseZoneFiles(forwardZone string, zone *sourceyaml.Zone, reverseZones map[string]map[string]sourceyaml.ResourceRecord, outputDir string) error {
 	funcMap := template.FuncMap{
 		"lastOctet": lastOctet,
 	}
@@ -100,7 +103,7 @@ func toReverseZoneFiles(zone *sourceyaml.Zone, reverseZones map[string]map[strin
 		defer outputFile.Close()
 
 		fmt.Printf("Generating %s for reverse lookup zone %s\n", outputFile.Name(), name)
-		err = template.Execute(outputFile, ReverseZoneTemplateData{Name: name, Zone: zone, ResourceRecords: resourceRecords})
+		err = template.Execute(outputFile, ReverseZoneTemplateData{Name: name, Zone: zone, ResourceRecords: resourceRecords, ForwardZone: forwardZone})
 	}
 
 	return nil
