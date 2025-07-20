@@ -16,23 +16,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package zonefile
 
-import (
-	"fmt"
+import _ "embed"
 
-	"github.com/bcurnow/zonemgr/sourceyaml"
-)
+//go:embed zonefile.tmpl
+var zoneFileTemplate string
 
-func ToZoneFiles(zones map[string]*sourceyaml.Zone, outputDir string) error {
-	for name, zone := range zones {
-		GenerateZone(name, zone, outputDir)
-
-		if zone.GenerateReverseLookupZones {
-			fmt.Printf("Zone %s has generate reverse lookup zones turned on...\n", name)
-			err := GenerateReverseLookupZones(zone, outputDir)
-			if err != nil {
-				return fmt.Errorf("Unable to generate reverse lookup zones for zone %s: %w\n", name, err)
-			}
-		}
-	}
-	return nil
-}
+//go:embed reversezonefile.tmpl
+var reverseZoneFileTemplate string

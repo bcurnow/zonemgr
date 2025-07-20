@@ -31,7 +31,7 @@ type ZoneTemplateData struct {
 }
 
 func GenerateZone(name string, zone *sourceyaml.Zone, outputDir string) error {
-	template, err := template.ParseFiles("zonefile/zonefile.tmpl")
+	zoneFileTemplate, err := template.New("zonefile.tmpl").Parse(zoneFileTemplate)
 	if err != nil {
 		return fmt.Errorf("Failed to parse template: %w", err)
 	}
@@ -43,7 +43,7 @@ func GenerateZone(name string, zone *sourceyaml.Zone, outputDir string) error {
 	defer outputFile.Close()
 
 	fmt.Printf("Generating %s for zone %s\n", outputFile.Name(), name)
-	err = template.Execute(outputFile, ZoneTemplateData{Name: name, Zone: zone})
+	err = zoneFileTemplate.Execute(outputFile, ZoneTemplateData{Name: name, Zone: zone})
 	if err != nil {
 		return fmt.Errorf("Failed to execute template for zone %s: %w", name, err)
 	}

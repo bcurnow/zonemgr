@@ -75,7 +75,7 @@ func NormalizeZone(zone *Zone) error {
 
 		serial, err := generateSerial(index)
 		if err != nil {
-			return fmt.Errorf("Unable to generate serial: %s", err)
+			return fmt.Errorf("Unable to generate serial: %w", err)
 		}
 		zone.Serial = serial
 	} else {
@@ -270,7 +270,7 @@ func generateSerial(index uint32) (uint32, error) {
 
 	parsedSerial, err := strconv.ParseUint(serialString, 10, 32)
 	if err != nil {
-		return 0, fmt.Errorf("Unable to generate a serial number from day: %d, month: %d, year: %d, changeIndex: %d: %s", t.Day(), t.Month(), t.Year(), index, err)
+		return 0, fmt.Errorf("Unable to generate a serial number from day: %d, month: %d, year: %d, changeIndex: %d: %w", t.Day(), t.Month(), t.Year(), index, err)
 	}
 
 	// Explicitly convert to a uint32

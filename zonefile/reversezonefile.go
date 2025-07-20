@@ -39,7 +39,7 @@ func GenerateReverseLookupZones(zone *sourceyaml.Zone, outputDir string) error {
 	// Write the various reverse lookup zone file
 	err := toReverseZoneFiles(zone, reverseLookupZones, outputDir)
 	if err != nil {
-		return fmt.Errorf("Error generating reverse lookup zone files: %s", err)
+		return fmt.Errorf("Error generating reverse lookup zone files: %w", err)
 	}
 	return nil
 }
@@ -87,7 +87,7 @@ func toReverseZoneFiles(zone *sourceyaml.Zone, reverseZones map[string]map[strin
 		"lastOctet": lastOctet,
 	}
 
-	template, err := template.New("reversezonefile.tmpl").Funcs(funcMap).ParseFiles("zonefile/reversezonefile.tmpl")
+	template, err := template.New("reversezonefile.tmpl").Funcs(funcMap).Parse(reverseZoneFileTemplate)
 	if err != nil {
 		return fmt.Errorf("Failed to parse template: %w", err)
 	}
