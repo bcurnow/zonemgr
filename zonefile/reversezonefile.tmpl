@@ -11,7 +11,7 @@ $TTL {{ .Zone.TTL.Value }}{{ if .Zone.TTL.Comment }} ; {{ .Zone.TTL.Comment }}{{
 )
 {{- range $name, $record := .ResourceRecords }}
 {{- with $record }}
-{{ printf "%-40s" (lastOctet .Value) }} {{ if .TTL }}{{ .TTL }} {{ end }}{{ if .Class }}{{ .Class }} {{ end }}{{ printf "%-6s" "PTR" }} {{ $name }}{{ if .Comment }} ; {{ .Comment }}{{ end }}
+{{ printf "%-40s" (lastOctet .Value) }} {{ if .TTL }}{{ .TTL }} {{ end }}{{ if .Class }}{{ .Class }} {{ end }}{{ printf "%-6s" "PTR" }} {{ $name }}.{{ $.ForwardZone }}{{ if .Comment }} ; {{ .Comment }}{{ end }}
 {{- end }}
 {{- end }}
 

@@ -28,7 +28,7 @@ func ToZoneFiles(zones map[string]*sourceyaml.Zone, outputDir string) error {
 
 		if zone.GenerateReverseLookupZones {
 			fmt.Printf("Zone %s has generate reverse lookup zones turned on...\n", name)
-			err := GenerateReverseLookupZones(zone, outputDir)
+			err := GenerateReverseLookupZones(name, zone, outputDir)
 			if err != nil {
 				return fmt.Errorf("Unable to generate reverse lookup zones for zone %s: %w\n", name, err)
 			}
