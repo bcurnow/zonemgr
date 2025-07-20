@@ -18,21 +18,66 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
+	parse "github.com/bcurnow/zonemgr/sourceyaml"
+	"github.com/bcurnow/zonemgr/zonefile"
 
 	"github.com/spf13/cobra"
 )
 
-var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generates a BIND zone file from YAML input",
-	Long:  `Generates a BIND zone file from YAML input.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("generate called")
-	},
+var (
+	generateCmd = &cobra.Command{
+		Use:   "generate",
+		Short: "Generates a BIND zone file from YAML input",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return generateZoneFile()
+		},
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			absOutputDir, err := filepath.Abs(outputDir)
+			if err != nil {
+				fmt.Printf("Failed to resolve output directory %s: %v\n", outputDir, err)
+				os.Exit(1)
+			}
+			outputDir = absOutputDir
+
+			absInput, err := filepath.Abs(inputFile)
+			if err != nil {
+				fmt.Printf("Failed to resolve input file %s: %v\n", inputFile, err)
+				os.Exit(1)
+			}
+			inputFile = absInput
+		},
+	}
+
+	inputFile string
+	outputDir string
+)
+
+func generateZoneFile() error {
+	fmt.Printf("Generating BIND zone file(s) to directory %s using %s\n", outputDir, inputFile)
+	inputBytes, err := os.ReadFile(inputFile)
+	if err != nil {
+		return fmt.Errorf("Failed to open input file %s: %w", inputFile, err)
+	}
+
+	zones, err := parse.ToZones(inputBytes)
+	if err != nil {
+		return fmt.Errorf("Failed to parse input file %s: %w", inputFile, err)
+
+	}
+
+	err = zonefile.ToZoneFiles(zones, outputDir)
+	if err != nil {
+		return fmt.Errorf("Failed to generate zone files: %w", err)
+	}
+
+	return nil
 }
 
 func init() {
-	generateCmd.Flags().StringP("input", "i", "", "Input YAML file")
-	generateCmd.Flags().StringP("output", "o", "", "Output BIND zone file")
+	generateCmd.Flags().StringVarP(&inputFile, "input", "i", "zones.yaml", "Input YAML file")
+	generateCmd.Flags().StringVarP(&outputDir, "outputDir", "d", ".", "Directory to output the BIND zone file(s) to")
 	rootCmd.AddCommand(generateCmd)
 }
