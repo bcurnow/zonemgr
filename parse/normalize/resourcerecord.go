@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package zonefile
+package normalize
 
 import (
 	"fmt"
@@ -22,17 +22,16 @@ import (
 	"github.com/bcurnow/zonemgr/parse/schema"
 )
 
-func ToZoneFiles(zones map[string]*schema.Zone, outputDir string, zonefileTemplate string, reverseZoneFileTemplate string) error {
-	for name, zone := range zones {
-		generateZone(name, zone, outputDir, zonefileTemplate)
-
-		if zone.GenerateReverseLookupZones {
-			fmt.Printf("Zone %s has generate reverse lookup zones turned on...\n", name)
-			err := generateReverseLookupZones(name, zone, outputDir, reverseZoneFileTemplate)
-			if err != nil {
-				return fmt.Errorf("Unable to generate reverse lookup zones for zone %s: %w\n", name, err)
-			}
-		}
+// Handles all the different resource record types
+func normlizeResourceRecord(name string, record *schema.ResourceRecord, resourceRecords map[string]schema.ResourceRecord) error {
+	switch record.Type {
+	case "NS":
+		return normalizeNSRecord(name, record)
+	case "A":
+		return normalizeARecord(name, record)
+	case "CNAME":
+		return normalizeCNAMERecord(name, record, resourceRecords)
+	default:
+		return fmt.Errorf("Unsupported resource record type: %s", record.Type)
 	}
-	return nil
 }

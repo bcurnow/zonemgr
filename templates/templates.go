@@ -14,25 +14,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package zonefile
+package templates
 
-import (
-	"fmt"
+import _ "embed"
 
-	"github.com/bcurnow/zonemgr/parse/schema"
-)
+//go:embed zonefile.tmpl
+var DefaultZoneFileTemplate string
 
-func ToZoneFiles(zones map[string]*schema.Zone, outputDir string, zonefileTemplate string, reverseZoneFileTemplate string) error {
-	for name, zone := range zones {
-		generateZone(name, zone, outputDir, zonefileTemplate)
-
-		if zone.GenerateReverseLookupZones {
-			fmt.Printf("Zone %s has generate reverse lookup zones turned on...\n", name)
-			err := generateReverseLookupZones(name, zone, outputDir, reverseZoneFileTemplate)
-			if err != nil {
-				return fmt.Errorf("Unable to generate reverse lookup zones for zone %s: %w\n", name, err)
-			}
-		}
-	}
-	return nil
-}
+//go:embed reversezonefile.tmpl
+var DefaultReverseZoneFileTemplate string

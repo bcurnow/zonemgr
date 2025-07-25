@@ -15,7 +15,6 @@ $TTL {{ .Zone.TTL.Value }}{{ if .Zone.TTL.Comment }} ; {{ .Zone.TTL.Comment }}{{
 {{- with $record }}
 {{- if eq .Type "NS" }}
 {{ if .Value }}{{ printf "%-40s" .Value }} {{ else }}{{ printf "%-40s" ""}} {{ end }}{{ if .TTL }}{{ .TTL }} {{ end }}{{if .Class }}{{ .Class }} {{ end }}{{ printf "%-6s" .Type }} {{ $name }}{{ if .Comment }} ; {{ .Comment }}{{ end }}
-{{- else }}
 {{ printf "%-40s" $name }} {{ if .TTL }}{{ .TTL }} {{ end }}{{ if .Class }}{{ .Class }} {{ end }}{{ printf "%-6s" .Type }} {{ .Value }}{{ if .Comment }} ; {{ .Comment }}{{ end }}
 {{- end }}
 {{- end }}

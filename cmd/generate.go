@@ -18,10 +18,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
-	parse "github.com/bcurnow/zonemgr/sourceyaml"
+	"github.com/bcurnow/zonemgr/parse"
+	"github.com/bcurnow/zonemgr/templates"
 	"github.com/bcurnow/zonemgr/zonefile"
 
 	"github.com/spf13/cobra"
@@ -34,41 +33,29 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return generateZoneFile()
 		},
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			absOutputDir, err := filepath.Abs(outputDir)
-			if err != nil {
-				fmt.Printf("Failed to resolve output directory %s: %v\n", outputDir, err)
-				os.Exit(1)
-			}
-			outputDir = absOutputDir
-
-			absInput, err := filepath.Abs(inputFile)
-			if err != nil {
-				fmt.Printf("Failed to resolve input file %s: %v\n", inputFile, err)
-				os.Exit(1)
-			}
-			inputFile = absInput
+		PreRun: func(cmd *cobra.Command, args []string) {
+			outputDir = toAbsoluteFilePath(outputDir, "output directory")
+			inputFile = toAbsoluteFilePath(inputFile, "input file")
+			zonefileTemplate = templateContent(zonefileTemplate, "zonefile template", templates.DefaultZoneFileTemplate)
+			reverseZonefileTemplate = templateContent(reverseZonefileTemplate, "reverse zonefile template", templates.DefaultReverseZoneFileTemplate)
 		},
 	}
 
-	inputFile string
-	outputDir string
+	inputFile               string
+	outputDir               string
+	zonefileTemplate        string
+	reverseZonefileTemplate string
 )
 
 func generateZoneFile() error {
 	fmt.Printf("Generating BIND zone file(s) to directory %s using %s\n", outputDir, inputFile)
-	inputBytes, err := os.ReadFile(inputFile)
-	if err != nil {
-		return fmt.Errorf("Failed to open input file %s: %w", inputFile, err)
-	}
-
-	zones, err := parse.ToZones(inputBytes)
+	zones, err := parse.ToZones(inputFile)
 	if err != nil {
 		return fmt.Errorf("Failed to parse input file %s: %w", inputFile, err)
 
 	}
 
-	err = zonefile.ToZoneFiles(zones, outputDir)
+	err = zonefile.ToZoneFiles(zones, outputDir, zonefileTemplate, reverseZonefileTemplate)
 	if err != nil {
 		return fmt.Errorf("Failed to generate zone files: %w", err)
 	}
@@ -78,6 +65,10 @@ func generateZoneFile() error {
 
 func init() {
 	generateCmd.Flags().StringVarP(&inputFile, "input", "i", "zones.yaml", "Input YAML file")
+	generateCmd.MarkFlagRequired("input")
 	generateCmd.Flags().StringVarP(&outputDir, "outputDir", "d", ".", "Directory to output the BIND zone file(s) to")
+	generateCmd.MarkFlagRequired("outputDir")
+	generateCmd.Flags().StringVarP(&zonefileTemplate, "zonefileTemplate", "z", "", "The go-lang template file to use to generate a zonefile, if unset will use a default template")
+	generateCmd.Flags().StringVarP(&reverseZonefileTemplate, "reverseZonefileTemplate", "r", "", "The go-lang template file to use to generate a reverse zonefile, if unset will use a default template")
 	rootCmd.AddCommand(generateCmd)
 }

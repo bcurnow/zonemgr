@@ -14,25 +14,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package zonefile
+package schema
 
-import (
-	"fmt"
-
-	"github.com/bcurnow/zonemgr/parse/schema"
-)
-
-func ToZoneFiles(zones map[string]*schema.Zone, outputDir string, zonefileTemplate string, reverseZoneFileTemplate string) error {
-	for name, zone := range zones {
-		generateZone(name, zone, outputDir, zonefileTemplate)
-
-		if zone.GenerateReverseLookupZones {
-			fmt.Printf("Zone %s has generate reverse lookup zones turned on...\n", name)
-			err := generateReverseLookupZones(name, zone, outputDir, reverseZoneFileTemplate)
-			if err != nil {
-				return fmt.Errorf("Unable to generate reverse lookup zones for zone %s: %w\n", name, err)
-			}
-		}
-	}
-	return nil
+// A generic type that can represent a variety of records types as many follow this specific format (A, CNAME, etc.	)
+type ResourceRecord struct {
+	Type    string `yaml:"type"`
+	Class   string `yaml:"class,omitempty"`
+	Value   string `yaml:"value"`
+	TTL     int64  `yaml:"ttl,omitempty"`
+	Comment string `yaml:"comment,omitempty"`
 }

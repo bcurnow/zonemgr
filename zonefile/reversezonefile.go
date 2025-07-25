@@ -23,23 +23,23 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/bcurnow/zonemgr/sourceyaml"
+	"github.com/bcurnow/zonemgr/parse/schema"
 )
 
-type ReverseZoneTemplateData struct {
+type reverseZoneTemplateData struct {
 	Name            string
 	ForwardZone     string // This is the name of the original zone (e.g. example.com.) that we're creating the reverse zone for
-	Zone            *sourceyaml.Zone
-	ResourceRecords map[string]sourceyaml.ResourceRecord
+	Zone            *schema.Zone
+	ResourceRecords map[string]schema.ResourceRecord
 }
 
 // Generates a set of reverse zone files for the specific forward zone
-func GenerateReverseLookupZones(forwardZone string, zone *sourceyaml.Zone, outputDir string) error {
+func generateReverseLookupZones(forwardZone string, zone *schema.Zone, outputDir string, tmpl string) error {
 	// Convert the full set of resource records for this zone into a set of reverse lookup zones
 	reverseLookupZones := toReverseZones(zone.ResourceRecords)
 
 	// Write the various reverse lookup zone file
-	err := toReverseZoneFiles(forwardZone, zone, reverseLookupZones, outputDir)
+	err := toReverseZoneFiles(forwardZone, zone, reverseLookupZones, outputDir, tmpl)
 	if err != nil {
 		return fmt.Errorf("Error generating reverse lookup zone files: %w", err)
 	}
@@ -47,8 +47,8 @@ func GenerateReverseLookupZones(forwardZone string, zone *sourceyaml.Zone, outpu
 }
 
 // Takes a map of resource records and returns a set of reverse lookup zone names with only the necessary ResourceRecords ("A" records) included
-func toReverseZones(resourceRecords map[string]sourceyaml.ResourceRecord) map[string]map[string]sourceyaml.ResourceRecord {
-	reverseLookupZones := make(map[string]map[string]sourceyaml.ResourceRecord)
+func toReverseZones(resourceRecords map[string]schema.ResourceRecord) map[string]map[string]schema.ResourceRecord {
+	reverseLookupZones := make(map[string]map[string]schema.ResourceRecord)
 	for name, record := range resourceRecords {
 		if record.Type == "A" {
 			records := initReverseLookupZone(reverseZoneName(record.Value), reverseLookupZones)
@@ -59,10 +59,10 @@ func toReverseZones(resourceRecords map[string]sourceyaml.ResourceRecord) map[st
 	return reverseLookupZones
 }
 
-func initReverseLookupZone(name string, reverseLookupZones map[string]map[string]sourceyaml.ResourceRecord) map[string]sourceyaml.ResourceRecord {
+func initReverseLookupZone(name string, reverseLookupZones map[string]map[string]schema.ResourceRecord) map[string]schema.ResourceRecord {
 	_, valid := reverseLookupZones[name]
 	if !valid {
-		reverseLookupRecords := make(map[string]sourceyaml.ResourceRecord)
+		reverseLookupRecords := make(map[string]schema.ResourceRecord)
 		reverseLookupZones[name] = reverseLookupRecords
 		return reverseLookupRecords
 	}
@@ -85,12 +85,12 @@ func reverseZoneName(ip string) string {
 	return strings.Join(octets, ".") + ".in-addr.arpa."
 }
 
-func toReverseZoneFiles(forwardZone string, zone *sourceyaml.Zone, reverseZones map[string]map[string]sourceyaml.ResourceRecord, outputDir string) error {
+func toReverseZoneFiles(forwardZone string, zone *schema.Zone, reverseZones map[string]map[string]schema.ResourceRecord, outputDir string, tmpl string) error {
 	funcMap := template.FuncMap{
 		"lastOctet": lastOctet,
 	}
 
-	template, err := template.New("reversezonefile.tmpl").Funcs(funcMap).Parse(reverseZoneFileTemplate)
+	template, err := template.New("reversezonefile.tmpl").Funcs(funcMap).Parse(tmpl)
 	if err != nil {
 		return fmt.Errorf("Failed to parse template: %w", err)
 	}
@@ -103,7 +103,7 @@ func toReverseZoneFiles(forwardZone string, zone *sourceyaml.Zone, reverseZones 
 		defer outputFile.Close()
 
 		fmt.Printf("Generating %s for reverse lookup zone %s\n", outputFile.Name(), name)
-		err = template.Execute(outputFile, ReverseZoneTemplateData{Name: name, Zone: zone, ResourceRecords: resourceRecords, ForwardZone: forwardZone})
+		err = template.Execute(outputFile, reverseZoneTemplateData{Name: name, Zone: zone, ResourceRecords: resourceRecords, ForwardZone: forwardZone})
 	}
 
 	return nil

@@ -37,22 +37,22 @@ example.com.: # This will be the ORIGIN, must be fully qualified domain name (FQ
       value: '@' # For NS records, this is really optional, @ is the ORIGIN
       class: IN # will default to IN if not specified
       ttl: 21600 # optional TTL for this record
-      comment:
+      comment: The first name server
     ns2.example.com.: # another authoritative nameserver for this zone
       type: NS
       value: '@' # For NS records, this is really optional, @ is the ORIGIN
       class: IN # will default to IN if not specified
       ttl: 21600 # optional TTL for this record
-      comment:
+      comment: The second nameserver
     www: # the short name, for example, to setup www.example.com the short name would be www, this can also be '@' for the root domain
       type: A
       class: IN # Optional
       value: 1.2.3.4 # the IP address for this record
       ttl: 14400 # optional TTL for this record
-      comment:
+      comment: The website
     base: # the short name, for example, to setup a CNAME for base.example.com the short name would be base
       type: CNAME
       class: IN
       value: www # must be a name defined within this zone, it can not be an IP, this will be validated
-      comment:
+      comment: The website alias
       ttl: 14400 # optional TTL for this record

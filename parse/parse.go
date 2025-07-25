@@ -14,30 +14,38 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package sourceyaml
+package parse
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/bcurnow/zonemgr/parse/normalize"
+	"github.com/bcurnow/zonemgr/parse/schema"
 	"gopkg.in/yaml.v3"
 )
 
-func ToZones(inputBytes []byte) (map[string]*Zone, error) {
+func ToZones(input string) (map[string]*schema.Zone, error) {
+	inputBytes, err := os.ReadFile(input)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open input %s: %w", input, err)
+	}
+
 	zones, err := unmarshal(inputBytes)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal input bytes: %w", err)
 	}
 
 	// Normalize the zones
-	err = Normalize(zones)
+	err = normalize.Normalize(zones)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to normalize zones: %w", err)
 	}
 	return zones, nil
 }
 
-func unmarshal(inputBytes []byte) (map[string]*Zone, error) {
-	var zones map[string]*Zone
+func unmarshal(inputBytes []byte) (map[string]*schema.Zone, error) {
+	var zones map[string]*schema.Zone
 	err := yaml.Unmarshal(inputBytes, &zones)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse input YAML: %w", err)

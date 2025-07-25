@@ -14,28 +14,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package sourceyaml
+package schema
 
 import "sort"
-
-// Defines the structs which are necessary to parse the YAML. For an example of the YAML format, see examples/zones.yaml.:
-
-// Represents the overall Zone file structure, the YAML file is an array of these
-type Zone struct {
-	TTL                        ZoneValue                 `yaml:"ttl"`
-	Class                      string                    `yaml:"class,omitempty"`
-	Nameserver                 string                    `yaml:"nameserver"`
-	Administrator              string                    `yaml:"administrator"`
-	Refresh                    ZoneValue                 `yaml:"refresh"`
-	Retry                      ZoneValue                 `yaml:"retry"`
-	Expire                     ZoneValue                 `yaml:"expire"`
-	Minimum                    ZoneValue                 `yaml:"minimum"`
-	Serial                     uint32                    `yaml:"serial,omitempty"`
-	GenerateSerial             bool                      `yaml:"generate_serial,omitempty"`
-	SerialChangeIndex          uint32                    `yaml:"serial_change_index"`
-	GenerateReverseLookupZones bool                      `yaml:"generate_reverse_lookup_zones,omitempty"`
-	ResourceRecords            map[string]ResourceRecord `yaml:"resource_records,omitempty"`
-}
 
 // A generic type to hold an integer value and a comment as many of the Zone fields allow for this
 type ZoneValue struct {
@@ -43,15 +24,7 @@ type ZoneValue struct {
 	Comment string `yaml:"comment"`
 }
 
-// A generic type that can represent a variety of records types as many follow this specific format (A, CNAME, etc.	)
-type ResourceRecord struct {
-	Type    string `yaml:"type"`
-	Class   string `yaml:"class,omitempty"`
-	Value   string `yaml:"value"`
-	TTL     int64  `yaml:"ttl,omitempty"`
-	Comment string `yaml:"comment,omitempty"`
-}
-
+// Defines the order in which the records will be sorted in the zonefile
 var resourceRecordTypeSortOrder = []string{
 	"NS", "A", "CNAME",
 }

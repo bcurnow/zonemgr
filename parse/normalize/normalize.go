@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package zonefile
+package normalize
 
 import (
 	"fmt"
@@ -22,17 +22,24 @@ import (
 	"github.com/bcurnow/zonemgr/parse/schema"
 )
 
-func ToZoneFiles(zones map[string]*schema.Zone, outputDir string, zonefileTemplate string, reverseZoneFileTemplate string) error {
+// This function reviews various types of records to ensure that there are no errors that the YAML parser can't catch
+// For example, not ending a value with a '.', using an IP vs a name in a CNAME record, etc.
+func Normalize(zones map[string]*schema.Zone) error {
 	for name, zone := range zones {
-		generateZone(name, zone, outputDir, zonefileTemplate)
-
-		if zone.GenerateReverseLookupZones {
-			fmt.Printf("Zone %s has generate reverse lookup zones turned on...\n", name)
-			err := generateReverseLookupZones(name, zone, outputDir, reverseZoneFileTemplate)
-			if err != nil {
-				return fmt.Errorf("Unable to generate reverse lookup zones for zone %s: %w\n", name, err)
-			}
+		// Check the zone name
+		err := isFullyQualified(name)
+		if err != nil {
+			return fmt.Errorf("Invalid zone name %s: %w", name, err)
 		}
+
+		// Check the remaining fields in the zone
+		err = NormalizeZone(zone)
+		if err != nil {
+			return fmt.Errorf("Failed to normalize zone %s: %w", name, err)
+		}
+
+		zones[name] = zone
 	}
+
 	return nil
 }

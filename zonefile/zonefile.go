@@ -22,16 +22,16 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/bcurnow/zonemgr/sourceyaml"
+	"github.com/bcurnow/zonemgr/parse/schema"
 )
 
-type ZoneTemplateData struct {
+type zoneTemplateData struct {
 	Name string
-	Zone *sourceyaml.Zone
+	Zone *schema.Zone
 }
 
-func GenerateZone(name string, zone *sourceyaml.Zone, outputDir string) error {
-	zoneFileTemplate, err := template.New("zonefile.tmpl").Parse(zoneFileTemplate)
+func generateZone(name string, zone *schema.Zone, outputDir string, tmpl string) error {
+	zoneFileTemplate, err := template.New("zonefile.tmpl").Parse(tmpl)
 	if err != nil {
 		return fmt.Errorf("Failed to parse template: %w", err)
 	}
@@ -43,7 +43,7 @@ func GenerateZone(name string, zone *sourceyaml.Zone, outputDir string) error {
 	defer outputFile.Close()
 
 	fmt.Printf("Generating %s for zone %s\n", outputFile.Name(), name)
-	err = zoneFileTemplate.Execute(outputFile, ZoneTemplateData{Name: name, Zone: zone})
+	err = zoneFileTemplate.Execute(outputFile, zoneTemplateData{Name: name, Zone: zone})
 	if err != nil {
 		return fmt.Errorf("Failed to execute template for zone %s: %w", name, err)
 	}
