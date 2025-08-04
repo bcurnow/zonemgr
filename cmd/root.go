@@ -17,15 +17,25 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 
+	"github.com/bcurnow/zonemgr/logging"
+	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "zonemgr",
 	Short: "Converts YAML files to BIND zone files.",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		setupLogging()
+	},
 }
+
+var logLevel string
+var logger = logging.Logger()
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -37,4 +47,25 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info", "The log level (trace, debug, info, warn, error, fatal), not case sensitive")
+}
+
+func setupLogging() {
+	logger.SetLevel(hclog.LevelFromString(logLevel))
+
+	if logger.GetLevel() == hclog.NoLevel {
+		// Default to Warn
+		logger.SetLevel(hclog.Info)
+		logger.Error("Invalid log level specified, defaulting to Info", "LogLevel", logLevel)
+	}
+	logger.Trace("Log level set", "level", logLevel)
+}
+
+func toAbsoluteFilePath(path string, name string) string {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		fmt.Printf("Failed to resolve %s %s: %v\n", name, path, err)
+		os.Exit(1)
+	}
+	return absPath
 }

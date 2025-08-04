@@ -20,24 +20,26 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bcurnow/zonemgr/parse/normalize"
-	"github.com/bcurnow/zonemgr/parse/schema"
+	"github.com/bcurnow/zonemgr/schema"
 	"gopkg.in/yaml.v3"
 )
 
-func ToZones(input string) (map[string]*schema.Zone, error) {
-	inputBytes, err := os.ReadFile(input)
+func ToZones(inputFile string) (map[string]*schema.Zone, error) {
+	logger.Debug("Opening input file", "inputFile", inputFile)
+	inputBytes, err := os.ReadFile(inputFile)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open input %s: %w", input, err)
+		return nil, fmt.Errorf("Failed to open input %s: %w", inputFile, err)
 	}
 
+	logger.Debug("Unmarshaling YAML", "inputFile", inputFile)
 	zones, err := unmarshal(inputBytes)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal input bytes: %w", err)
 	}
 
 	// Normalize the zones
-	err = normalize.Normalize(zones)
+	logger.Debug("Normalizing the zones", "inputFile", inputFile, "zoneCount", len(zones))
+	zones, err = normalize(zones)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to normalize zones: %w", err)
 	}

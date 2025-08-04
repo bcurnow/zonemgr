@@ -14,33 +14,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package cmd
+package schema
 
-import (
-	"fmt"
-	"os"
-	"path/filepath"
-)
-
-func toAbsoluteFilePath(path string, name string) string {
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		fmt.Printf("Failed to resolve %s %s: %v\n", name, path, err)
-		os.Exit(1)
-	}
-	return absPath
-}
-
-func templateContent(path string, name string, defaultContent string) string {
-	if path != "" {
-		path = toAbsoluteFilePath(path, name)
-		contentBytes, err := os.ReadFile(path)
-		if err != nil {
-			fmt.Printf("Failed to read %s %s: %v\n", name, path, err)
-			os.Exit(1)
-		}
-
-		return string(contentBytes)
-	}
-	return defaultContent
+type Config struct {
+	GenerateSerial             bool   `yaml:"generate_serial"`
+	SerialChangeIndex          uint32 `yaml:"serial_change_index"`
+	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones"`
 }

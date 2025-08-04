@@ -1,0 +1,103 @@
+// Copyright (C) 2025 Brian Curnow
+// 
+// This file is part of zonemgr.
+// 
+// zonemgr is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// zonemgr is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
+syntax = "proto3";
+option go_package = "./plugins/proto";
+
+// Define the various schema objects
+message Config {
+  bool generate_serial = 1;
+  uint32 serial_change_index = 2;
+  bool generate_reverse_lookup_zones =3;
+}
+
+message ResourceRecordValue {
+  string value = 1;
+  string comment = 2;
+}
+
+message ResourceRecord {
+  string name = 1;
+  string type = 2;
+  string class = 3;
+  int32  ttl = 4;
+  repeated ResourceRecordValue values = 5;
+  string value = 6;
+  string comment = 7;
+}
+
+message TTL {
+  int32 ttl = 1;
+  string comment = 2;
+}
+
+message Zone {
+  Config config = 1;
+  repeated ResourceRecord resource_records = 2;
+  TTL ttl = 3;
+}
+
+message Empty {}
+
+message Error {
+  string message = 1;
+}
+
+message PluginVersionResponse {
+  string version = 1;
+}
+
+message PluginTypesSupportedResponse {
+  repeated string supportedTypes = 1;
+}
+
+message ConfigureRequest {
+  Config config = 1;
+}
+
+message NormalizeRequest {
+  string identifier = 1;
+  ResourceRecord resource_record = 2;
+}
+
+message NormalizeResponse {
+  ResourceRecord resource_record = 1;
+  string error = 2;
+}
+
+message ValidateZoneRequest {
+  string name = 1;
+  Zone zone = 2;
+}
+
+message RenderRequest {
+  string identifier = 1;
+  ResourceRecord resource_record = 2;
+}
+
+message RenderResonse {
+  string content = 1;
+  string error = 2;
+}
+
+service ZonemgrPlugin {
+  rpc PluginVersion(Empty) returns (PluginVersionResponse);
+  rpc PluginTypesSupported(Empty) returns (PluginTypesSupportedResponse);
+  rpc Configure(ConfigureRequest) returns (Error);
+  rpc Normalize(NormalizeRequest) returns (NormalizeResponse);
+  rpc ValidateZone(ValidateZoneRequest) returns (Error);
+  rpc Render(RenderRequest) returns (RenderResonse);
+}

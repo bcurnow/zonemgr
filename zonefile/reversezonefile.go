@@ -17,56 +17,60 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package zonefile
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
-	"text/template"
 
-	"github.com/bcurnow/zonemgr/parse/schema"
+	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/bcurnow/zonemgr/schema"
 )
 
-type reverseZoneTemplateData struct {
-	Name            string
-	ForwardZone     string // This is the name of the original zone (e.g. example.com.) that we're creating the reverse zone for
-	Zone            *schema.Zone
-	ResourceRecords map[string]schema.ResourceRecord
-}
-
 // Generates a set of reverse zone files for the specific forward zone
-func generateReverseLookupZones(forwardZone string, zone *schema.Zone, outputDir string, tmpl string) error {
+func generateReverseLookupZones(zone *schema.Zone, outputDir string) error {
 	// Convert the full set of resource records for this zone into a set of reverse lookup zones
-	reverseLookupZones := toReverseZones(zone.ResourceRecords)
+	reverseLookupZones := toReverseZones(zone)
 
-	// Write the various reverse lookup zone file
-	err := toReverseZoneFiles(forwardZone, zone, reverseLookupZones, outputDir, tmpl)
-	if err != nil {
-		return fmt.Errorf("Error generating reverse lookup zone files: %w", err)
+	for name, zone := range reverseLookupZones {
+		if err := generateZone(name, zone, outputDir); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-// Takes a map of resource records and returns a set of reverse lookup zone names with only the necessary ResourceRecords ("A" records) included
-func toReverseZones(resourceRecords map[string]schema.ResourceRecord) map[string]map[string]schema.ResourceRecord {
-	reverseLookupZones := make(map[string]map[string]schema.ResourceRecord)
-	for name, record := range resourceRecords {
-		if record.Type == "A" {
-			records := initReverseLookupZone(reverseZoneName(record.Value), reverseLookupZones)
-			records[name] = record
+// Converts a Zone to a a set of reverse lookup zones
+func toReverseZones(zone *schema.Zone) map[string]*schema.Zone {
+	reverseLookupZones := make(map[string]*schema.Zone)
+
+	for identifier, rr := range zone.ResourceRecords {
+		// We only care about A records as they're the ones we're trying to reverse
+		// TODO should we also reverse CNAMEs?
+		if rr.Type == "A" {
+			reverseZone, ok := reverseLookupZones[reverseZoneName(rr.Value)]
+			if !ok {
+				reverseZone = &schema.Zone{
+					TTL:             zone.TTL,
+					ResourceRecords: make(map[string]schema.ResourceRecord),
+				}
+				reverseLookupZones[reverseZoneName(rr.Value)] = reverseZone
+			}
+
+			ptr := toPTR(identifier, rr)
+			reverseZone.ResourceRecords[ptr.Name] = ptr
 		}
 	}
 
 	return reverseLookupZones
 }
 
-func initReverseLookupZone(name string, reverseLookupZones map[string]map[string]schema.ResourceRecord) map[string]schema.ResourceRecord {
-	_, valid := reverseLookupZones[name]
-	if !valid {
-		reverseLookupRecords := make(map[string]schema.ResourceRecord)
-		reverseLookupZones[name] = reverseLookupRecords
-		return reverseLookupRecords
+func toPTR(identifier string, rr schema.ResourceRecord) schema.ResourceRecord {
+	return schema.ResourceRecord{
+		Name:    lastOctet(rr.Value), //An A records Name/identifier should be an IP, the name of the PTR record is just the last octet
+		Type:    string(plugins.RecordPTR),
+		Class:   rr.Class,
+		TTL:     rr.TTL,
+		Values:  []schema.ResourceRecordValue{},
+		Value:   rr.Name,
+		Comment: rr.Comment,
 	}
-	return reverseLookupZones[name]
 }
 
 func reverseZoneName(ip string) string {
@@ -83,30 +87,6 @@ func reverseZoneName(ip string) string {
 
 	// NOTE the zone must end with a dot (.) or it won't actually work, ORIGINs must be fully qualified!
 	return strings.Join(octets, ".") + ".in-addr.arpa."
-}
-
-func toReverseZoneFiles(forwardZone string, zone *schema.Zone, reverseZones map[string]map[string]schema.ResourceRecord, outputDir string, tmpl string) error {
-	funcMap := template.FuncMap{
-		"lastOctet": lastOctet,
-	}
-
-	template, err := template.New("reversezonefile.tmpl").Funcs(funcMap).Parse(tmpl)
-	if err != nil {
-		return fmt.Errorf("Failed to parse template: %w", err)
-	}
-
-	for name, resourceRecords := range reverseZones {
-		outputFile, err := os.Create(filepath.Join(outputDir, name))
-		if err != nil {
-			return fmt.Errorf("Failed to create output file for reverse lookkup zone %s: %w", name, err)
-		}
-		defer outputFile.Close()
-
-		fmt.Printf("Generating %s for reverse lookup zone %s\n", outputFile.Name(), name)
-		err = template.Execute(outputFile, reverseZoneTemplateData{Name: name, Zone: zone, ResourceRecords: resourceRecords, ForwardZone: forwardZone})
-	}
-
-	return nil
 }
 
 // Retrieves the last octet of an IPv4 address

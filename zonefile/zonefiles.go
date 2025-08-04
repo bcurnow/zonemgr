@@ -19,16 +19,21 @@ package zonefile
 import (
 	"fmt"
 
-	"github.com/bcurnow/zonemgr/parse/schema"
+	"github.com/bcurnow/zonemgr/logging"
+	"github.com/bcurnow/zonemgr/schema"
 )
 
-func ToZoneFiles(zones map[string]*schema.Zone, outputDir string, zonefileTemplate string, reverseZoneFileTemplate string) error {
-	for name, zone := range zones {
-		generateZone(name, zone, outputDir, zonefileTemplate)
+var logger = logging.Logger().Named("zonefile")
 
-		if zone.GenerateReverseLookupZones {
-			fmt.Printf("Zone %s has generate reverse lookup zones turned on...\n", name)
-			err := generateReverseLookupZones(name, zone, outputDir, reverseZoneFileTemplate)
+func ToZoneFiles(zones map[string]*schema.Zone, outputDir string) error {
+	for name, zone := range zones {
+		if err := generateZone(name, zone, outputDir); err != nil {
+			return err
+		}
+
+		if zone.Config.GenerateReverseLookupZones {
+			logger.Debug("Zone has generate reverse lookup zones turned on", "zone", name)
+			err := generateReverseLookupZones(zone, outputDir)
 			if err != nil {
 				return fmt.Errorf("Unable to generate reverse lookup zones for zone %s: %w\n", name, err)
 			}
