@@ -111,7 +111,7 @@ There are some additional values that can be used to express arbitrary data:
 Zonemgr parses a YAML with the following format:
 
 ```yaml
-\<domain name\>: # The origin
+<domain name>: # The origin
   config:
     generate_serial: yes|no|true|false # If true, a serial number will be generated for you and any serial number specified will be ignored
     serial_change_index: integer # This value is only used if generate_serial is set to true, this value will be added to the end of the generated serial number to allow for multiple changes in the same day
@@ -120,14 +120,14 @@ Zonemgr parses a YAML with the following format:
     value: 14400
     comment: Optional 32 bit time interval in seconds, the default TTL for each resource record that doesn't explicitly define one
   resource_records: # The full collection of resource records
-    \<identifier\>: \<string\> # A unique name for the resource record. Some plugins may use this as the name field if 'name' is not present.
-      name: \<string\> # The name of the record
-      type: \<type\> # The resource record type, e.g. A, CNAME, SOA, NS, etc.
-      class: \<class\> # Typically IN, for the default plugins, this will default to IN if not specified
-      ttl: \<integer\> # optional 32 bit time intervale in seconds before this record should be refreshed
+    <identifier>: <string> # A unique name for the resource record. Some plugins may use this as the name field if 'name' is not present.
+      name: <string> # The name of the record
+      type: <type> # The resource record type, e.g. A, CNAME, SOA, NS, etc.
+      class: <class> # Typically IN, for the default plugins, this will default to IN if not specified
+      ttl: <integer> # optional 32 bit time intervale in seconds before this record should be refreshed
       values: # an arbibrary length set of values for the record, most resource records have a single value (e.g. for an A record it is the IP address of the host) but some, notably the SOA record, have a set of values
-       - value: \<string\> # The value for the record, some plugins can leverage the identifiedr if this is missing
-         comment: <\string\> # Optional comment for the value
+       - value: <string> # The value for the record, some plugins can leverage the identifiedr if this is missing
+         comment: <string> # Optional comment for the value
 ```
 
 #### <a name='Examples'></a>Examples
@@ -268,7 +268,7 @@ Minimal Example:
 
 ### <a name='Built-InPlugins'></a>Built-In Plugins
 
-The following are the built-in plugins which are provided out of the box, these plugins may be overridden:
+The following are the built-in plugins, these plugins may be overridden:
 
 * A
 * NS
@@ -278,34 +278,36 @@ The following are the built-in plugins which are provided out of the box, these 
 
 #### <a name='PluginBehavior'></a>Plugin Behavior
 
-* All 'comment's are optional.
-* All 'ttl's are optional.
-* All 'class'es are optional and, where necessary, will default to IN if not specified.
+The following describe the behaviors of the built-in plugins.
+
+* All `comment` elements are optional.
+* All `ttl` elements are optional.
+* All `class` elements are optional and, where necessary, will default to IN if not specified.
 * All dns name must be fully qualified, for example 'example.com.' and not just 'example.com'
-* Any resource record with a single value can use 'value' and 'comment' as a short cut
+* Any resource record with a single value can use the `value` and `comment` elements as a short cut
 
 ##### NS
 
-* The 'name' is optional, will default to "@" if not specified
+* The `name` element is optional, will default to "@" if not specified
 
 ##### SOA
 
-* The value elements are printed in order, so they must follow one of the following patterns:
+* The SOA resource record is a multi-value field. The values must be specified in one of the orders below:
   * With explicit serial number:
-    * MNAME
-    * RNAME
-    * SERIAL
-    * REFRESH
-    * RETRY
-    * EXPIRE
-    * NCACHE
+    * `MNAME`
+    * `RNAME`
+    * `SERIAL`
+    * `REFRESH`
+    * `RETRY`
+    * `EXPIRE`
+    * `NCACHE`
   * With generated serial number:
-    * MNAME
-    * RNAME
-    * REFRESH
-    * RETRY
-    * EXPIRE
-    * NCACHE
-* If 'generate_serial' is true but the explicit serial number is provided, it will be ignored.
+    * `MNAME`
+    * `RNAME`
+    * `REFRESH`
+    * `RETRY`
+    * `EXPIRE`
+    * `NCACHE`
+* If `generate_serial` is true but the explicit serial number is provided, it will be ignored.
 * The primary name server (MNAME) is a DNS name and therefore must be fully qualified (see above)
 * The administrator (RNAME) can either be specified as a valid email address (e.g. <admin@example.com>) or as the zone file specific format where the '@' is replaced by a dot ('.') (e.g. admin.example.com.). If using the latter, that's a specific name and needs to be fully qualified (see above)
