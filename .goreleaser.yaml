@@ -5,8 +5,11 @@ builds:
     - CGO_ENABLED=0
     goos: 
       - linux
+      - darwin
+      - windows
     goarch: 
       - amd64
+      - arm64
     ldflags: 
       - -s -w -X github.com/bcurnow/zonemgr/version.Version={{.Version}}
     mod_timestamp: "{{ .CommitTimestamp }}"
