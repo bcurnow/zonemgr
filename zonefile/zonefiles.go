@@ -19,11 +19,9 @@ package zonefile
 import (
 	"fmt"
 
-	"github.com/bcurnow/zonemgr/logging"
 	"github.com/bcurnow/zonemgr/schema"
+	"github.com/hashicorp/go-hclog"
 )
-
-var logger = logging.Logger().Named("zonefile")
 
 func ToZoneFiles(zones map[string]*schema.Zone, outputDir string) error {
 	for name, zone := range zones {
@@ -32,7 +30,7 @@ func ToZoneFiles(zones map[string]*schema.Zone, outputDir string) error {
 		}
 
 		if zone.Config.GenerateReverseLookupZones {
-			logger.Debug("Zone has generate reverse lookup zones turned on", "zone", name)
+			hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
 			err := generateReverseLookupZones(zone, outputDir)
 			if err != nil {
 				return fmt.Errorf("Unable to generate reverse lookup zones for zone %s: %w\n", name, err)

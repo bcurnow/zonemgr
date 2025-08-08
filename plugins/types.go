@@ -19,7 +19,14 @@
 
 package plugins
 
-import goplugin "github.com/hashicorp/go-plugin"
+import (
+	"context"
+
+	"github.com/bcurnow/zonemgr/plugins/proto"
+	"github.com/hashicorp/go-plugin"
+	goplugin "github.com/hashicorp/go-plugin"
+	"google.golang.org/grpc"
+)
 
 // This is the goplugin.Plugin implementation
 type Plugin struct {
@@ -27,7 +34,22 @@ type Plugin struct {
 	Impl TypeHandler
 }
 
-// Defines which plugins we can dispense, since we only have one plugin type, here it is.
-var PluginMap = map[string]goplugin.Plugin{
-	"zonemgrplugin": &Plugin{},
+func (p *Plugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) error {
+	proto.RegisterZonemgrPluginServer(server, &GRPCServer{Impl: p.Impl})
+	return nil
+}
+
+func (p *Plugin) GRPCClient(ctx context.Context, broker *goplugin.GRPCBroker, client *grpc.ClientConn) (interface{}, error) {
+	return &GRPCClient{client: proto.NewZonemgrPluginClient(client)}, nil
+}
+
+// Validate that we're correctly implenting goplugin.GRPCPlugin
+var _ goplugin.GRPCPlugin = &Plugin{}
+
+// Represents an instance of a plugin along with a bit of metadata
+type TypeHandlerPlugin struct {
+	IsBuiltIn  bool
+	PluginName string
+	PluginCmd  string
+	Plugin     TypeHandler
 }

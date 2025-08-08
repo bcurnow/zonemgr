@@ -46,21 +46,17 @@ message TTL {
 
 message Zone {
   Config config = 1;
-  repeated ResourceRecord resource_records = 2;
+  map<string, ResourceRecord> resource_records = 2;
   TTL ttl = 3;
 }
 
 message Empty {}
 
-message Error {
-  string message = 1;
-}
-
 message PluginVersionResponse {
   string version = 1;
 }
 
-message PluginTypesSupportedResponse {
+message PluginTypesResponse {
   repeated string supportedTypes = 1;
 }
 
@@ -75,7 +71,6 @@ message NormalizeRequest {
 
 message NormalizeResponse {
   ResourceRecord resource_record = 1;
-  string error = 2;
 }
 
 message ValidateZoneRequest {
@@ -90,14 +85,13 @@ message RenderRequest {
 
 message RenderResonse {
   string content = 1;
-  string error = 2;
 }
 
 service ZonemgrPlugin {
   rpc PluginVersion(Empty) returns (PluginVersionResponse);
-  rpc PluginTypesSupported(Empty) returns (PluginTypesSupportedResponse);
-  rpc Configure(ConfigureRequest) returns (Error);
+  rpc PluginTypes(Empty) returns (PluginTypesResponse);
+  rpc Configure(ConfigureRequest) returns (Empty);
   rpc Normalize(NormalizeRequest) returns (NormalizeResponse);
-  rpc ValidateZone(ValidateZoneRequest) returns (Error);
+  rpc ValidateZone(ValidateZoneRequest) returns (Empty);
   rpc Render(RenderRequest) returns (RenderResonse);
 }

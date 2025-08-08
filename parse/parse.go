@@ -21,24 +21,25 @@ import (
 	"os"
 
 	"github.com/bcurnow/zonemgr/schema"
+	"github.com/hashicorp/go-hclog"
 	"gopkg.in/yaml.v3"
 )
 
 func ToZones(inputFile string) (map[string]*schema.Zone, error) {
-	logger.Debug("Opening input file", "inputFile", inputFile)
+	hclog.L().Debug("Opening input file", "inputFile", inputFile)
 	inputBytes, err := os.ReadFile(inputFile)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open input %s: %w", inputFile, err)
 	}
 
-	logger.Debug("Unmarshaling YAML", "inputFile", inputFile)
+	hclog.L().Debug("Unmarshaling YAML", "inputFile", inputFile)
 	zones, err := unmarshal(inputBytes)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal input bytes: %w", err)
 	}
 
 	// Normalize the zones
-	logger.Debug("Normalizing the zones", "inputFile", inputFile, "zoneCount", len(zones))
+	hclog.L().Debug("Normalizing the zones", "inputFile", inputFile, "zoneCount", len(zones))
 	zones, err = normalize(zones)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to normalize zones: %w", err)

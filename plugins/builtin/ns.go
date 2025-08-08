@@ -36,12 +36,12 @@ var nsSupportedPluginTypes = []plugins.PluginType{plugins.RecordNS}
 
 type NSPlugin struct{}
 
-func (p *NSPlugin) PluginVersion() string {
-	return version.Version
+func (p *NSPlugin) PluginVersion() (string, error) {
+	return version.Version, nil
 }
 
-func (p *NSPlugin) PluginTypesSupported() []plugins.PluginType {
-	return nsSupportedPluginTypes
+func (p *NSPlugin) PluginTypes() ([]plugins.PluginType, error) {
+	return nsSupportedPluginTypes, nil
 }
 
 func (p *NSPlugin) Configure(config schema.Config) error {

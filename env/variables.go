@@ -22,9 +22,8 @@ package env
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
-
-	"github.com/bcurnow/zonemgr/logging"
 )
 
 const EnvPrefix = "ZONEMGR_"
@@ -39,14 +38,14 @@ var (
 	PLUGINS *Env = &Env{EnvName: EnvPrefix + "PLUGINS"}
 )
 
-var logger = logging.Logger().Named("env")
-
 func init() {
-	homeDir, err := os.UserHomeDir()
+	// Get the current user
+	user, err := user.Current()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Unable to determine user's home directory, can not continue")
+		fmt.Fprintf(os.Stderr, "Unable to determine the current user, can not continue")
 		os.Exit(1)
 	}
+	homeDir := user.HomeDir
 
 	PLUGINS.Value = defaultEnv(PLUGINS, filepath.Join(homeDir, ".local", "share", "yamlconv", "plugins"))
 }

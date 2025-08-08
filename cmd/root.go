@@ -23,6 +23,7 @@ import (
 
 	"github.com/bcurnow/zonemgr/logging"
 	"github.com/hashicorp/go-hclog"
+	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/spf13/cobra"
 )
 
@@ -32,10 +33,16 @@ var rootCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		setupLogging()
 	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		cleanup()
+	},
 }
 
 var logLevel string
-var logger = logging.Logger()
+var logJsonFormat bool
+var logTime bool
+var logColor bool
+var pluginDebug bool
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -48,17 +55,27 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info", "The log level (trace, debug, info, warn, error, fatal), not case sensitive")
+	rootCmd.PersistentFlags().BoolVarP(&logJsonFormat, "log-json", "j", false, "If set, enables JSON loggiing output")
+	rootCmd.PersistentFlags().BoolVarP(&logTime, "log-time", "t", false, "If set, prints the time on all the log messages")
+	rootCmd.PersistentFlags().BoolVarP(&logColor, "log-color", "c", true, "If set, prints the log messages in color where possible")
+	rootCmd.PersistentFlags().BoolVarP(&pluginDebug, "plugin-debug", "d", false, "If set, will including plugin stdout/stderr in the log messages")
 }
 
 func setupLogging() {
-	logger.SetLevel(hclog.LevelFromString(logLevel))
-
-	if logger.GetLevel() == hclog.NoLevel {
-		// Default to Warn
-		logger.SetLevel(hclog.Info)
-		logger.Error("Invalid log level specified, defaulting to Info", "LogLevel", logLevel)
+	if pluginDebug {
+		logging.EnablePluginDebug()
 	}
-	logger.Trace("Log level set", "level", logLevel)
+
+	level := hclog.LevelFromString(logLevel)
+
+	if level == hclog.NoLevel {
+		// Default to Warn
+		level = hclog.Info
+		hclog.L().Error("Invalid log level specified, defaulting to Info", "level", logLevel)
+	}
+	logging.ConfigureLogging(level, logJsonFormat, !logTime, logColor)
+	hclog.L().Trace("Log level set", "level", logLevel)
+
 }
 
 func toAbsoluteFilePath(path string, name string) string {
@@ -68,4 +85,10 @@ func toAbsoluteFilePath(path string, name string) string {
 		os.Exit(1)
 	}
 	return absPath
+}
+
+// Ensures that any created plugin clients are properly cleaned up
+func cleanup() {
+	hclog.L().Trace("Cleaning up the clients...")
+	goplugin.CleanupClients()
 }

@@ -37,12 +37,12 @@ type SOAPlugin struct {
 	config schema.Config
 }
 
-func (p *SOAPlugin) PluginVersion() string {
-	return version.Version
+func (p *SOAPlugin) PluginVersion() (string, error) {
+	return version.Version, nil
 }
 
-func (p *SOAPlugin) PluginTypesSupported() []plugins.PluginType {
-	return soaSupportedPluginTypes
+func (p *SOAPlugin) PluginTypes() ([]plugins.PluginType, error) {
+	return soaSupportedPluginTypes, nil
 }
 
 func (p *SOAPlugin) Configure(config schema.Config) error {

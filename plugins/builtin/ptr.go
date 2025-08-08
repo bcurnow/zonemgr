@@ -32,12 +32,12 @@ var ptrSupportedPluginTypes = []plugins.PluginType{plugins.RecordPTR}
 type PTRPlugin struct {
 }
 
-func (p *PTRPlugin) PluginVersion() string {
-	return version.Version
+func (p *PTRPlugin) PluginVersion() (string, error) {
+	return version.Version, nil
 }
 
-func (p *PTRPlugin) PluginTypesSupported() []plugins.PluginType {
-	return ptrSupportedPluginTypes
+func (p *PTRPlugin) PluginTypes() ([]plugins.PluginType, error) {
+	return ptrSupportedPluginTypes, nil
 }
 
 func (p *PTRPlugin) Configure(config schema.Config) error {

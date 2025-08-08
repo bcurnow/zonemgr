@@ -25,9 +25,9 @@ import (
 
 type TypeHandler interface {
 	// Returns the version of plugin
-	PluginVersion() string
+	PluginVersion() (string, error)
 	// Returns the set of plugin types that this plugin supports
-	PluginTypesSupported() []PluginType
+	PluginTypes() ([]PluginType, error)
 	// Allows for configuration of the plugin, this will be called once for each zone in the file
 	Configure(config schema.Config) error
 	// Allows for validation and normalization/defaulting for the resource record

@@ -29,17 +29,17 @@ import (
 )
 
 var _ plugins.TypeHandler = &APlugin{}
-var aSupportedPluginTypes = []plugins.PluginType{plugins.RecordA}
+var aPluginTypes = []plugins.PluginType{plugins.RecordA}
 
 type APlugin struct {
 }
 
-func (p *APlugin) PluginVersion() string {
-	return version.Version
+func (p *APlugin) PluginVersion() (string, error) {
+	return version.Version, nil
 }
 
-func (p *APlugin) PluginTypesSupported() []plugins.PluginType {
-	return aSupportedPluginTypes
+func (p *APlugin) PluginTypes() ([]plugins.PluginType, error) {
+	return aPluginTypes, nil
 }
 
 func (p *APlugin) Configure(config schema.Config) error {
@@ -48,7 +48,7 @@ func (p *APlugin) Configure(config schema.Config) error {
 }
 
 func (p *APlugin) Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error) {
-	if err := plugins.StandardValidations(identifier, &rr, aSupportedPluginTypes); err != nil {
+	if err := plugins.StandardValidations(identifier, &rr, aPluginTypes); err != nil {
 		return plugins.NilResourceRecord(), err
 	}
 
@@ -85,7 +85,7 @@ func (p *APlugin) ValidateZone(name string, zone schema.Zone) error {
 }
 
 func (p *APlugin) Render(identifier string, rr schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, &rr, aSupportedPluginTypes); err != nil {
+	if err := plugins.IsSupportedPluginType(identifier, &rr, aPluginTypes); err != nil {
 		return "", err
 	}
 

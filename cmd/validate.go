@@ -18,8 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"text/template"
 
 	"github.com/bcurnow/zonemgr/parse"
 	"github.com/spf13/cobra"
@@ -30,6 +28,10 @@ var (
 		Use:   "validate",
 		Short: "Validates the various files used by zonemgr",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			if rootCmd.PersistentPreRun != nil {
+				rootCmd.PersistentPreRun(cmd, args)
+			}
+
 			input = toAbsoluteFilePath(input, "input")
 		},
 	}
@@ -48,23 +50,6 @@ var (
 		},
 	}
 
-	validateTemplate = &cobra.Command{
-		Use:   "template",
-		Short: "Validates a go template file",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			templateContent, err := os.ReadFile(input)
-			if err != nil {
-				return fmt.Errorf("Unable to read %s: %v\n", input, err)
-			}
-			_, err = template.New("template").Parse(string(templateContent))
-			if err != nil {
-				return fmt.Errorf("Failed to parse template: %w", err)
-			}
-			fmt.Printf("%s is valid\n", input)
-			return nil
-		},
-	}
-
 	input string
 )
 
@@ -72,6 +57,5 @@ func init() {
 	validateCmd.PersistentFlags().StringVarP(&input, "input", "i", "", "The input file to validate")
 	validateCmd.MarkPersistentFlagRequired("input")
 	validateCmd.AddCommand(validateYamlCmd)
-	validateCmd.AddCommand(validateTemplate)
 	rootCmd.AddCommand(validateCmd)
 }

@@ -19,6 +19,8 @@
 
 package plugins
 
+import goplugin "github.com/hashicorp/go-plugin"
+
 // Defines the types of plugins which can be support
 type PluginType string
 
@@ -46,3 +48,10 @@ const (
 	ResourceRecordTypeFormatString             = "%-6s "
 	ResourceRecordMultivalueIndentFormatString = "%4s"
 )
+
+// This is the go-plugin handshake information that needs to be used for all plugins
+var HandshakeConfig = goplugin.HandshakeConfig{
+	ProtocolVersion:  1,
+	MagicCookieKey:   "ZONEMGR_PLUGIN",
+	MagicCookieValue: "BEA0CA21-AAC6-4EA8-BB29-4B6B2E39B1AE",
+}

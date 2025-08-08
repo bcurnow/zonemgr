@@ -16,7 +16,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package schema
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/bcurnow/zonemgr/plugins/proto"
+)
 
 // A generic type that can represent a variety of records types as many follow this specific format (A, CNAME, etc.	)
 type ResourceRecord struct {
@@ -29,9 +33,70 @@ type ResourceRecord struct {
 	Comment string                `yaml:"comment"`
 }
 
+func (rr ResourceRecord) ToProtoBuf() *proto.ResourceRecord {
+	var ttl int32 = -1
+	if rr.TTL != nil {
+		// We're using a negative number so we can check for it the other way as well and set appropriately
+		ttl = *rr.TTL
+	}
+	ret := &proto.ResourceRecord{
+		Name:    rr.Name,
+		Type:    rr.Type,
+		Class:   rr.Class,
+		Ttl:     ttl,
+		Value:   rr.Value,
+		Values:  rr.toProtoBufValues(),
+		Comment: rr.Comment,
+	}
+
+	return ret
+}
+
+func (rr ResourceRecord) FromProtoBuf(p *proto.ResourceRecord) ResourceRecord {
+	var ttl *int32 = nil
+	if p.Ttl != -1 {
+		ttl = &p.Ttl
+	}
+	return ResourceRecord{
+		Name:    p.Name,
+		Type:    p.Type,
+		Class:   p.Class,
+		TTL:     ttl,
+		Value:   p.Value,
+		Values:  rr.fromProtoBufValues(p.Values),
+		Comment: p.Comment,
+	}
+}
+
+func (rr ResourceRecord) toProtoBufValues() []*proto.ResourceRecordValue {
+	fmt.Println("In toProtoBufValues")
+	protoValues := make([]*proto.ResourceRecordValue, len(rr.Values))
+	for i, inputValue := range rr.Values {
+		protoValues[i] = &proto.ResourceRecordValue{Value: inputValue.Value, Comment: inputValue.Comment}
+	}
+	fmt.Println("Leaving toProtoBufValues")
+	return protoValues
+}
+
+func (rr ResourceRecord) fromProtoBufValues(p []*proto.ResourceRecordValue) []ResourceRecordValue {
+	values := make([]ResourceRecordValue, len(p))
+	for i, value := range p {
+		values[i] = ResourceRecordValue{Value: value.Value, Comment: value.Comment}
+	}
+	return values
+}
+
 type ResourceRecordValue struct {
 	Value   string `yaml:"value"`
 	Comment string `yaml:"comment"`
+}
+
+func (rrv ResourceRecordValue) ToProtoBuf() *proto.ResourceRecordValue {
+	return &proto.ResourceRecordValue{Value: rrv.Value, Comment: rrv.Comment}
+}
+
+func (rrv ResourceRecordValue) FromProtoBuf(p *proto.ResourceRecordValue) ResourceRecordValue {
+	return ResourceRecordValue{Value: p.Value, Comment: p.Comment}
 }
 
 // Defines the types of classes available in a zone file

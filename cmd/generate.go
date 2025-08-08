@@ -20,7 +20,9 @@ import (
 	"fmt"
 
 	"github.com/bcurnow/zonemgr/parse"
+	"github.com/bcurnow/zonemgr/plugins/manager"
 	"github.com/bcurnow/zonemgr/zonefile"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/spf13/cobra"
 )
@@ -35,6 +37,9 @@ var (
 		PreRun: func(cmd *cobra.Command, args []string) {
 			outputDir = toAbsoluteFilePath(outputDir, "output directory")
 			inputFile = toAbsoluteFilePath(inputFile, "input file")
+
+			// Make sure we load up all the plugins at the start
+			manager.Plugins()
 		},
 	}
 
@@ -43,7 +48,7 @@ var (
 )
 
 func generateZoneFile() error {
-	logger.Info("Generating BIND zone file(s)", "outputDir", outputDir, "inputFile", inputFile)
+	hclog.L().Info("Generating BIND zone file(s)", "outputDir", outputDir, "inputFile", inputFile)
 	zones, err := parse.ToZones(inputFile)
 	if err != nil {
 		return fmt.Errorf("Failed to parse input file %s: %w", inputFile, err)

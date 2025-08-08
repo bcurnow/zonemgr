@@ -4,10 +4,12 @@ SHELL := /bin/bash
 currentDir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 binaryName := zonemgr
 
-build: clear tidy format build
+build: tidy format zonemgr
 
-go-build:
-	env GOARCH=amd64 GOOS=linux go build -o bin/${binaryName}
+build-all: build zonemgr-a-record-comment-override-plugin
+
+zonemgr:
+	go build -o bin/${binaryName}
 
 format:
 	gofmt -l -w -s .
@@ -15,5 +17,11 @@ format:
 tidy:
 	go mod tidy
 
-clear:
-	clear
+zonemgr-a-record-comment-override-plugin:
+	mkdir -p examples/bin
+	go build -o examples/bin/zonemgr-a-record-comment-override-plugin examples/zonemgr-a-record-comment-override-plugin.go
+
+.PHONY: run-with-plugins
+
+run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
+	ZONEMGR_PLUGINS=examples/bin/ ./bin/zonemgr generate --inputFile examples/zones.yaml -l trace

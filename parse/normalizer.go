@@ -22,13 +22,11 @@ package parse
 import (
 	"fmt"
 
-	"github.com/bcurnow/zonemgr/logging"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/manager"
 	"github.com/bcurnow/zonemgr/schema"
+	"github.com/hashicorp/go-hclog"
 )
-
-var logger = logging.Logger().Named("normalize")
 
 func normalize(zones map[string]*schema.Zone) (map[string]*schema.Zone, error) {
 	if len(zones) == 0 {
@@ -47,17 +45,17 @@ func normalize(zones map[string]*schema.Zone) (map[string]*schema.Zone, error) {
 				return nil, fmt.Errorf("Unable to normalize zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 			}
 
-			logger.Trace("Resource record to normalize", "resourceRecord", rr)
-			normalizedRR, err := plugin.Normalize(identifier, rr)
+			hclog.L().Trace("Resource record to normalize", "resourceRecord", rr)
+			normalizedRR, err := plugin.Plugin.Normalize(identifier, rr)
 			if err != nil {
 				return nil, err
 			}
-			logger.Trace("Normalized resource record", "resourceRecord", normalizedRR)
+			hclog.L().Trace("Normalized resource record", "resourceRecord", normalizedRR)
 			zone.ResourceRecords[identifier] = normalizedRR
 		}
 		// Now perform any validations on the zone itself
 		for _, plugin := range registeredPlugins {
-			if err := plugin.ValidateZone(name, *zone); err != nil {
+			if err := plugin.Plugin.ValidateZone(name, *zone); err != nil {
 				return nil, err
 			}
 		}

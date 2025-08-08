@@ -36,12 +36,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ZonemgrPlugin_PluginVersion_FullMethodName        = "/ZonemgrPlugin/PluginVersion"
-	ZonemgrPlugin_PluginTypesSupported_FullMethodName = "/ZonemgrPlugin/PluginTypesSupported"
-	ZonemgrPlugin_Configure_FullMethodName            = "/ZonemgrPlugin/Configure"
-	ZonemgrPlugin_Normalize_FullMethodName            = "/ZonemgrPlugin/Normalize"
-	ZonemgrPlugin_ValidateZone_FullMethodName         = "/ZonemgrPlugin/ValidateZone"
-	ZonemgrPlugin_Render_FullMethodName               = "/ZonemgrPlugin/Render"
+	ZonemgrPlugin_PluginVersion_FullMethodName = "/ZonemgrPlugin/PluginVersion"
+	ZonemgrPlugin_PluginTypes_FullMethodName   = "/ZonemgrPlugin/PluginTypes"
+	ZonemgrPlugin_Configure_FullMethodName     = "/ZonemgrPlugin/Configure"
+	ZonemgrPlugin_Normalize_FullMethodName     = "/ZonemgrPlugin/Normalize"
+	ZonemgrPlugin_ValidateZone_FullMethodName  = "/ZonemgrPlugin/ValidateZone"
+	ZonemgrPlugin_Render_FullMethodName        = "/ZonemgrPlugin/Render"
 )
 
 // ZonemgrPluginClient is the client API for ZonemgrPlugin service.
@@ -49,10 +49,10 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ZonemgrPluginClient interface {
 	PluginVersion(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PluginVersionResponse, error)
-	PluginTypesSupported(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PluginTypesSupportedResponse, error)
-	Configure(ctx context.Context, in *ConfigureRequest, opts ...grpc.CallOption) (*Error, error)
+	PluginTypes(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PluginTypesResponse, error)
+	Configure(ctx context.Context, in *ConfigureRequest, opts ...grpc.CallOption) (*Empty, error)
 	Normalize(ctx context.Context, in *NormalizeRequest, opts ...grpc.CallOption) (*NormalizeResponse, error)
-	ValidateZone(ctx context.Context, in *ValidateZoneRequest, opts ...grpc.CallOption) (*Error, error)
+	ValidateZone(ctx context.Context, in *ValidateZoneRequest, opts ...grpc.CallOption) (*Empty, error)
 	Render(ctx context.Context, in *RenderRequest, opts ...grpc.CallOption) (*RenderResonse, error)
 }
 
@@ -74,19 +74,19 @@ func (c *zonemgrPluginClient) PluginVersion(ctx context.Context, in *Empty, opts
 	return out, nil
 }
 
-func (c *zonemgrPluginClient) PluginTypesSupported(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PluginTypesSupportedResponse, error) {
+func (c *zonemgrPluginClient) PluginTypes(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PluginTypesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PluginTypesSupportedResponse)
-	err := c.cc.Invoke(ctx, ZonemgrPlugin_PluginTypesSupported_FullMethodName, in, out, cOpts...)
+	out := new(PluginTypesResponse)
+	err := c.cc.Invoke(ctx, ZonemgrPlugin_PluginTypes_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *zonemgrPluginClient) Configure(ctx context.Context, in *ConfigureRequest, opts ...grpc.CallOption) (*Error, error) {
+func (c *zonemgrPluginClient) Configure(ctx context.Context, in *ConfigureRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Error)
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, ZonemgrPlugin_Configure_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -104,9 +104,9 @@ func (c *zonemgrPluginClient) Normalize(ctx context.Context, in *NormalizeReques
 	return out, nil
 }
 
-func (c *zonemgrPluginClient) ValidateZone(ctx context.Context, in *ValidateZoneRequest, opts ...grpc.CallOption) (*Error, error) {
+func (c *zonemgrPluginClient) ValidateZone(ctx context.Context, in *ValidateZoneRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Error)
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, ZonemgrPlugin_ValidateZone_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -129,10 +129,10 @@ func (c *zonemgrPluginClient) Render(ctx context.Context, in *RenderRequest, opt
 // for forward compatibility.
 type ZonemgrPluginServer interface {
 	PluginVersion(context.Context, *Empty) (*PluginVersionResponse, error)
-	PluginTypesSupported(context.Context, *Empty) (*PluginTypesSupportedResponse, error)
-	Configure(context.Context, *ConfigureRequest) (*Error, error)
+	PluginTypes(context.Context, *Empty) (*PluginTypesResponse, error)
+	Configure(context.Context, *ConfigureRequest) (*Empty, error)
 	Normalize(context.Context, *NormalizeRequest) (*NormalizeResponse, error)
-	ValidateZone(context.Context, *ValidateZoneRequest) (*Error, error)
+	ValidateZone(context.Context, *ValidateZoneRequest) (*Empty, error)
 	Render(context.Context, *RenderRequest) (*RenderResonse, error)
 }
 
@@ -146,16 +146,16 @@ type UnimplementedZonemgrPluginServer struct{}
 func (UnimplementedZonemgrPluginServer) PluginVersion(context.Context, *Empty) (*PluginVersionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PluginVersion not implemented")
 }
-func (UnimplementedZonemgrPluginServer) PluginTypesSupported(context.Context, *Empty) (*PluginTypesSupportedResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PluginTypesSupported not implemented")
+func (UnimplementedZonemgrPluginServer) PluginTypes(context.Context, *Empty) (*PluginTypesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PluginTypes not implemented")
 }
-func (UnimplementedZonemgrPluginServer) Configure(context.Context, *ConfigureRequest) (*Error, error) {
+func (UnimplementedZonemgrPluginServer) Configure(context.Context, *ConfigureRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Configure not implemented")
 }
 func (UnimplementedZonemgrPluginServer) Normalize(context.Context, *NormalizeRequest) (*NormalizeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Normalize not implemented")
 }
-func (UnimplementedZonemgrPluginServer) ValidateZone(context.Context, *ValidateZoneRequest) (*Error, error) {
+func (UnimplementedZonemgrPluginServer) ValidateZone(context.Context, *ValidateZoneRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateZone not implemented")
 }
 func (UnimplementedZonemgrPluginServer) Render(context.Context, *RenderRequest) (*RenderResonse, error) {
@@ -199,20 +199,20 @@ func _ZonemgrPlugin_PluginVersion_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ZonemgrPlugin_PluginTypesSupported_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ZonemgrPlugin_PluginTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ZonemgrPluginServer).PluginTypesSupported(ctx, in)
+		return srv.(ZonemgrPluginServer).PluginTypes(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ZonemgrPlugin_PluginTypesSupported_FullMethodName,
+		FullMethod: ZonemgrPlugin_PluginTypes_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZonemgrPluginServer).PluginTypesSupported(ctx, req.(*Empty))
+		return srv.(ZonemgrPluginServer).PluginTypes(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -301,8 +301,8 @@ var ZonemgrPlugin_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ZonemgrPlugin_PluginVersion_Handler,
 		},
 		{
-			MethodName: "PluginTypesSupported",
-			Handler:    _ZonemgrPlugin_PluginTypesSupported_Handler,
+			MethodName: "PluginTypes",
+			Handler:    _ZonemgrPlugin_PluginTypes_Handler,
 		},
 		{
 			MethodName: "Configure",

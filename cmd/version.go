@@ -27,7 +27,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Version of the zonemgr application",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("zonemgr version: %s\n", version.Version)
+		fmt.Println(version.Version)
 	},
 }
 

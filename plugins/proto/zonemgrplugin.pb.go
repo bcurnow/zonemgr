@@ -296,10 +296,10 @@ func (x *TTL) GetComment() string {
 }
 
 type Zone struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Config          *Config                `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
-	ResourceRecords []*ResourceRecord      `protobuf:"bytes,2,rep,name=resource_records,json=resourceRecords,proto3" json:"resource_records,omitempty"`
-	Ttl             *TTL                   `protobuf:"bytes,3,opt,name=ttl,proto3" json:"ttl,omitempty"`
+	state           protoimpl.MessageState     `protogen:"open.v1"`
+	Config          *Config                    `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	ResourceRecords map[string]*ResourceRecord `protobuf:"bytes,2,rep,name=resource_records,json=resourceRecords,proto3" json:"resource_records,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Ttl             *TTL                       `protobuf:"bytes,3,opt,name=ttl,proto3" json:"ttl,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -341,7 +341,7 @@ func (x *Zone) GetConfig() *Config {
 	return nil
 }
 
-func (x *Zone) GetResourceRecords() []*ResourceRecord {
+func (x *Zone) GetResourceRecords() map[string]*ResourceRecord {
 	if x != nil {
 		return x.ResourceRecords
 	}
@@ -391,50 +391,6 @@ func (*Empty) Descriptor() ([]byte, []int) {
 	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{5}
 }
 
-type Error struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Error) Reset() {
-	*x = Error{}
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Error) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Error) ProtoMessage() {}
-
-func (x *Error) ProtoReflect() protoreflect.Message {
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Error.ProtoReflect.Descriptor instead.
-func (*Error) Descriptor() ([]byte, []int) {
-	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *Error) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
 type PluginVersionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
@@ -444,7 +400,7 @@ type PluginVersionResponse struct {
 
 func (x *PluginVersionResponse) Reset() {
 	*x = PluginVersionResponse{}
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[7]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -456,7 +412,7 @@ func (x *PluginVersionResponse) String() string {
 func (*PluginVersionResponse) ProtoMessage() {}
 
 func (x *PluginVersionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[7]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -469,7 +425,7 @@ func (x *PluginVersionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginVersionResponse.ProtoReflect.Descriptor instead.
 func (*PluginVersionResponse) Descriptor() ([]byte, []int) {
-	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{7}
+	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *PluginVersionResponse) GetVersion() string {
@@ -479,28 +435,28 @@ func (x *PluginVersionResponse) GetVersion() string {
 	return ""
 }
 
-type PluginTypesSupportedResponse struct {
+type PluginTypesResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	SupportedTypes []string               `protobuf:"bytes,1,rep,name=supportedTypes,proto3" json:"supportedTypes,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *PluginTypesSupportedResponse) Reset() {
-	*x = PluginTypesSupportedResponse{}
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[8]
+func (x *PluginTypesResponse) Reset() {
+	*x = PluginTypesResponse{}
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PluginTypesSupportedResponse) String() string {
+func (x *PluginTypesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PluginTypesSupportedResponse) ProtoMessage() {}
+func (*PluginTypesResponse) ProtoMessage() {}
 
-func (x *PluginTypesSupportedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[8]
+func (x *PluginTypesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -511,12 +467,12 @@ func (x *PluginTypesSupportedResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PluginTypesSupportedResponse.ProtoReflect.Descriptor instead.
-func (*PluginTypesSupportedResponse) Descriptor() ([]byte, []int) {
-	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{8}
+// Deprecated: Use PluginTypesResponse.ProtoReflect.Descriptor instead.
+func (*PluginTypesResponse) Descriptor() ([]byte, []int) {
+	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *PluginTypesSupportedResponse) GetSupportedTypes() []string {
+func (x *PluginTypesResponse) GetSupportedTypes() []string {
 	if x != nil {
 		return x.SupportedTypes
 	}
@@ -532,7 +488,7 @@ type ConfigureRequest struct {
 
 func (x *ConfigureRequest) Reset() {
 	*x = ConfigureRequest{}
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[9]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -544,7 +500,7 @@ func (x *ConfigureRequest) String() string {
 func (*ConfigureRequest) ProtoMessage() {}
 
 func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[9]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -557,7 +513,7 @@ func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureRequest.ProtoReflect.Descriptor instead.
 func (*ConfigureRequest) Descriptor() ([]byte, []int) {
-	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{9}
+	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ConfigureRequest) GetConfig() *Config {
@@ -577,7 +533,7 @@ type NormalizeRequest struct {
 
 func (x *NormalizeRequest) Reset() {
 	*x = NormalizeRequest{}
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[10]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -589,7 +545,7 @@ func (x *NormalizeRequest) String() string {
 func (*NormalizeRequest) ProtoMessage() {}
 
 func (x *NormalizeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[10]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -602,7 +558,7 @@ func (x *NormalizeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NormalizeRequest.ProtoReflect.Descriptor instead.
 func (*NormalizeRequest) Descriptor() ([]byte, []int) {
-	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{10}
+	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *NormalizeRequest) GetIdentifier() string {
@@ -622,14 +578,13 @@ func (x *NormalizeRequest) GetResourceRecord() *ResourceRecord {
 type NormalizeResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	ResourceRecord *ResourceRecord        `protobuf:"bytes,1,opt,name=resource_record,json=resourceRecord,proto3" json:"resource_record,omitempty"`
-	Error          string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *NormalizeResponse) Reset() {
 	*x = NormalizeResponse{}
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[11]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -641,7 +596,7 @@ func (x *NormalizeResponse) String() string {
 func (*NormalizeResponse) ProtoMessage() {}
 
 func (x *NormalizeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[11]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -654,7 +609,7 @@ func (x *NormalizeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NormalizeResponse.ProtoReflect.Descriptor instead.
 func (*NormalizeResponse) Descriptor() ([]byte, []int) {
-	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{11}
+	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *NormalizeResponse) GetResourceRecord() *ResourceRecord {
@@ -662,13 +617,6 @@ func (x *NormalizeResponse) GetResourceRecord() *ResourceRecord {
 		return x.ResourceRecord
 	}
 	return nil
-}
-
-func (x *NormalizeResponse) GetError() string {
-	if x != nil {
-		return x.Error
-	}
-	return ""
 }
 
 type ValidateZoneRequest struct {
@@ -681,7 +629,7 @@ type ValidateZoneRequest struct {
 
 func (x *ValidateZoneRequest) Reset() {
 	*x = ValidateZoneRequest{}
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[12]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -693,7 +641,7 @@ func (x *ValidateZoneRequest) String() string {
 func (*ValidateZoneRequest) ProtoMessage() {}
 
 func (x *ValidateZoneRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[12]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -706,7 +654,7 @@ func (x *ValidateZoneRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateZoneRequest.ProtoReflect.Descriptor instead.
 func (*ValidateZoneRequest) Descriptor() ([]byte, []int) {
-	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{12}
+	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ValidateZoneRequest) GetName() string {
@@ -733,7 +681,7 @@ type RenderRequest struct {
 
 func (x *RenderRequest) Reset() {
 	*x = RenderRequest{}
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[13]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -745,7 +693,7 @@ func (x *RenderRequest) String() string {
 func (*RenderRequest) ProtoMessage() {}
 
 func (x *RenderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[13]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -758,7 +706,7 @@ func (x *RenderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenderRequest.ProtoReflect.Descriptor instead.
 func (*RenderRequest) Descriptor() ([]byte, []int) {
-	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{13}
+	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *RenderRequest) GetIdentifier() string {
@@ -778,14 +726,13 @@ func (x *RenderRequest) GetResourceRecord() *ResourceRecord {
 type RenderResonse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RenderResonse) Reset() {
 	*x = RenderResonse{}
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[14]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -797,7 +744,7 @@ func (x *RenderResonse) String() string {
 func (*RenderResonse) ProtoMessage() {}
 
 func (x *RenderResonse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[14]
+	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -810,19 +757,12 @@ func (x *RenderResonse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenderResonse.ProtoReflect.Descriptor instead.
 func (*RenderResonse) Descriptor() ([]byte, []int) {
-	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{14}
+	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *RenderResonse) GetContent() string {
 	if x != nil {
 		return x.Content
-	}
-	return ""
-}
-
-func (x *RenderResonse) GetError() string {
-	if x != nil {
-		return x.Error
 	}
 	return ""
 }
@@ -849,17 +789,18 @@ const file_plugins_proto_zonemgrplugin_proto_rawDesc = "" +
 	"\acomment\x18\a \x01(\tR\acomment\"1\n" +
 	"\x03TTL\x12\x10\n" +
 	"\x03ttl\x18\x01 \x01(\x05R\x03ttl\x12\x18\n" +
-	"\acomment\x18\x02 \x01(\tR\acomment\"{\n" +
+	"\acomment\x18\x02 \x01(\tR\acomment\"\xdb\x01\n" +
 	"\x04Zone\x12\x1f\n" +
-	"\x06config\x18\x01 \x01(\v2\a.ConfigR\x06config\x12:\n" +
-	"\x10resource_records\x18\x02 \x03(\v2\x0f.ResourceRecordR\x0fresourceRecords\x12\x16\n" +
-	"\x03ttl\x18\x03 \x01(\v2\x04.TTLR\x03ttl\"\a\n" +
-	"\x05Empty\"!\n" +
-	"\x05Error\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"1\n" +
+	"\x06config\x18\x01 \x01(\v2\a.ConfigR\x06config\x12E\n" +
+	"\x10resource_records\x18\x02 \x03(\v2\x1a.Zone.ResourceRecordsEntryR\x0fresourceRecords\x12\x16\n" +
+	"\x03ttl\x18\x03 \x01(\v2\x04.TTLR\x03ttl\x1aS\n" +
+	"\x14ResourceRecordsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12%\n" +
+	"\x05value\x18\x02 \x01(\v2\x0f.ResourceRecordR\x05value:\x028\x01\"\a\n" +
+	"\x05Empty\"1\n" +
 	"\x15PluginVersionResponse\x12\x18\n" +
-	"\aversion\x18\x01 \x01(\tR\aversion\"F\n" +
-	"\x1cPluginTypesSupportedResponse\x12&\n" +
+	"\aversion\x18\x01 \x01(\tR\aversion\"=\n" +
+	"\x13PluginTypesResponse\x12&\n" +
 	"\x0esupportedTypes\x18\x01 \x03(\tR\x0esupportedTypes\"3\n" +
 	"\x10ConfigureRequest\x12\x1f\n" +
 	"\x06config\x18\x01 \x01(\v2\a.ConfigR\x06config\"l\n" +
@@ -867,10 +808,9 @@ const file_plugins_proto_zonemgrplugin_proto_rawDesc = "" +
 	"\n" +
 	"identifier\x18\x01 \x01(\tR\n" +
 	"identifier\x128\n" +
-	"\x0fresource_record\x18\x02 \x01(\v2\x0f.ResourceRecordR\x0eresourceRecord\"c\n" +
+	"\x0fresource_record\x18\x02 \x01(\v2\x0f.ResourceRecordR\x0eresourceRecord\"M\n" +
 	"\x11NormalizeResponse\x128\n" +
-	"\x0fresource_record\x18\x01 \x01(\v2\x0f.ResourceRecordR\x0eresourceRecord\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error\"D\n" +
+	"\x0fresource_record\x18\x01 \x01(\v2\x0f.ResourceRecordR\x0eresourceRecord\"D\n" +
 	"\x13ValidateZoneRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x19\n" +
 	"\x04zone\x18\x02 \x01(\v2\x05.ZoneR\x04zone\"i\n" +
@@ -878,16 +818,15 @@ const file_plugins_proto_zonemgrplugin_proto_rawDesc = "" +
 	"\n" +
 	"identifier\x18\x01 \x01(\tR\n" +
 	"identifier\x128\n" +
-	"\x0fresource_record\x18\x02 \x01(\v2\x0f.ResourceRecordR\x0eresourceRecord\"?\n" +
+	"\x0fresource_record\x18\x02 \x01(\v2\x0f.ResourceRecordR\x0eresourceRecord\")\n" +
 	"\rRenderResonse\x12\x18\n" +
-	"\acontent\x18\x01 \x01(\tR\acontent\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error2\xb3\x02\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent2\xa1\x02\n" +
 	"\rZonemgrPlugin\x12/\n" +
-	"\rPluginVersion\x12\x06.Empty\x1a\x16.PluginVersionResponse\x12=\n" +
-	"\x14PluginTypesSupported\x12\x06.Empty\x1a\x1d.PluginTypesSupportedResponse\x12&\n" +
-	"\tConfigure\x12\x11.ConfigureRequest\x1a\x06.Error\x122\n" +
+	"\rPluginVersion\x12\x06.Empty\x1a\x16.PluginVersionResponse\x12+\n" +
+	"\vPluginTypes\x12\x06.Empty\x1a\x14.PluginTypesResponse\x12&\n" +
+	"\tConfigure\x12\x11.ConfigureRequest\x1a\x06.Empty\x122\n" +
 	"\tNormalize\x12\x11.NormalizeRequest\x1a\x12.NormalizeResponse\x12,\n" +
-	"\fValidateZone\x12\x14.ValidateZoneRequest\x1a\x06.Error\x12(\n" +
+	"\fValidateZone\x12\x14.ValidateZoneRequest\x1a\x06.Empty\x12(\n" +
 	"\x06Render\x12\x0e.RenderRequest\x1a\x0e.RenderResonseB\x11Z\x0f./plugins/protob\x06proto3"
 
 var (
@@ -904,49 +843,50 @@ func file_plugins_proto_zonemgrplugin_proto_rawDescGZIP() []byte {
 
 var file_plugins_proto_zonemgrplugin_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_plugins_proto_zonemgrplugin_proto_goTypes = []any{
-	(*Config)(nil),                       // 0: Config
-	(*ResourceRecordValue)(nil),          // 1: ResourceRecordValue
-	(*ResourceRecord)(nil),               // 2: ResourceRecord
-	(*TTL)(nil),                          // 3: TTL
-	(*Zone)(nil),                         // 4: Zone
-	(*Empty)(nil),                        // 5: Empty
-	(*Error)(nil),                        // 6: Error
-	(*PluginVersionResponse)(nil),        // 7: PluginVersionResponse
-	(*PluginTypesSupportedResponse)(nil), // 8: PluginTypesSupportedResponse
-	(*ConfigureRequest)(nil),             // 9: ConfigureRequest
-	(*NormalizeRequest)(nil),             // 10: NormalizeRequest
-	(*NormalizeResponse)(nil),            // 11: NormalizeResponse
-	(*ValidateZoneRequest)(nil),          // 12: ValidateZoneRequest
-	(*RenderRequest)(nil),                // 13: RenderRequest
-	(*RenderResonse)(nil),                // 14: RenderResonse
+	(*Config)(nil),                // 0: Config
+	(*ResourceRecordValue)(nil),   // 1: ResourceRecordValue
+	(*ResourceRecord)(nil),        // 2: ResourceRecord
+	(*TTL)(nil),                   // 3: TTL
+	(*Zone)(nil),                  // 4: Zone
+	(*Empty)(nil),                 // 5: Empty
+	(*PluginVersionResponse)(nil), // 6: PluginVersionResponse
+	(*PluginTypesResponse)(nil),   // 7: PluginTypesResponse
+	(*ConfigureRequest)(nil),      // 8: ConfigureRequest
+	(*NormalizeRequest)(nil),      // 9: NormalizeRequest
+	(*NormalizeResponse)(nil),     // 10: NormalizeResponse
+	(*ValidateZoneRequest)(nil),   // 11: ValidateZoneRequest
+	(*RenderRequest)(nil),         // 12: RenderRequest
+	(*RenderResonse)(nil),         // 13: RenderResonse
+	nil,                           // 14: Zone.ResourceRecordsEntry
 }
 var file_plugins_proto_zonemgrplugin_proto_depIdxs = []int32{
 	1,  // 0: ResourceRecord.values:type_name -> ResourceRecordValue
 	0,  // 1: Zone.config:type_name -> Config
-	2,  // 2: Zone.resource_records:type_name -> ResourceRecord
+	14, // 2: Zone.resource_records:type_name -> Zone.ResourceRecordsEntry
 	3,  // 3: Zone.ttl:type_name -> TTL
 	0,  // 4: ConfigureRequest.config:type_name -> Config
 	2,  // 5: NormalizeRequest.resource_record:type_name -> ResourceRecord
 	2,  // 6: NormalizeResponse.resource_record:type_name -> ResourceRecord
 	4,  // 7: ValidateZoneRequest.zone:type_name -> Zone
 	2,  // 8: RenderRequest.resource_record:type_name -> ResourceRecord
-	5,  // 9: ZonemgrPlugin.PluginVersion:input_type -> Empty
-	5,  // 10: ZonemgrPlugin.PluginTypesSupported:input_type -> Empty
-	9,  // 11: ZonemgrPlugin.Configure:input_type -> ConfigureRequest
-	10, // 12: ZonemgrPlugin.Normalize:input_type -> NormalizeRequest
-	12, // 13: ZonemgrPlugin.ValidateZone:input_type -> ValidateZoneRequest
-	13, // 14: ZonemgrPlugin.Render:input_type -> RenderRequest
-	7,  // 15: ZonemgrPlugin.PluginVersion:output_type -> PluginVersionResponse
-	8,  // 16: ZonemgrPlugin.PluginTypesSupported:output_type -> PluginTypesSupportedResponse
-	6,  // 17: ZonemgrPlugin.Configure:output_type -> Error
-	11, // 18: ZonemgrPlugin.Normalize:output_type -> NormalizeResponse
-	6,  // 19: ZonemgrPlugin.ValidateZone:output_type -> Error
-	14, // 20: ZonemgrPlugin.Render:output_type -> RenderResonse
-	15, // [15:21] is the sub-list for method output_type
-	9,  // [9:15] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	2,  // 9: Zone.ResourceRecordsEntry.value:type_name -> ResourceRecord
+	5,  // 10: ZonemgrPlugin.PluginVersion:input_type -> Empty
+	5,  // 11: ZonemgrPlugin.PluginTypes:input_type -> Empty
+	8,  // 12: ZonemgrPlugin.Configure:input_type -> ConfigureRequest
+	9,  // 13: ZonemgrPlugin.Normalize:input_type -> NormalizeRequest
+	11, // 14: ZonemgrPlugin.ValidateZone:input_type -> ValidateZoneRequest
+	12, // 15: ZonemgrPlugin.Render:input_type -> RenderRequest
+	6,  // 16: ZonemgrPlugin.PluginVersion:output_type -> PluginVersionResponse
+	7,  // 17: ZonemgrPlugin.PluginTypes:output_type -> PluginTypesResponse
+	5,  // 18: ZonemgrPlugin.Configure:output_type -> Empty
+	10, // 19: ZonemgrPlugin.Normalize:output_type -> NormalizeResponse
+	5,  // 20: ZonemgrPlugin.ValidateZone:output_type -> Empty
+	13, // 21: ZonemgrPlugin.Render:output_type -> RenderResonse
+	16, // [16:22] is the sub-list for method output_type
+	10, // [10:16] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_plugins_proto_zonemgrplugin_proto_init() }

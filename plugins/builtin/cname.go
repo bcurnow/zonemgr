@@ -30,18 +30,18 @@ import (
 
 var _ plugins.TypeHandler = &CNAMEPlugin{}
 
-var cnameSupportedPluginTypes = []plugins.PluginType{plugins.RecordCNAME}
+var cnamePluginTypes = []plugins.PluginType{plugins.RecordCNAME}
 
 type CNAMEPlugin struct {
 	config schema.Config
 }
 
-func (p *CNAMEPlugin) PluginVersion() string {
-	return version.Version
+func (p *CNAMEPlugin) PluginVersion() (string, error) {
+	return version.Version, nil
 }
 
-func (p *CNAMEPlugin) PluginTypesSupported() []plugins.PluginType {
-	return cnameSupportedPluginTypes
+func (p *CNAMEPlugin) PluginTypes() ([]plugins.PluginType, error) {
+	return cnamePluginTypes, nil
 }
 
 func (p *CNAMEPlugin) Configure(config schema.Config) error {
@@ -50,7 +50,7 @@ func (p *CNAMEPlugin) Configure(config schema.Config) error {
 }
 
 func (p *CNAMEPlugin) Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error) {
-	if err := plugins.StandardValidations(identifier, &rr, cnameSupportedPluginTypes); err != nil {
+	if err := plugins.StandardValidations(identifier, &rr, cnamePluginTypes); err != nil {
 		return plugins.NilResourceRecord(), err
 	}
 
@@ -100,7 +100,7 @@ func (p *CNAMEPlugin) ValidateZone(name string, zone schema.Zone) error {
 }
 
 func (p *CNAMEPlugin) Render(identifier string, rr schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, &rr, cnameSupportedPluginTypes); err != nil {
+	if err := plugins.IsSupportedPluginType(identifier, &rr, cnamePluginTypes); err != nil {
 		return "", err
 	}
 	return plugins.RenderSingleValueResource(&rr), nil

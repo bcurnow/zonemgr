@@ -27,6 +27,7 @@ import (
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/manager"
 	"github.com/bcurnow/zonemgr/schema"
+	"github.com/hashicorp/go-hclog"
 )
 
 func generateZone(name string, zone *schema.Zone, outputDir string) error {
@@ -36,7 +37,7 @@ func generateZone(name string, zone *schema.Zone, outputDir string) error {
 	}
 	defer outputFile.Close()
 
-	logger.Info("Generating zone file", "outputFile", outputFile.Name(), "zone", name)
+	hclog.L().Info("Generating zone file", "outputFile", outputFile.Name(), "zone", name)
 
 	// Write out the origin
 	fmt.Fprintf(outputFile, "$ORIGIN %s\n", name)
@@ -60,9 +61,9 @@ func generateZone(name string, zone *schema.Zone, outputDir string) error {
 		if nil == plugin {
 			return fmt.Errorf("Unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}
-		logger.Trace("Resource Record to render", "resourceRecord", rr)
-		renderedRecord, err := plugin.Render(identifier, rr)
-		logger.Trace("Rendered resource record", "string", renderedRecord)
+		hclog.L().Trace("Resource Record to render", "resourceRecord", rr)
+		renderedRecord, err := plugin.Plugin.Render(identifier, rr)
+		hclog.L().Trace("Rendered resource record", "string", renderedRecord)
 		if err != nil {
 			return err
 		}

@@ -21,12 +21,12 @@ package builtin
 
 import "github.com/bcurnow/zonemgr/plugins"
 
-var builtins map[plugins.PluginType]plugins.TypeHandler = make(map[plugins.PluginType]plugins.TypeHandler)
+var builtins map[plugins.PluginType]*plugins.TypeHandlerPlugin = make(map[plugins.PluginType]*plugins.TypeHandlerPlugin)
 
-func BuiltinPlugins() map[plugins.PluginType]plugins.TypeHandler {
+func BuiltinPlugins() map[plugins.PluginType]*plugins.TypeHandlerPlugin {
 	return builtins
 }
 
 func registerBuiltIn(pluginType plugins.PluginType, plugin plugins.TypeHandler) {
-	builtins[pluginType] = plugin
+	builtins[pluginType] = &plugins.TypeHandlerPlugin{IsBuiltIn: true, PluginName: string(pluginType), Plugin: plugin, PluginCmd: "Built In"}
 }
