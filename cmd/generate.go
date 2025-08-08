@@ -64,8 +64,8 @@ func generateZoneFile() error {
 }
 
 func init() {
-	generateCmd.Flags().StringVarP(&inputFile, "inputFile", "i", "zones.yaml", "Input YAML file")
+	generateCmd.Flags().StringVarP(&inputFile, "input-file`", "i", "zones.yaml", "Input YAML file")
 	generateCmd.MarkFlagRequired("input")
-	generateCmd.Flags().StringVarP(&outputDir, "outputDir", "d", ".", "Directory to output the BIND zone file(s) to")
+	generateCmd.Flags().StringVarP(&outputDir, "output-dir", "o", ".", "Directory to output the BIND zone file(s) to")
 	rootCmd.AddCommand(generateCmd)
 }

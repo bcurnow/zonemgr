@@ -55,10 +55,10 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info", "The log level (trace, debug, info, warn, error, fatal), not case sensitive")
-	rootCmd.PersistentFlags().BoolVarP(&logJsonFormat, "log-json", "j", false, "If set, enables JSON loggiing output")
-	rootCmd.PersistentFlags().BoolVarP(&logTime, "log-time", "t", false, "If set, prints the time on all the log messages")
-	rootCmd.PersistentFlags().BoolVarP(&logColor, "log-color", "c", true, "If set, prints the log messages in color where possible")
-	rootCmd.PersistentFlags().BoolVarP(&pluginDebug, "plugin-debug", "d", false, "If set, will including plugin stdout/stderr in the log messages")
+	rootCmd.PersistentFlags().BoolVarP(&logJsonFormat, "log-json", "", false, "If set, enables JSON loggiing output")
+	rootCmd.PersistentFlags().BoolVarP(&logTime, "log-time", "", false, "If set, prints the time on all the log messages")
+	rootCmd.PersistentFlags().BoolVarP(&logColor, "log-color", "", true, "If set, prints the log messages in color where possible")
+	rootCmd.PersistentFlags().BoolVarP(&pluginDebug, "plugin-debug", "", false, "If set, will including plugin stdout/stderr in the log messages")
 }
 
 func setupLogging() {
