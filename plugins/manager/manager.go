@@ -98,7 +98,10 @@ func discoverPlugins(dir string) (map[string]string, error) {
 	hclog.L().Trace("Walking plugins dir", "dir", dir)
 	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, walkErr error) error {
 		if walkErr != nil {
-			hclog.L().Error("Error during directory walk", "dir", dir, "err", walkErr)
+			if os.IsNotExist(walkErr) {
+				hclog.L().Trace("Could not find plugin directory", "dir", dir)
+				return nil
+			}
 			return walkErr
 		}
 		hclog.L().Trace("Processing path", "path", path, "dir", dir)
