@@ -35,7 +35,7 @@ type APlugin struct {
 }
 
 func (p *APlugin) PluginVersion() (string, error) {
-	return version.Version, nil
+	return version.Version(), nil
 }
 
 func (p *APlugin) PluginTypes() ([]plugins.PluginType, error) {

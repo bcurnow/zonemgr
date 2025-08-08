@@ -33,7 +33,7 @@ type PTRPlugin struct {
 }
 
 func (p *PTRPlugin) PluginVersion() (string, error) {
-	return version.Version, nil
+	return version.Version(), nil
 }
 
 func (p *PTRPlugin) PluginTypes() ([]plugins.PluginType, error) {

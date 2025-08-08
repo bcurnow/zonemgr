@@ -37,7 +37,7 @@ var nsSupportedPluginTypes = []plugins.PluginType{plugins.RecordNS}
 type NSPlugin struct{}
 
 func (p *NSPlugin) PluginVersion() (string, error) {
-	return version.Version, nil
+	return version.Version(), nil
 }
 
 func (p *NSPlugin) PluginTypes() ([]plugins.PluginType, error) {

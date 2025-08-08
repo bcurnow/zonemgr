@@ -38,7 +38,7 @@ type SOAPlugin struct {
 }
 
 func (p *SOAPlugin) PluginVersion() (string, error) {
-	return version.Version, nil
+	return version.Version(), nil
 }
 
 func (p *SOAPlugin) PluginTypes() ([]plugins.PluginType, error) {

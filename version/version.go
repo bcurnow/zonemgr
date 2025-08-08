@@ -19,4 +19,8 @@
 
 package version
 
-const Version string = "dev"
+var version string = "dev"
+
+func Version() string {
+	return version
+}

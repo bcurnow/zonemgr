@@ -37,7 +37,7 @@ type CNAMEPlugin struct {
 }
 
 func (p *CNAMEPlugin) PluginVersion() (string, error) {
-	return version.Version, nil
+	return version.Version(), nil
 }
 
 func (p *CNAMEPlugin) PluginTypes() ([]plugins.PluginType, error) {
