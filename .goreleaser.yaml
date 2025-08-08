@@ -16,7 +16,6 @@ builds:
 env_files:
   github_token: ~/.config/goreleaser/zonemgr-github-token
 archives:
-  - id: raw-binaries
-    format: binary
-  - id: tar-archive
-    format: tar.gz
+  - formats:
+    - binary
+    - tar.gz
