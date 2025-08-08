@@ -3,17 +3,34 @@
 <!-- markdownlint-disable MD033 -->
 <!-- markdownlint-disable MD041 -->
 <!-- vscode-markdown-toc -->
-* [Design](#Design)
-	* [Zone File Format](#ZoneFileFormat)
-		* [Line Types](#LineTypes)
-		* [Control Entries](#ControlEntries)
-		* [Resource Records](#ResourceRecords)
-		* [Classes](#Classes)
-		* [Special Values and Escapes](#SpecialValuesandEscapes)
-	* [YAML Format](#YAMLFormat)
-		* [Examples](#Examples)
-	* [Built-In Plugins](#Built-InPlugins)
-		* [Plugin Behavior](#PluginBehavior)
+* [Running](#Running)
+* [Zone File Format](#ZoneFileFormat)
+	* [Line Types](#LineTypes)
+	* [Control Entries](#ControlEntries)
+	* [Resource Records](#ResourceRecords)
+		* [Resource Record Types](#ResourceRecordTypes)
+	* [Classes](#Classes)
+	* [Special Values and Escapes](#SpecialValuesandEscapes)
+* [YAML Format](#YAMLFormat)
+	* [Examples](#Examples)
+		* [NS record](#NSrecord)
+		* [A record](#Arecord)
+		* [CNAME Record](#CNAMERecord)
+		* [SOA Record](#SOARecord)
+		* [PTR Record](#PTRRecord)
+* [Built-In Plugins](#Built-InPlugins)
+	* [Plugin Behavior](#PluginBehavior)
+		* [NS](#NS)
+		* [SOA](#SOA)
+* [Examples](#Examples-1)
+	* [zones.yaml](#zones.yaml)
+	* [zonemgr-a-record-comment-override-plugin](#zonemgr-a-record-comment-override-plugin)
+* [Building](#Building)
+	* [tidy](#tidy)
+	* [format](#format)
+	* [build](#build)
+	* [build-all](#build-all)
+	* [run-with-plugins](#run-with-plugins)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -28,13 +45,17 @@
 
 A command-line utility for generating BIND zone files from a YAML input
 
-## <a name='Design'></a>Design
+## <a name='Running'></a>Running
 
-### <a name='ZoneFileFormat'></a>Zone File Format
+Running `zonemgr` by itself will print the help or you can run `zonemgr help`. This will print the list of sub-commands and their descriptions.
+
+You can run `zonemgr <sub-command> --help` to see the help for any sub-command including flag documentation.
+
+## <a name='ZoneFileFormat'></a>Zone File Format
 
 The format of a zone file is largely contained in [RFC1035](https://datatracker.ietf.org/doc/html/rfc1035). Clarification of the 'minimum' value on the SOA record and the introduction of the $TTL line is included in [RFC2308](https://datatracker.ietf.org/doc/html/rfc2308).
 
-#### <a name='LineTypes'></a>Line Types
+### <a name='LineTypes'></a>Line Types
 
 The zone file is a line oriented file with parentheses used to continue a list of items across a line boundary.
 
@@ -49,7 +70,7 @@ The following basic lines exist:
 
 Any number of blank lines are allowed in the file.
 
-#### <a name='ControlEntries'></a>Control Entries
+### <a name='ControlEntries'></a>Control Entries
 
 There are several control entries (starting with '$'):
 
@@ -59,14 +80,14 @@ There are several control entries (starting with '$'):
 
 NOTE: Currently $INCLUDE is not used in Zonemgr
 
-#### <a name='ResourceRecords'></a>Resource Records
+### <a name='ResourceRecords'></a>Resource Records
 
 Resource records (A, CNAME, MX, etc.) have the following two formats:
 
 * [\<TTL\>] [\<class\>] \<type\> \<RDATA\>
 * [\<class\>] [\<TTL\>] \<type\> \<RDATA\>
 
-##### Resource Record Types
+#### <a name='ResourceRecordTypes'></a>Resource Record Types
 
 The following resource record types are defined by the RFC:
 
@@ -87,7 +108,7 @@ The following resource record types are defined by the RFC:
 * MX  - Mail Exchange
 * TXT - Text strings
 
-#### <a name='Classes'></a>Classes
+### <a name='Classes'></a>Classes
 
 The following classes are defined by the RFC:
 
@@ -96,7 +117,7 @@ The following classes are defined by the RFC:
 * CH - Chaos
 * HS - Hesiod
 
-#### <a name='SpecialValuesandEscapes'></a>Special Values and Escapes
+### <a name='SpecialValuesandEscapes'></a>Special Values and Escapes
 
 There are some additional values that can be used to express arbitrary data:
 
@@ -106,7 +127,7 @@ There are some additional values that can be used to express arbitrary data:
 * ( ) - Used to group data that crosses line boundaries.
 * ; - Indicates a comment
 
-### <a name='YAMLFormat'></a>YAML Format
+## <a name='YAMLFormat'></a>YAML Format
 
 Zonemgr parses a YAML with the following format:
 
@@ -130,11 +151,11 @@ Zonemgr parses a YAML with the following format:
          comment: <string> # Optional comment for the value
 ```
 
-#### <a name='Examples'></a>Examples
+### <a name='Examples'></a>Examples
 
 The following examples leverage the builtin plugins for the resource record types, please see the plugin documentation if using an alternative plugin.
 
-##### NS record
+#### <a name='NSrecord'></a>NS record
 
 Full example:
 
@@ -156,7 +177,7 @@ ns1.example.com.:
   type: NS
 ```
 
-##### A record
+#### <a name='Arecord'></a>A record
 
 Full example:
 
@@ -179,7 +200,7 @@ www:
   value: 1.2.3.4
 ```
 
-##### CNAME Record
+#### <a name='CNAMERecord'></a>CNAME Record
 
 Full Example:
 
@@ -202,7 +223,7 @@ base:
   value: www
 ```
 
-##### SOA Record
+#### <a name='SOARecord'></a>SOA Record
 
 Full Example:
 
@@ -243,7 +264,7 @@ example.com:
     - value: 172800
 ```
 
-##### PTR Record
+#### <a name='PTRRecord'></a>PTR Record
 
 Full example:
 
@@ -266,7 +287,7 @@ Minimal Example:
   value: www
 ```
 
-### <a name='Built-InPlugins'></a>Built-In Plugins
+## <a name='Built-InPlugins'></a>Built-In Plugins
 
 The following are the built-in plugins, these plugins may be overridden:
 
@@ -276,7 +297,7 @@ The following are the built-in plugins, these plugins may be overridden:
 * SOA
 * PTR
 
-#### <a name='PluginBehavior'></a>Plugin Behavior
+### <a name='PluginBehavior'></a>Plugin Behavior
 
 The following describe the behaviors of the built-in plugins.
 
@@ -286,11 +307,11 @@ The following describe the behaviors of the built-in plugins.
 * All dns name must be fully qualified, for example 'example.com.' and not just 'example.com'
 * Any resource record with a single value can use the `value` and `comment` elements as a short cut
 
-##### NS
+#### <a name='NS'></a>NS
 
 * The `name` element is optional, will default to "@" if not specified
 
-##### SOA
+#### <a name='SOA'></a>SOA
 
 * The SOA resource record is a multi-value field. The values must be specified in one of the orders below:
   * With explicit serial number:
@@ -311,3 +332,37 @@ The following describe the behaviors of the built-in plugins.
 * If `generate_serial` is true but the explicit serial number is provided, it will be ignored.
 * The primary name server (MNAME) is a DNS name and therefore must be fully qualified (see above)
 * The administrator (RNAME) can either be specified as a valid email address (e.g. <admin@example.com>) or as the zone file specific format where the '@' is replaced by a dot ('.') (e.g. admin.example.com.). If using the latter, that's a specific name and needs to be fully qualified (see above)
+
+## <a name='Examples-1'></a>Examples
+
+### <a name='zones.yaml'></a>zones.yaml
+
+A complete example of the yaml file.
+
+### <a name='zonemgr-a-record-comment-override-plugin'></a>zonemgr-a-record-comment-override-plugin
+
+An example plugin that overrides the default A record plugin.
+
+## <a name='Building'></a>Building
+
+There is a Makefile included. It has several targets
+
+### <a name='tidy'></a>tidy
+
+Tidies up go.mod
+
+### <a name='format'></a>format
+
+Formats the code using `gofmt`
+
+### <a name='build'></a>build
+
+Runs the `tidy` and `format` targets and then compiles zonemgr into bin
+
+### <a name='build-all'></a>build-all
+
+Runs the `build` target and then compiles examples/zonemgr-a-record-comment-override-plugin to examples/bin
+
+### <a name='run-with-plugins'></a>run-with-plugins
+
+Executes zonemgr `plugins` sub-command with the plugin directory set to examples/bin to show how plugins work
