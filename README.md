@@ -373,4 +373,4 @@ To release a new version:
 
 * Create a tag for the release: `git tag -a vX.Y.Z -m "Release version X.Y.Z"`
 * Push the tag to the repository: `git push origin vX.YZ.Z`
-* Run `goreleaser release`
+* Run `goreleaser release --clean`
