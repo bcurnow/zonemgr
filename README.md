@@ -366,3 +366,11 @@ Runs the `build` target and then compiles examples/zonemgr-a-record-comment-over
 ### <a name='run-with-plugins'></a>run-with-plugins
 
 Executes zonemgr `plugins` sub-command with the plugin directory set to examples/bin to show how plugins work
+
+## Releasing
+
+To release a new version:
+
+* Create a tag for the release: `git tag -a vX.Y.Z -m "Release version X.Y.Z"`
+* Push the tag to the repository: `git push origin vX.YZ.Z`
+* Run `goreleaser release`
