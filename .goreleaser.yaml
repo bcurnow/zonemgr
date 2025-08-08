@@ -14,4 +14,9 @@ builds:
       - -s -w -X github.com/bcurnow/zonemgr/version.Version={{.Version}}
     mod_timestamp: "{{ .CommitTimestamp }}"
 env_files:
-  github_token: ~/.config/goreleaser/zonemgr-github-token
+  github_token: ~/.config/goreleaser/zonemgr-github-tokens
+archives:
+  - id: raw-binaries
+    format: binary
+  - id: tar-archive
+    format: tar.gz
