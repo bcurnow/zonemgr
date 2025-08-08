@@ -24,4 +24,4 @@ zonemgr-a-record-comment-override-plugin:
 .PHONY: run-with-plugins
 
 run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
-	ZONEMGR_PLUGINS=examples/bin/ ./bin/zonemgr generate --inputFile examples/zones.yaml -l trace
+	ZONEMGR_PLUGINS=examples/bin/ ./bin/zonemgr plugins
