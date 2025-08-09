@@ -56,6 +56,11 @@ func generateZone(name string, zone *schema.Zone, outputDir string) error {
 		return err
 	}
 
+	// Configure each of the plugins for this specific zone
+	for _, plugin := range registeredPlugins {
+		plugin.Plugin.Configure(zone.Config)
+	}
+
 	for identifier, rr := range zone.ResourceRecords {
 		// We're takiing advantage of the fact that we have plugin types that match standard resource record types
 		// so we can cast directly
