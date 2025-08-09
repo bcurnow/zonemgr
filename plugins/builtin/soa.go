@@ -27,7 +27,10 @@ import (
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/schema"
 	"github.com/bcurnow/zonemgr/version"
+	"github.com/hashicorp/go-hclog"
 )
+
+const generatedSerialNumberComment = "Zonemgr generated serial number"
 
 var _ plugins.TypeHandler = &SOAPlugin{}
 
@@ -80,7 +83,21 @@ func (p *SOAPlugin) Normalize(identifier string, rr schema.ResourceRecord) (sche
 }
 
 func (p *SOAPlugin) ValidateZone(name string, zone schema.Zone) error {
-	//no-op
+	hasSOA := false
+	for identifier, rr := range zone.ResourceRecords {
+		// Track the SOA records, there can be only one
+		if rr.Type == string(plugins.RecordSOA) {
+			if hasSOA {
+				return fmt.Errorf("More than one SOA record found, only one SOA record is allowed, identifier=%s", identifier)
+			}
+			hasSOA = true
+		}
+	}
+
+	if !hasSOA {
+		return fmt.Errorf("Invalid zone, missing SOA record, zone=%s", name)
+	}
+
 	return nil
 }
 
@@ -94,43 +111,38 @@ func (p *SOAPlugin) Render(identifier string, rr schema.ResourceRecord) (string,
 
 func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSerial bool, serialChangeIndex uint32) error {
 	numValues := len(rr.Values)
+	serialNumber, err := serial(serialChangeIndex)
+	if err != nil {
+		return err
+	}
+	generatedSerialNumber := strconv.Itoa(int(serialNumber))
+
 	switch numValues {
 	case 6:
+		hclog.L().Debug("No serial number present in SOA record, only have 6 values", "identifier", identifier)
 		// No serial number present, this is an error unless generateSerial is true
 		if !generateSerial {
 			return fmt.Errorf("Must specify a serial number when generate serial is false, found only 6 values when 7 are required, name: '%s'", rr.Name)
 		}
 
-		if err := validateWithNoSerial(identifier, rr); err != nil {
+		if err := validateWithNoSerial(identifier, rr, generatedSerialNumber); err != nil {
 			return err
 		}
 	case 7:
+		hclog.L().Debug("Serial number present in SOA record", "identifier", identifier, "generateSerialNumber", generateSerial)
 		// There is a serial number provided
-		if err := validateWithSerial(identifier, rr); err != nil {
+		if err := validateWithSerial(identifier, rr, generateSerial, generatedSerialNumber); err != nil {
 			return err
 		}
 	default:
 		return fmt.Errorf("SOA records must have either 6 (no serial number) or 7 values, found %d values, name: '%s'", numValues, rr.Name)
 	}
 
-	if generateSerial {
-		serial, err := serial(serialChangeIndex)
-		if err != nil {
-			return err
-		}
-		rr.Values[2].Value = strconv.Itoa(int(serial))
-	} else {
-		// Make sure the provided number fitx in an uint32
-		if _, err := strconv.ParseUint(rr.Values[2].Value, 10, 32); err != nil {
-			return fmt.Errorf("Serial number must be an unsigned 32 bit integer, found '%s', error: %w, name: '%s'", rr.Values[2].Value, err, rr.Name)
-		}
-	}
-
 	return nil
 }
 
 // Validates the values on the
-func validateWithNoSerial(identifier string, rr *schema.ResourceRecord) error {
+func validateWithNoSerial(identifier string, rr *schema.ResourceRecord, generatedSerialNumber string) error {
 	// Convert the array to individual variables, they are required to be in a specific order
 	// This method is used when there is no serial number field present (6 values total)
 	primaryNameServer := rr.Values[0].Value
@@ -148,7 +160,6 @@ func validateWithNoSerial(identifier string, rr *schema.ResourceRecord) error {
 	if err != nil {
 		return err
 	}
-	rr.Values[1].Value = email
 
 	//Make sure none of the other values are < 0
 	if err := greaterThanZero(refresh, "REFRESH", rr); err != nil {
@@ -167,15 +178,34 @@ func validateWithNoSerial(identifier string, rr *schema.ResourceRecord) error {
 		return err
 	}
 
+	//Now we need to reset the values to use the generated serial number because it still needs to be at index 2
+	newValues := make([]schema.ResourceRecordValue, 7)
+	newValues[0] = schema.ResourceRecordValue{Value: primaryNameServer, Comment: rr.Values[0].Comment}
+	newValues[1] = schema.ResourceRecordValue{Value: email, Comment: rr.Values[1].Comment}
+	newValues[2] = schema.ResourceRecordValue{Value: generatedSerialNumber, Comment: generatedSerialNumberComment}
+	// Note that the comment values start at 2 and not 3, that's because there's only 6 records so we need to shift up
+	newValues[3] = schema.ResourceRecordValue{Value: refresh, Comment: rr.Values[2].Comment}
+	newValues[4] = schema.ResourceRecordValue{Value: retry, Comment: rr.Values[3].Comment}
+	newValues[5] = schema.ResourceRecordValue{Value: expire, Comment: rr.Values[4].Comment}
+	newValues[6] = schema.ResourceRecordValue{Value: negativeCache, Comment: rr.Values[5].Comment}
+	rr.Values = newValues
+
 	return nil
 }
 
-func validateWithSerial(identifier string, rr *schema.ResourceRecord) error {
+func validateWithSerial(identifier string, rr *schema.ResourceRecord, generateSerial bool, generatedSerialNumber string) error {
 	// Convert the array to individual variables, they are required to be in a specific order
 	// This method is used when there is a serial number field present (7 values total)
 	primaryNameServer := rr.Values[0].Value
 	administrator := rr.Values[1].Value
-	// The serial number is Values[2], this is handled elsewhere
+	if rr.Values[2].Value != "" && generateSerial {
+		hclog.L().Debug("Ignoring serial number of SOA record, using generated one", "identifier", identifier, "serialNumber", rr.Values[2].Value, "generateSerial", generateSerial, "generatedSerialNumber", generatedSerialNumber)
+	}
+	if generateSerial {
+		rr.Values[2].Value = generatedSerialNumber
+		hclog.L().Debug("Replacing existing comment due to generated serial number", "oldComment", rr.Values[2].Comment, "newComment", generatedSerialNumberComment)
+		rr.Values[2].Comment = generatedSerialNumberComment
+	}
 	refresh := rr.Values[3].Value
 	retry := rr.Values[4].Value
 	expire := rr.Values[5].Value
