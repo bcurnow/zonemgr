@@ -8,7 +8,6 @@ example.com.: # The origin, each origin in the file will receive it's own zone f
     comment: 1 minute
   resource_records:
     example.com.:
-      name: example.com.
       type: SOA
       values:
         - value: n1.example.com.
@@ -27,10 +26,8 @@ example.com.: # The origin, each origin in the file will receive it's own zone f
           comment: Serial number for the zone, this field is ignored if generate_serial is true
     ns1.example.com.:
       type: NS
-      value: ns1.example.com.
     ns2.example.com.: # another authoritative nameserver for this zone
       type: NS
-      value: ns1.example.com.
     www:
       type: A
       value: 1.2.3.4
