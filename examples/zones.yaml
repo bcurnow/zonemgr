@@ -14,6 +14,8 @@ example.com.: # The origin, each origin in the file will receive it's own zone f
           comment: primary name server for the zone
         - value: admin@example.com
           comment: The mailbox of the person responsible for the zone, could also be specified as admin.example.com.
+        - value: 27
+          comment: Serial number for the zone, this field is ignored if generate_serial is true
         - value: 7200
           comment: refresh (2hours)
         - value: 600
@@ -22,8 +24,6 @@ example.com.: # The origin, each origin in the file will receive it's own zone f
           comment: expire (~42 days)
         - value: 172800
           comment: minimum (2 days)
-        - value: 27
-          comment: Serial number for the zone, this field is ignored if generate_serial is true
     ns1.example.com.:
       type: NS
     ns2.example.com.: # another authoritative nameserver for this zone
