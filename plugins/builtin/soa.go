@@ -59,7 +59,7 @@ func (p *SOAPlugin) Normalize(identifier string, rr schema.ResourceRecord) (sche
 		rr.Name = identifier
 	}
 
-	if err := plugins.IsFullyQualified(rr.Name); err != nil {
+	if err := plugins.IsFullyQualified(rr.Name, identifier, rr); err != nil {
 		return plugins.NilResourceRecord(), err
 	}
 
@@ -72,7 +72,7 @@ func (p *SOAPlugin) Normalize(identifier string, rr schema.ResourceRecord) (sche
 		return plugins.NilResourceRecord(), fmt.Errorf("The comment field can not be used on SOA records, please use the values field, identifier: '%s'", identifier)
 	}
 
-	if err := normalizeValues(&rr, p.config.GenerateSerial, p.config.SerialChangeIndex); err != nil {
+	if err := normalizeValues(identifier, &rr, p.config.GenerateSerial, p.config.SerialChangeIndex); err != nil {
 		return plugins.NilResourceRecord(), err
 	}
 
@@ -92,7 +92,7 @@ func (p *SOAPlugin) Render(identifier string, rr schema.ResourceRecord) (string,
 	return plugins.RenderMultivalueResource(&rr), nil
 }
 
-func normalizeValues(rr *schema.ResourceRecord, generateSerial bool, serialChangeIndex uint32) error {
+func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSerial bool, serialChangeIndex uint32) error {
 	numValues := len(rr.Values)
 	switch numValues {
 	case 6:
@@ -101,12 +101,12 @@ func normalizeValues(rr *schema.ResourceRecord, generateSerial bool, serialChang
 			return fmt.Errorf("Must specify a serial number when generate serial is false, found only 6 values when 7 are required, name: '%s'", rr.Name)
 		}
 
-		if err := validateWithNoSerial(rr); err != nil {
+		if err := validateWithNoSerial(identifier, rr); err != nil {
 			return err
 		}
 	case 7:
 		// There is a serial number provided
-		if err := validateWithSerial(rr); err != nil {
+		if err := validateWithSerial(identifier, rr); err != nil {
 			return err
 		}
 	default:
@@ -130,7 +130,7 @@ func normalizeValues(rr *schema.ResourceRecord, generateSerial bool, serialChang
 }
 
 // Validates the values on the
-func validateWithNoSerial(rr *schema.ResourceRecord) error {
+func validateWithNoSerial(identifier string, rr *schema.ResourceRecord) error {
 	// Convert the array to individual variables, they are required to be in a specific order
 	// This method is used when there is no serial number field present (6 values total)
 	primaryNameServer := rr.Values[0].Value
@@ -140,11 +140,11 @@ func validateWithNoSerial(rr *schema.ResourceRecord) error {
 	expire := rr.Values[4].Value
 	negativeCache := rr.Values[5].Value
 
-	if err := plugins.IsFullyQualified(primaryNameServer); err != nil {
+	if err := plugins.IsFullyQualified(primaryNameServer, identifier, *rr); err != nil {
 		return err
 	}
 
-	email, err := plugins.FormatEmail(administrator)
+	email, err := plugins.FormatEmail(administrator, identifier, *rr)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func validateWithNoSerial(rr *schema.ResourceRecord) error {
 	return nil
 }
 
-func validateWithSerial(rr *schema.ResourceRecord) error {
+func validateWithSerial(identifier string, rr *schema.ResourceRecord) error {
 	// Convert the array to individual variables, they are required to be in a specific order
 	// This method is used when there is a serial number field present (7 values total)
 	primaryNameServer := rr.Values[0].Value
@@ -181,11 +181,11 @@ func validateWithSerial(rr *schema.ResourceRecord) error {
 	expire := rr.Values[5].Value
 	negativeCache := rr.Values[6].Value
 
-	if err := plugins.IsFullyQualified(primaryNameServer); err != nil {
+	if err := plugins.IsFullyQualified(primaryNameServer, identifier, *rr); err != nil {
 		return err
 	}
 
-	email, err := plugins.FormatEmail(administrator)
+	email, err := plugins.FormatEmail(administrator, identifier, *rr)
 	if err != nil {
 		return err
 	}

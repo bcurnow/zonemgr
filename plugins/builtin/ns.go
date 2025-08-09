@@ -56,7 +56,7 @@ func (p *NSPlugin) Normalize(identifier string, rr schema.ResourceRecord) (schem
 
 	// Empty names are allowed in NS record but if set, must be valid or a wild card (e.g. @)
 	if rr.Name != "" {
-		if err := plugins.IsValidNameOrWildcard(rr.Name); err != nil {
+		if err := plugins.IsValidNameOrWildcard(rr.Name, identifier, rr); err != nil {
 			return plugins.NilResourceRecord(), err
 		}
 	} else {
@@ -70,12 +70,16 @@ func (p *NSPlugin) Normalize(identifier string, rr schema.ResourceRecord) (schem
 	}
 	rr.Value = value
 
-	// Check if the value is a valid name (not an IP address)
-	if net.ParseIP(value) != nil {
-		return plugins.NilResourceRecord(), fmt.Errorf("NS record invalid, '%s' cannot be an IP address, identifier: '%s'", value, identifier)
+	if value == "" {
+		rr.Value = identifier
 	}
 
-	err = plugins.IsFullyQualified(value)
+	// Check if the value is a valid name (not an IP address)
+	if net.ParseIP(rr.Value) != nil {
+		return plugins.NilResourceRecord(), fmt.Errorf("NS record invalid, '%s' cannot be an IP address, identifier: '%s'", rr.Value, identifier)
+	}
+
+	err = plugins.IsFullyQualified(rr.Value, identifier, rr)
 	if err != nil {
 		return plugins.NilResourceRecord(), err
 	}

@@ -58,7 +58,7 @@ func (p *CNAMEPlugin) Normalize(identifier string, rr schema.ResourceRecord) (sc
 		rr.Name = identifier
 	}
 
-	if err := plugins.IsValidNameOrWildcard(rr.Name); err != nil {
+	if err := plugins.IsValidNameOrWildcard(rr.Name, identifier, rr); err != nil {
 		return plugins.NilResourceRecord(), err
 	}
 
