@@ -57,6 +57,8 @@ func generateZone(name string, zone *schema.Zone, outputDir string) error {
 	}
 
 	for identifier, rr := range zone.ResourceRecords {
+		// We're takiing advantage of the fact that we have plugin types that match standard resource record types
+		// so we can cast directly
 		plugin := registeredPlugins[plugins.PluginType(rr.Type)]
 		if nil == plugin {
 			return fmt.Errorf("Unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
