@@ -19,7 +19,6 @@ package zonefile
 import (
 	"strings"
 
-	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/schema"
 )
 
@@ -43,14 +42,28 @@ func toReverseZones(zone *schema.Zone) map[string]*schema.Zone {
 	for identifier, rr := range zone.ResourceRecords {
 		// We only care about A records as they're the ones we're trying to reverse
 		// TODO should we also reverse CNAMEs?
-		if rr.Type == "A" {
-			reverseZone, ok := reverseLookupZones[reverseZoneName(rr.Value)]
+		if rr.Type == string(schema.A) {
+			zoneName := reverseZoneName(rr.Value)
+			reverseZone, ok := reverseLookupZones[zoneName]
 			if !ok {
 				reverseZone = &schema.Zone{
 					TTL:             zone.TTL,
 					ResourceRecords: make(map[string]schema.ResourceRecord),
 				}
-				reverseLookupZones[reverseZoneName(rr.Value)] = reverseZone
+
+				// Add the SOA record for the zone
+				sourceSOA := zone.SOARecord()
+				reverseZone.ResourceRecords[zoneName] = schema.ResourceRecord{
+					// Copy the values from the SOZ record in the source zone
+					Name:    zoneName,
+					Type:    string(schema.SOA),
+					Class:   sourceSOA.Class,
+					TTL:     sourceSOA.TTL,
+					Values:  sourceSOA.Values,
+					Value:   sourceSOA.Value,
+					Comment: sourceSOA.Comment,
+				}
+				reverseLookupZones[zoneName] = reverseZone
 			}
 
 			ptr := toPTR(identifier, rr)
@@ -64,7 +77,7 @@ func toReverseZones(zone *schema.Zone) map[string]*schema.Zone {
 func toPTR(identifier string, rr schema.ResourceRecord) schema.ResourceRecord {
 	return schema.ResourceRecord{
 		Name:    lastOctet(rr.Value), //An A records Name/identifier should be an IP, the name of the PTR record is just the last octet
-		Type:    string(plugins.RecordPTR),
+		Type:    string(schema.PTR),
 		Class:   rr.Class,
 		TTL:     rr.TTL,
 		Values:  []schema.ResourceRecordValue{},

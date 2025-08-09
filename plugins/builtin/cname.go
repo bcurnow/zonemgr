@@ -82,8 +82,8 @@ func (p *CNAMEPlugin) Normalize(identifier string, rr schema.ResourceRecord) (sc
 }
 
 func (p *CNAMEPlugin) ValidateZone(name string, zone schema.Zone) error {
-	aRecords := zone.ResourceRecordsByType()[string(plugins.RecordA)]
-	cnameRecords := zone.ResourceRecordsByType()[string(plugins.RecordCNAME)]
+	aRecords := zone.ResourceRecordsByType()[schema.A]
+	cnameRecords := zone.ResourceRecordsByType()[schema.CNAME]
 
 	if len(cnameRecords) > 0 && len(aRecords) == 0 {
 		return fmt.Errorf("Found CNAME records but there are no A records present, all CNAMES must reference an A record name, zone: '%s'", name)

@@ -17,8 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package schema
 
 import (
-	"strings"
-
 	"github.com/bcurnow/zonemgr/plugins/proto"
 )
 
@@ -27,15 +25,25 @@ type Zone struct {
 	TTL                   TTL                       `yaml:"ttl"`
 	ResourceRecords       map[string]ResourceRecord `yaml:"resource_records"`
 	Config                Config                    `yaml:"config"`
-	resourceRecordsByType map[string]map[string]ResourceRecord
+	resourceRecordsByType map[ResourceRecordType]map[string]ResourceRecord
 }
 
-func (z *Zone) ResourceRecordsByType() map[string]map[string]ResourceRecord {
+func (z *Zone) SOARecord() *ResourceRecord {
+	for _, rr := range z.ResourceRecords {
+		if rr.Type == string(SOA) {
+			return &rr
+		}
+	}
+
+	return nil
+}
+
+func (z *Zone) ResourceRecordsByType() map[ResourceRecordType]map[string]ResourceRecord {
 	if z.resourceRecordsByType == nil {
-		z.resourceRecordsByType = make(map[string]map[string]ResourceRecord)
+		z.resourceRecordsByType = make(map[ResourceRecordType]map[string]ResourceRecord)
 
 		for identifier, rr := range z.ResourceRecords {
-			rrType := strings.ToUpper(rr.Type)
+			rrType := ResourceRecordType(rr.Type)
 			_, ok := z.resourceRecordsByType[rrType]
 			if !ok {
 				z.resourceRecordsByType[rrType] = make(map[string]ResourceRecord)

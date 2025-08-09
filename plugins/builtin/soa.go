@@ -86,7 +86,7 @@ func (p *SOAPlugin) ValidateZone(name string, zone schema.Zone) error {
 	hasSOA := false
 	for identifier, rr := range zone.ResourceRecords {
 		// Track the SOA records, there can be only one
-		if rr.Type == string(plugins.RecordSOA) {
+		if rr.Type == string(schema.SOA) {
 			if hasSOA {
 				return fmt.Errorf("More than one SOA record found, only one SOA record is allowed, identifier=%s", identifier)
 			}
