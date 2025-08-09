@@ -109,11 +109,11 @@ const (
 	HESIOD   ResourceRecordClass = "HS"
 )
 
-var resourceRecordToString = map[string]ResourceRecordClass{
-	"IN": INTERNET,
-	"CS": CSNET,
-	"CH": CHAOS,
-	"HS": HESIOD,
+var resourceRecordClassToString = map[string]ResourceRecordClass{
+	string(INTERNET): INTERNET,
+	string(CSNET):    CSNET,
+	string(CHAOS):    CHAOS,
+	string(HESIOD):   HESIOD,
 }
 
 func (rrc ResourceRecordClass) IsValid() bool {
@@ -126,7 +126,7 @@ func (rrc ResourceRecordClass) IsValid() bool {
 }
 
 func ResourceRecordClassFromString(str string) (ResourceRecordClass, error) {
-	class, ok := resourceRecordToString[str]
+	class, ok := resourceRecordClassToString[str]
 	if !ok {
 		return "", fmt.Errorf("Invalid resource record class '%s'\n", str)
 	}
