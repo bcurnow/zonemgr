@@ -48,7 +48,6 @@ func ToZones(inputFile string) (map[string]*schema.Zone, error) {
 	}
 
 	// Normalize the zones
-	hclog.L().Debug("Normalizing the zones", "inputFile", inputFile, "zoneCount", len(zones))
 	if err = normalize.NormalizeZones(zones); err != nil {
 		return nil, fmt.Errorf("failed to normalize zones: %w", err)
 	}
