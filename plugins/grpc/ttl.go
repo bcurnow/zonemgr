@@ -6,7 +6,7 @@ import (
 )
 
 func UpdateTTLFromProtoBuf(p *proto.TTL, ttl *schema.TTL) {
-	ttl.Value = &p.Ttl
+	ttl.Value = p.Ttl
 	ttl.Comment = p.Comment
 }
 
@@ -17,5 +17,5 @@ func TTLFromProtoBuf(p *proto.TTL) *schema.TTL {
 }
 
 func TTLToProtoBuf(ttl *schema.TTL) *proto.TTL {
-	return &proto.TTL{Ttl: *ttl.Value, Comment: ttl.Comment}
+	return &proto.TTL{Ttl: ttl.Value, Comment: ttl.Comment}
 }

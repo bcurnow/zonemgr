@@ -172,7 +172,7 @@ type ResourceRecord struct {
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
 	Class         string                 `protobuf:"bytes,3,opt,name=class,proto3" json:"class,omitempty"`
-	Ttl           int32                  `protobuf:"varint,4,opt,name=ttl,proto3" json:"ttl,omitempty"`
+	Ttl           *int32                 `protobuf:"varint,4,opt,name=ttl,proto3,oneof" json:"ttl,omitempty"`
 	Values        []*ResourceRecordValue `protobuf:"bytes,5,rep,name=values,proto3" json:"values,omitempty"`
 	Value         string                 `protobuf:"bytes,6,opt,name=value,proto3" json:"value,omitempty"`
 	Comment       string                 `protobuf:"bytes,7,opt,name=comment,proto3" json:"comment,omitempty"`
@@ -232,8 +232,8 @@ func (x *ResourceRecord) GetClass() string {
 }
 
 func (x *ResourceRecord) GetTtl() int32 {
-	if x != nil {
-		return x.Ttl
+	if x != nil && x.Ttl != nil {
+		return *x.Ttl
 	}
 	return 0
 }
@@ -260,9 +260,10 @@ func (x *ResourceRecord) GetComment() string {
 }
 
 type TTL struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ttl           int32                  `protobuf:"varint,1,opt,name=ttl,proto3" json:"ttl,omitempty"`
-	Comment       string                 `protobuf:"bytes,2,opt,name=comment,proto3" json:"comment,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Todo fix this!
+	Ttl           *int32 `protobuf:"varint,1,opt,name=ttl,proto3,oneof" json:"ttl,omitempty"`
+	Comment       string `protobuf:"bytes,2,opt,name=comment,proto3" json:"comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -298,8 +299,8 @@ func (*TTL) Descriptor() ([]byte, []int) {
 }
 
 func (x *TTL) GetTtl() int32 {
-	if x != nil {
-		return x.Ttl
+	if x != nil && x.Ttl != nil {
+		return *x.Ttl
 	}
 	return 0
 }
@@ -799,18 +800,20 @@ const file_plugins_proto_zonemgrplugin_proto_rawDesc = "" +
 	"\x1e_generate_reverse_lookup_zones\"E\n" +
 	"\x13ResourceRecordValue\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x18\n" +
-	"\acomment\x18\x02 \x01(\tR\acomment\"\xbe\x01\n" +
+	"\acomment\x18\x02 \x01(\tR\acomment\"\xcb\x01\n" +
 	"\x0eResourceRecord\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x14\n" +
-	"\x05class\x18\x03 \x01(\tR\x05class\x12\x10\n" +
-	"\x03ttl\x18\x04 \x01(\x05R\x03ttl\x12,\n" +
+	"\x05class\x18\x03 \x01(\tR\x05class\x12\x15\n" +
+	"\x03ttl\x18\x04 \x01(\x05H\x00R\x03ttl\x88\x01\x01\x12,\n" +
 	"\x06values\x18\x05 \x03(\v2\x14.ResourceRecordValueR\x06values\x12\x14\n" +
 	"\x05value\x18\x06 \x01(\tR\x05value\x12\x18\n" +
-	"\acomment\x18\a \x01(\tR\acomment\"1\n" +
-	"\x03TTL\x12\x10\n" +
-	"\x03ttl\x18\x01 \x01(\x05R\x03ttl\x12\x18\n" +
-	"\acomment\x18\x02 \x01(\tR\acomment\"\xdb\x01\n" +
+	"\acomment\x18\a \x01(\tR\acommentB\x06\n" +
+	"\x04_ttl\">\n" +
+	"\x03TTL\x12\x15\n" +
+	"\x03ttl\x18\x01 \x01(\x05H\x00R\x03ttl\x88\x01\x01\x12\x18\n" +
+	"\acomment\x18\x02 \x01(\tR\acommentB\x06\n" +
+	"\x04_ttl\"\xdb\x01\n" +
 	"\x04Zone\x12\x1f\n" +
 	"\x06config\x18\x01 \x01(\v2\a.ConfigR\x06config\x12E\n" +
 	"\x10resource_records\x18\x02 \x03(\v2\x1a.Zone.ResourceRecordsEntryR\x0fresourceRecords\x12\x16\n" +
@@ -916,6 +919,8 @@ func file_plugins_proto_zonemgrplugin_proto_init() {
 		return
 	}
 	file_plugins_proto_zonemgrplugin_proto_msgTypes[0].OneofWrappers = []any{}
+	file_plugins_proto_zonemgrplugin_proto_msgTypes[2].OneofWrappers = []any{}
+	file_plugins_proto_zonemgrplugin_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

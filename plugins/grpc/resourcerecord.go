@@ -7,16 +7,11 @@ import (
 
 // Updates the passed in ResourceRecord with values from the protocol buff
 func UpdateResourceRecordFromProtoBuf(p *proto.ResourceRecord, rr *schema.ResourceRecord) {
-	var ttl *int32 = nil
-	if p.Ttl != -1 {
-		ttl = &p.Ttl
-	}
-
 	//Update the resource record with the new values
 	rr.Name = p.Name
 	rr.Type = p.Type
 	rr.Class = p.Class
-	rr.TTL = ttl
+	rr.TTL = p.Ttl
 	UpdateResourceRecordValuesFromProtoBuf(p.Values, rr.Values)
 	rr.Value = p.Value
 	rr.Comment = p.Comment
@@ -29,16 +24,11 @@ func ResourceRecordFromProtoBuf(p *proto.ResourceRecord) *schema.ResourceRecord 
 }
 
 func ResourceRecordToProtoBuf(rr *schema.ResourceRecord) *proto.ResourceRecord {
-	var ttl int32 = -1
-	if rr.TTL != nil {
-		// We're using a negative number so we can check for it the other way as well and set appropriately
-		ttl = *rr.TTL
-	}
 	ret := &proto.ResourceRecord{
 		Name:    rr.Name,
 		Type:    rr.Type,
 		Class:   rr.Class,
-		Ttl:     ttl,
+		Ttl:     rr.TTL,
 		Value:   rr.Value,
 		Values:  ResourceRecordValuesToProtoBuf(rr.Values),
 		Comment: rr.Comment,
