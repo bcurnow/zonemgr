@@ -32,12 +32,12 @@ import (
 
 const generatedSerialNumberComment = "Zonemgr generated serial number"
 
-var _ plugins.TypeHandler = &SOAPlugin{}
+var _ plugins.ZoneMgrPlugin = &SOAPlugin{}
 
 var soaSupportedPluginTypes = []plugins.PluginType{plugins.RecordSOA}
 
 type SOAPlugin struct {
-	config schema.Config
+	config *schema.Config
 }
 
 func (p *SOAPlugin) PluginVersion() (string, error) {
@@ -48,14 +48,14 @@ func (p *SOAPlugin) PluginTypes() ([]plugins.PluginType, error) {
 	return soaSupportedPluginTypes, nil
 }
 
-func (p *SOAPlugin) Configure(config schema.Config) error {
+func (p *SOAPlugin) Configure(config *schema.Config) error {
 	p.config = config
 	return nil
 }
 
-func (p *SOAPlugin) Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error) {
-	if err := plugins.StandardValidations(identifier, &rr, soaSupportedPluginTypes); err != nil {
-		return plugins.NilResourceRecord(), err
+func (p *SOAPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
+	if err := plugins.StandardValidations(identifier, rr, soaSupportedPluginTypes); err != nil {
+		return err
 	}
 
 	if rr.Name == "" {
@@ -63,75 +63,75 @@ func (p *SOAPlugin) Normalize(identifier string, rr schema.ResourceRecord) (sche
 	}
 
 	if err := plugins.IsFullyQualified(rr.Name, identifier, rr); err != nil {
-		return plugins.NilResourceRecord(), err
+		return err
 	}
 
 	// Validate the the Value and Comment fields are empty, there are no shortcuts for SOA records
 	if rr.Value != "" {
-		return plugins.NilResourceRecord(), fmt.Errorf("The value field can not be used on SOA records, please use the values field, identifier: '%s'", identifier)
+		return fmt.Errorf("value field can not be used on SOA records, please use the values field, identifier: '%s'", identifier)
 	}
 
 	if rr.Comment != "" {
-		return plugins.NilResourceRecord(), fmt.Errorf("The comment field can not be used on SOA records, please use the values field, identifier: '%s'", identifier)
+		return fmt.Errorf("comment field can not be used on SOA records, please use the values field, identifier: '%s'", identifier)
 	}
 
-	if err := normalizeValues(identifier, &rr, p.config.GenerateSerial, p.config.SerialChangeIndex); err != nil {
-		return plugins.NilResourceRecord(), err
+	if err := normalizeValues(identifier, rr, p.config.GenerateSerial, p.config.SerialChangeIndex); err != nil {
+		return err
 	}
 
-	return rr, nil
+	return nil
 }
 
-func (p *SOAPlugin) ValidateZone(name string, zone schema.Zone) error {
+func (p *SOAPlugin) ValidateZone(name string, zone *schema.Zone) error {
 	hasSOA := false
 	for identifier, rr := range zone.ResourceRecords {
 		// Track the SOA records, there can be only one
 		if rr.Type == string(schema.SOA) {
 			if hasSOA {
-				return fmt.Errorf("More than one SOA record found, only one SOA record is allowed, identifier=%s", identifier)
+				return fmt.Errorf("more than one SOA record found, only one SOA record is allowed, identifier=%s", identifier)
 			}
 			hasSOA = true
 		}
 	}
 
 	if !hasSOA {
-		return fmt.Errorf("Invalid zone, missing SOA record, zone=%s", name)
+		return fmt.Errorf("invalid zone, missing SOA record, zone=%s", name)
 	}
 
 	return nil
 }
 
-func (p *SOAPlugin) Render(identifier string, rr schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, &rr, soaSupportedPluginTypes); err != nil {
+func (p *SOAPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
+	if err := plugins.IsSupportedPluginType(identifier, rr, soaSupportedPluginTypes); err != nil {
 		return "", err
 	}
 
-	return plugins.RenderMultivalueResource(&rr), nil
+	return plugins.RenderMultivalueResource(rr), nil
 }
 
 func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSerial bool, serialChangeIndex uint32) error {
 	numValues := len(rr.Values)
+
 	serialNumber, err := serial(serialChangeIndex)
 	if err != nil {
 		return err
 	}
-	generatedSerialNumber := strconv.Itoa(int(serialNumber))
 
 	switch numValues {
 	case 6:
 		hclog.L().Debug("No serial number present in SOA record, only have 6 values", "identifier", identifier)
 		// No serial number present, this is an error unless generateSerial is true
 		if !generateSerial {
-			return fmt.Errorf("Must specify a serial number when generate serial is false, found only 6 values when 7 are required, name: '%s'", rr.Name)
+			return fmt.Errorf("must specify a serial number when generate serial is false, found only 6 values when 7 are required, name: '%s'", rr.Name)
 		}
 
-		if err := validateWithNoSerial(identifier, rr, generatedSerialNumber); err != nil {
+		if err := validateWithNoSerial(identifier, rr, serialNumber); err != nil {
 			return err
 		}
 	case 7:
 		hclog.L().Debug("Serial number present in SOA record", "identifier", identifier, "generateSerialNumber", generateSerial)
 		// There is a serial number provided
-		if err := validateWithSerial(identifier, rr, generateSerial, generatedSerialNumber); err != nil {
+		if err := validateWithSerial(identifier, rr, generateSerial, serialNumber); err != nil {
 			return err
 		}
 	default:
@@ -152,11 +152,11 @@ func validateWithNoSerial(identifier string, rr *schema.ResourceRecord, generate
 	expire := rr.Values[4].Value
 	negativeCache := rr.Values[5].Value
 
-	if err := plugins.IsFullyQualified(primaryNameServer, identifier, *rr); err != nil {
+	if err := plugins.IsFullyQualified(primaryNameServer, identifier, rr); err != nil {
 		return err
 	}
 
-	email, err := plugins.FormatEmail(administrator, identifier, *rr)
+	email, err := plugins.FormatEmail(administrator, identifier, rr)
 	if err != nil {
 		return err
 	}
@@ -179,15 +179,15 @@ func validateWithNoSerial(identifier string, rr *schema.ResourceRecord, generate
 	}
 
 	//Now we need to reset the values to use the generated serial number because it still needs to be at index 2
-	newValues := make([]schema.ResourceRecordValue, 7)
-	newValues[0] = schema.ResourceRecordValue{Value: primaryNameServer, Comment: rr.Values[0].Comment}
-	newValues[1] = schema.ResourceRecordValue{Value: email, Comment: rr.Values[1].Comment}
-	newValues[2] = schema.ResourceRecordValue{Value: generatedSerialNumber, Comment: generatedSerialNumberComment}
+	newValues := make([]*schema.ResourceRecordValue, 7)
+	newValues[0] = &schema.ResourceRecordValue{Value: primaryNameServer, Comment: rr.Values[0].Comment}
+	newValues[1] = &schema.ResourceRecordValue{Value: email, Comment: rr.Values[1].Comment}
+	newValues[2] = &schema.ResourceRecordValue{Value: generatedSerialNumber, Comment: generatedSerialNumberComment}
 	// Note that the comment values start at 2 and not 3, that's because there's only 6 records so we need to shift up
-	newValues[3] = schema.ResourceRecordValue{Value: refresh, Comment: rr.Values[2].Comment}
-	newValues[4] = schema.ResourceRecordValue{Value: retry, Comment: rr.Values[3].Comment}
-	newValues[5] = schema.ResourceRecordValue{Value: expire, Comment: rr.Values[4].Comment}
-	newValues[6] = schema.ResourceRecordValue{Value: negativeCache, Comment: rr.Values[5].Comment}
+	newValues[3] = &schema.ResourceRecordValue{Value: refresh, Comment: rr.Values[2].Comment}
+	newValues[4] = &schema.ResourceRecordValue{Value: retry, Comment: rr.Values[3].Comment}
+	newValues[5] = &schema.ResourceRecordValue{Value: expire, Comment: rr.Values[4].Comment}
+	newValues[6] = &schema.ResourceRecordValue{Value: negativeCache, Comment: rr.Values[5].Comment}
 	rr.Values = newValues
 
 	return nil
@@ -211,11 +211,11 @@ func validateWithSerial(identifier string, rr *schema.ResourceRecord, generateSe
 	expire := rr.Values[5].Value
 	negativeCache := rr.Values[6].Value
 
-	if err := plugins.IsFullyQualified(primaryNameServer, identifier, *rr); err != nil {
+	if err := plugins.IsFullyQualified(primaryNameServer, identifier, rr); err != nil {
 		return err
 	}
 
-	email, err := plugins.FormatEmail(administrator, identifier, *rr)
+	email, err := plugins.FormatEmail(administrator, identifier, rr)
 	if err != nil {
 		return err
 	}
@@ -256,17 +256,17 @@ func greaterThanZero(str string, fieldName string, rr *schema.ResourceRecord) er
 }
 
 // Generates a time-based serial number plus a numeric index
-func serial(index uint32) (uint32, error) {
+func serial(index uint32) (string, error) {
 	t := time.Now()
 	serialString := fmt.Sprintf("%02d%02d%04d%02d", t.Day(), t.Month(), t.Year(), index)
 
 	parsedSerial, err := strconv.ParseUint(serialString, 10, 32)
 	if err != nil {
-		return 0, fmt.Errorf("Unable to generate a serial number from day: %d, month: %d, year: %d, changeIndex: %d: %w", t.Day(), t.Month(), t.Year(), index, err)
+		return "", fmt.Errorf("unable to generate a serial number from day: %d, month: %d, year: %d, changeIndex: %d: %w", t.Day(), t.Month(), t.Year(), index, err)
 	}
 
-	// Explicitly convert to a uint32
-	return uint32(parsedSerial), nil
+	// Explicitly convert to a uint32 to make sure it fits
+	return strconv.Itoa(int(uint32(parsedSerial))), nil
 }
 
 func init() {

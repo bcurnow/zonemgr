@@ -16,18 +16,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package schema
 
-import "github.com/bcurnow/zonemgr/plugins/proto"
-
 type Config struct {
 	GenerateSerial             bool   `yaml:"generate_serial"`
 	SerialChangeIndex          uint32 `yaml:"serial_change_index"`
 	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones"`
-}
-
-func (c Config) ToProtoBuf() *proto.Config {
-	return &proto.Config{GenerateSerial: c.GenerateSerial, SerialChangeIndex: c.SerialChangeIndex, GenerateReverseLookupZones: c.GenerateReverseLookupZones}
-}
-
-func (c Config) FromProtoBuf(p *proto.Config) Config {
-	return Config{GenerateSerial: p.GenerateSerial, SerialChangeIndex: p.SerialChangeIndex, GenerateReverseLookupZones: p.GenerateReverseLookupZones}
 }

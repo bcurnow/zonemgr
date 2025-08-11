@@ -17,16 +17,9 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package builtin
+package schema
 
-import "github.com/bcurnow/zonemgr/plugins"
-
-var builtins map[plugins.PluginType]*plugins.Plugin = make(map[plugins.PluginType]*plugins.Plugin)
-
-func BuiltinPlugins() map[plugins.PluginType]*plugins.Plugin {
-	return builtins
-}
-
-func registerBuiltIn(pluginType plugins.PluginType, plugin plugins.ZoneMgrPlugin) {
-	builtins[pluginType] = &plugins.Plugin{IsBuiltIn: true, PluginName: string(pluginType), Plugin: plugin, PluginCmd: "Built In"}
+type TTL struct {
+	Value   *int32 `yaml:"value"` // The use of a pointer to an int32 allows us to handle missing (nil) values more easily
+	Comment string `yaml:"comment"`
 }

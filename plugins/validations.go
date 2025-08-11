@@ -33,11 +33,6 @@ const dnsNameRegexRFC1035String = `^([A-Za-z0-9-]{1,63})(\.[A-Za-z0-9-]{1,63})*\
 
 var dnsNameRegexRFC1035 = regexp.MustCompile(dnsNameRegexRFC1035String)
 
-// Useful shortcut for plugin functions which return (schema.ResourceRecord, error) when returning an error
-func NilResourceRecord() schema.ResourceRecord {
-	return schema.ResourceRecord{}
-}
-
 // Performs the standard validations for resource records
 // This includes:
 //   - Validation that the resource record is of the specified type - This is not case insensitive but the the type will be normalized to uppercase
@@ -117,7 +112,7 @@ func IsCommentSetInOnePlace(identifier string, rr *schema.ResourceRecord) error 
 
 // Validates that the name provided matches the RFC1035 regex for valid names according to RFC1035
 // and is less then or equal to 255 total characters
-func IsValidRFC1035Name(name string, identifier string, rr schema.ResourceRecord) error {
+func IsValidRFC1035Name(name string, identifier string, rr *schema.ResourceRecord) error {
 	if len(name) > 255 {
 		return fmt.Errorf("%s record invalid, must be less than 255 characters: '%s', identifier=%s", rr.Type, name, identifier)
 	}
@@ -137,7 +132,7 @@ func IsValidRFC1035Name(name string, identifier string, rr schema.ResourceRecord
 }
 
 // Checks if the name provide is either the wildcard ('@') or is a valid name
-func IsValidNameOrWildcard(name string, identifier string, rr schema.ResourceRecord) error {
+func IsValidNameOrWildcard(name string, identifier string, rr *schema.ResourceRecord) error {
 	// Check if the name matches the regex or is a wildcard
 	if name == "@" {
 		return nil
@@ -146,7 +141,7 @@ func IsValidNameOrWildcard(name string, identifier string, rr schema.ResourceRec
 }
 
 // Formats and email address according to RFC1035
-func FormatEmail(email string, identifier string, rr schema.ResourceRecord) (string, error) {
+func FormatEmail(email string, identifier string, rr *schema.ResourceRecord) (string, error) {
 	if strings.Contains(email, "@") {
 		// Assume this is a standard email address that will be parseable
 		address, err := mail.ParseAddress(email)
@@ -173,11 +168,10 @@ func FormatEmail(email string, identifier string, rr schema.ResourceRecord) (str
 
 // Most DNS names in a zone file need to be fully qualified domain names, while we can't validate if the entire name itself is valid,
 // we can ensure that it is a valid name and ends with a trailing dot
-func IsFullyQualified(name string, identifier string, rr schema.ResourceRecord) error {
+func IsFullyQualified(name string, identifier string, rr *schema.ResourceRecord) error {
 	if err := IsValidRFC1035Name(name, identifier, rr); err != nil {
 		return err
 	}
-
 	if !hasTrailingDot(name) {
 		return fmt.Errorf("%s record invalid, must end with a trailing dot: '%s', identifier=%s", rr.Type, name, identifier)
 	}

@@ -28,8 +28,8 @@ import (
 	"github.com/bcurnow/zonemgr/version"
 )
 
-var _ plugins.TypeHandler = &APlugin{}
-var aPluginTypes = []plugins.PluginType{plugins.RecordA}
+var _ plugins.ZoneMgrPlugin = &APlugin{}
+var aSupportedPluginTypes = []plugins.PluginType{plugins.RecordA}
 
 type APlugin struct {
 }
@@ -39,17 +39,17 @@ func (p *APlugin) PluginVersion() (string, error) {
 }
 
 func (p *APlugin) PluginTypes() ([]plugins.PluginType, error) {
-	return aPluginTypes, nil
+	return aSupportedPluginTypes, nil
 }
 
-func (p *APlugin) Configure(config schema.Config) error {
+func (p *APlugin) Configure(config *schema.Config) error {
 	// no config
 	return nil
 }
 
-func (p *APlugin) Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error) {
-	if err := plugins.StandardValidations(identifier, &rr, aPluginTypes); err != nil {
-		return plugins.NilResourceRecord(), err
+func (p *APlugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
+	if err := plugins.StandardValidations(identifier, rr, aSupportedPluginTypes); err != nil {
+		return err
 	}
 
 	if rr.Name == "" {
@@ -57,39 +57,39 @@ func (p *APlugin) Normalize(identifier string, rr schema.ResourceRecord) (schema
 	}
 
 	if err := plugins.IsValidNameOrWildcard(rr.Name, identifier, rr); err != nil {
-		return plugins.NilResourceRecord(), err
+		return err
 	}
 
 	// Make sure the name isn't an IP
 	if net.ParseIP(rr.Name) != nil {
-		return plugins.NilResourceRecord(), fmt.Errorf("A record invalid, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
+		return fmt.Errorf("invalid A record, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
 	}
 
-	value, err := plugins.RetrieveSingleValue(identifier, &rr)
+	value, err := plugins.RetrieveSingleValue(identifier, rr)
 	if err != nil {
-		return plugins.NilResourceRecord(), err
+		return err
 	}
 	rr.Value = value
 
 	// Make sure the value IS an IP
 	if net.ParseIP(value) == nil {
-		return plugins.NilResourceRecord(), fmt.Errorf("A record invalid, '%s' must be a valid IP address, identifier: '%s'", rr.Value, identifier)
+		return fmt.Errorf("invalid A record, '%s' must be a valid IP address, identifier: '%s'", rr.Value, identifier)
 	}
 
-	return rr, nil
+	return nil
 }
 
-func (p *APlugin) ValidateZone(name string, zone schema.Zone) error {
+func (p *APlugin) ValidateZone(name string, zone *schema.Zone) error {
 	//no-op
 	return nil
 }
 
-func (p *APlugin) Render(identifier string, rr schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, &rr, aPluginTypes); err != nil {
+func (p *APlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
+	if err := plugins.IsSupportedPluginType(identifier, rr, aSupportedPluginTypes); err != nil {
 		return "", err
 	}
 
-	return plugins.RenderSingleValueResource(&rr), nil
+	return plugins.RenderSingleValueResource(rr), nil
 }
 
 func init() {

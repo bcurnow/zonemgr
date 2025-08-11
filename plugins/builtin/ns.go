@@ -30,7 +30,7 @@ import (
 )
 
 // Make sure we're correctly implementing the ZonmgrPlugin interface
-var _ plugins.TypeHandler = &NSPlugin{}
+var _ plugins.ZoneMgrPlugin = &NSPlugin{}
 
 var nsSupportedPluginTypes = []plugins.PluginType{plugins.RecordNS}
 
@@ -44,29 +44,29 @@ func (p *NSPlugin) PluginTypes() ([]plugins.PluginType, error) {
 	return nsSupportedPluginTypes, nil
 }
 
-func (p *NSPlugin) Configure(config schema.Config) error {
+func (p *NSPlugin) Configure(config *schema.Config) error {
 	// We don't need to do anything with the configuration
 	return nil
 }
 
-func (p *NSPlugin) Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error) {
-	if err := plugins.StandardValidations(identifier, &rr, nsSupportedPluginTypes); err != nil {
-		return plugins.NilResourceRecord(), err
+func (p *NSPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
+	if err := plugins.StandardValidations(identifier, rr, nsSupportedPluginTypes); err != nil {
+		return err
 	}
 
 	// Empty names are allowed in NS record but if set, must be valid or a wild card (e.g. @)
 	if rr.Name != "" {
 		if err := plugins.IsValidNameOrWildcard(rr.Name, identifier, rr); err != nil {
-			return plugins.NilResourceRecord(), err
+			return err
 		}
 	} else {
 		// Default to the wildcard
 		rr.Name = "@"
 	}
 
-	value, err := plugins.RetrieveSingleValue(identifier, &rr)
+	value, err := plugins.RetrieveSingleValue(identifier, rr)
 	if err != nil {
-		return plugins.NilResourceRecord(), err
+		return err
 	}
 	rr.Value = value
 
@@ -76,35 +76,35 @@ func (p *NSPlugin) Normalize(identifier string, rr schema.ResourceRecord) (schem
 
 	// Check if the value is a valid name (not an IP address)
 	if net.ParseIP(rr.Value) != nil {
-		return plugins.NilResourceRecord(), fmt.Errorf("NS record invalid, '%s' cannot be an IP address, identifier: '%s'", rr.Value, identifier)
+		return fmt.Errorf("NS record invalid, '%s' cannot be an IP address, identifier: '%s'", rr.Value, identifier)
 	}
 
 	err = plugins.IsFullyQualified(rr.Value, identifier, rr)
 	if err != nil {
-		return plugins.NilResourceRecord(), err
+		return err
 	}
 
 	//Check the comment
-	comment, err := plugins.RetrieveSingleComment(identifier, &rr)
+	comment, err := plugins.RetrieveSingleComment(identifier, rr)
 	if err != nil {
-		return plugins.NilResourceRecord(), err
+		return err
 	}
 	rr.Comment = comment
 
-	return rr, nil
+	return nil
 }
 
-func (p *NSPlugin) ValidateZone(name string, zone schema.Zone) error {
+func (p *NSPlugin) ValidateZone(name string, zone *schema.Zone) error {
 	//no-op
 	return nil
 }
 
-func (p *NSPlugin) Render(identifier string, rr schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, &rr, nsSupportedPluginTypes); err != nil {
+func (p *NSPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
+	if err := plugins.IsSupportedPluginType(identifier, rr, nsSupportedPluginTypes); err != nil {
 		return "", err
 	}
 
-	return plugins.RenderSingleValueResource(&rr), nil
+	return plugins.RenderSingleValueResource(rr), nil
 }
 
 func init() {

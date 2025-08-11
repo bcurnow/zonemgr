@@ -28,25 +28,25 @@ import (
 var pluginTypes = []plugins.PluginType{plugins.RecordA}
 
 // Concrete implementation of the TypeHandler
-type TypeHandler struct {
+type Plugin struct {
 }
 
-func (th TypeHandler) PluginVersion() (string, error) {
+func (th *Plugin) PluginVersion() (string, error) {
 	return "1.0.0", nil
 }
 
-func (th TypeHandler) PluginTypes() ([]plugins.PluginType, error) {
+func (th *Plugin) PluginTypes() ([]plugins.PluginType, error) {
 	return pluginTypes, nil
 }
 
-func (th TypeHandler) Configure(config schema.Config) error {
+func (th *Plugin) Configure(config *schema.Config) error {
 	// no config
 	return nil
 }
 
-func (th TypeHandler) Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error) {
-	if err := plugins.StandardValidations(identifier, &rr, pluginTypes); err != nil {
-		return plugins.NilResourceRecord(), err
+func (th *Plugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
+	if err := plugins.StandardValidations(identifier, rr, pluginTypes); err != nil {
+		return err
 	}
 
 	rr.Comment = "This is an overridden comment value, it doesn't matter what is in the input file, this is the comment that will print out"
@@ -57,24 +57,24 @@ func (th TypeHandler) Normalize(identifier string, rr schema.ResourceRecord) (sc
 		rr.Value = rr.Values[0].Value
 	}
 
-	return rr, nil
+	return nil
 }
 
-func (th TypeHandler) ValidateZone(name string, zone schema.Zone) error {
+func (th *Plugin) ValidateZone(name string, zone *schema.Zone) error {
 	// no-op
 	return nil
 }
 
-func (th TypeHandler) Render(identifier string, rr schema.ResourceRecord) (string, error) {
+func (th *Plugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
 	// Leverage the standard rendering
-	return plugins.RenderSingleValueResource(&rr), nil
+	return plugins.RenderSingleValueResource(rr), nil
 }
 
 func main() {
 	goplugin.Serve(&goplugin.ServeConfig{
 		HandshakeConfig: plugins.HandshakeConfig,
 		Plugins: map[string]goplugin.Plugin{
-			"zonemgr-a-record-comment-override-plugin": &plugins.Plugin{Impl: &TypeHandler{}},
+			"zonemgr-a-record-comment-override-plugin": &plugins.GRPCPlugin{Impl: &Plugin{}},
 		},
 		GRPCServer: goplugin.DefaultGRPCServer,
 	})

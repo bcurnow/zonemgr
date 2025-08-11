@@ -34,11 +34,11 @@ import (
 )
 
 var (
-	allPlugins  = make(map[plugins.PluginType]*plugins.TypeHandlerPlugin)
+	allPlugins  = make(map[plugins.PluginType]*plugins.Plugin)
 	initialized = false
 )
 
-func Plugins() (map[plugins.PluginType]*plugins.TypeHandlerPlugin, error) {
+func Plugins() (map[plugins.PluginType]*plugins.Plugin, error) {
 	if err := initializePlugins(); err != nil {
 		return nil, err
 	}
@@ -143,9 +143,9 @@ func discoverPlugins(dir string) (map[string]string, error) {
 	return executables, nil
 }
 
-func registerPlugins() (map[string]*plugins.TypeHandlerPlugin, error) {
+func registerPlugins() (map[string]*plugins.Plugin, error) {
 	hclog.L().Debug("Loading plugins", "pluginDir", env.PLUGINS.Value)
-	typeHandlers := make(map[string]*plugins.TypeHandlerPlugin)
+	typeHandlers := make(map[string]*plugins.Plugin)
 	executables, err := discoverPlugins(env.PLUGINS.Value)
 	if err != nil {
 		hclog.L().Error("Error discovering plugins", "pluginDir", env.PLUGINS.Value, "err", err)
@@ -158,7 +158,7 @@ func registerPlugins() (map[string]*plugins.TypeHandlerPlugin, error) {
 		if err != nil {
 			return nil, err
 		}
-		typeHandlers[pluginName] = &plugins.TypeHandlerPlugin{IsBuiltIn: false, PluginName: pluginName, PluginCmd: pluginCmd, Plugin: typeHandler}
+		typeHandlers[pluginName] = &plugins.Plugin{IsBuiltIn: false, PluginName: pluginName, PluginCmd: pluginCmd, Plugin: typeHandler}
 	}
 
 	return typeHandlers, nil
@@ -170,7 +170,7 @@ func buildClient(pluginName string, pluginCmd string) *goplugin.Client {
 	clientConfig := &goplugin.ClientConfig{
 		HandshakeConfig: plugins.HandshakeConfig,
 		Plugins: map[string]goplugin.Plugin{
-			pluginName: &plugins.Plugin{},
+			pluginName: &plugins.GRPCPlugin{},
 		},
 		Managed:          true,                                       // Allow the plugin runtime to manage this plugin
 		SyncStdout:       logging.PluginStdout(),                     // Print any extra output to Stdout from the plugin to the host processes Stdout
@@ -185,7 +185,7 @@ func buildClient(pluginName string, pluginCmd string) *goplugin.Client {
 	return goplugin.NewClient(clientConfig)
 }
 
-func pluginInstance(pluginName string, client *goplugin.Client) (plugins.TypeHandler, error) {
+func pluginInstance(pluginName string, client *goplugin.Client) (plugins.ZoneMgrPlugin, error) {
 	hclog.L().Trace("Getting the ClientProtocol from the client", "pluginName", pluginName)
 	// Get the RPC Client from the plugin definition
 	clientProtocol, err := client.Client()
@@ -202,5 +202,5 @@ func pluginInstance(pluginName string, client *goplugin.Client) (plugins.TypeHan
 	hclog.L().Debug("Plugin dispensed", "pluginName", pluginName, "Protocol", client.Protocol())
 
 	// Cast the raw plugin to the TypeHandler interface so we have access to the methods
-	return raw.(plugins.TypeHandler), nil
+	return raw.(plugins.ZoneMgrPlugin), nil
 }

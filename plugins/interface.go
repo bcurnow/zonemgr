@@ -23,19 +23,19 @@ import (
 	"github.com/bcurnow/zonemgr/schema"
 )
 
-type TypeHandler interface {
+type ZoneMgrPlugin interface {
 	// Returns the version of plugin
 	PluginVersion() (string, error)
 	// Returns the set of plugin types that this plugin supports
 	PluginTypes() ([]PluginType, error)
 	// Allows for configuration of the plugin, this will be called once for each zone in the file
-	Configure(config schema.Config) error
+	Configure(config *schema.Config) error
 	// Allows for validation and normalization/defaulting for the resource record
-	Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error)
+	Normalize(identifier string, rr *schema.ResourceRecord) error
 	// Allows for validation of the entire normalized zone
 	// This enables checks such as all CNAME records properly referencing a defined A record
 	// This allows validation only, no defaulting
-	ValidateZone(name string, zone schema.Zone) error
+	ValidateZone(name string, zone *schema.Zone) error
 	// Converts the resource record into a string to be writting out to a file
-	Render(identifier string, rr schema.ResourceRecord) (string, error)
+	Render(identifier string, rr *schema.ResourceRecord) (string, error)
 }

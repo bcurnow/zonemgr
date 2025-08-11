@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/bcurnow/zonemgr/normalize"
 	"github.com/bcurnow/zonemgr/schema"
 	"github.com/hashicorp/go-hclog"
 	"gopkg.in/yaml.v3"
@@ -29,20 +30,19 @@ func ToZones(inputFile string) (map[string]*schema.Zone, error) {
 	hclog.L().Debug("Opening input file", "inputFile", inputFile)
 	inputBytes, err := os.ReadFile(inputFile)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open input %s: %w", inputFile, err)
+		return nil, fmt.Errorf("failed to open input %s: %w", inputFile, err)
 	}
 
 	hclog.L().Debug("Unmarshaling YAML", "inputFile", inputFile)
 	zones, err := unmarshal(inputBytes)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to unmarshal input bytes: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal input bytes: %w", err)
 	}
 
 	// Normalize the zones
 	hclog.L().Debug("Normalizing the zones", "inputFile", inputFile, "zoneCount", len(zones))
-	zones, err = normalize(zones)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to normalize zones: %w", err)
+	if err = normalize.NormalizeZones(zones); err != nil {
+		return nil, fmt.Errorf("failed to normalize zones: %w", err)
 	}
 	return zones, nil
 }
@@ -51,10 +51,10 @@ func unmarshal(inputBytes []byte) (map[string]*schema.Zone, error) {
 	var zones map[string]*schema.Zone
 	err := yaml.Unmarshal(inputBytes, &zones)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse input YAML: %w", err)
+		return nil, fmt.Errorf("failed to parse input YAML: %w", err)
 	}
 	if len(zones) == 0 {
-		return nil, fmt.Errorf("No zones found in input file")
+		return nil, fmt.Errorf("no zones found in input file")
 	}
 	return zones, nil
 }

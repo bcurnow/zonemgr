@@ -30,10 +30,10 @@ import (
 	"github.com/hashicorp/go-hclog"
 )
 
-func generateZone(name string, zone *schema.Zone, outputDir string) error {
+func writeZoneFile(name string, zone *schema.Zone, outputDir string) error {
 	outputFile, err := os.Create(filepath.Join(outputDir, name))
 	if err != nil {
-		return fmt.Errorf("Failed to create output file for zone %s: %w", name, err)
+		return fmt.Errorf("failed to create output file for zone %s: %w", name, err)
 	}
 	defer outputFile.Close()
 
@@ -66,7 +66,7 @@ func generateZone(name string, zone *schema.Zone, outputDir string) error {
 		// so we can cast directly
 		plugin := registeredPlugins[plugins.PluginType(rr.Type)]
 		if nil == plugin {
-			return fmt.Errorf("Unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
+			return fmt.Errorf("unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}
 		hclog.L().Trace("Resource Record to render", "resourceRecord", rr)
 		renderedRecord, err := plugin.Plugin.Render(identifier, rr)

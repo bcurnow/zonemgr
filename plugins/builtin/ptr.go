@@ -25,7 +25,7 @@ import (
 	"github.com/bcurnow/zonemgr/version"
 )
 
-var _ plugins.TypeHandler = &PTRPlugin{}
+var _ plugins.ZoneMgrPlugin = &PTRPlugin{}
 
 var ptrSupportedPluginTypes = []plugins.PluginType{plugins.RecordPTR}
 
@@ -40,25 +40,42 @@ func (p *PTRPlugin) PluginTypes() ([]plugins.PluginType, error) {
 	return ptrSupportedPluginTypes, nil
 }
 
-func (p *PTRPlugin) Configure(config schema.Config) error {
+func (p *PTRPlugin) Configure(config *schema.Config) error {
 	return nil
 }
 
-func (p *PTRPlugin) Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error) {
-	return rr, nil
-}
+func (p *PTRPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
+	if err := plugins.StandardValidations(identifier, rr, ptrSupportedPluginTypes); err != nil {
+		return err
+	}
 
-func (p *PTRPlugin) ValidateZone(name string, zone schema.Zone) error {
-	//no-op
+	value, err := plugins.RetrieveSingleValue(identifier, rr)
+	if err != nil {
+		return err
+	}
+
+	if err := plugins.IsFullyQualified(value, identifier, rr); err != nil {
+		return err
+	}
+
+	_, err = plugins.RetrieveSingleComment(identifier, rr)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (p *PTRPlugin) Render(identifier string, rr schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, &rr, ptrSupportedPluginTypes); err != nil {
+func (p *PTRPlugin) ValidateZone(name string, zone *schema.Zone) error {
+	return nil
+}
+
+func (p *PTRPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
+	if err := plugins.IsSupportedPluginType(identifier, rr, ptrSupportedPluginTypes); err != nil {
 		return "", err
 	}
 
-	return plugins.RenderSingleValueResource(&rr), nil
+	return plugins.RenderSingleValueResource(rr), nil
 }
 
 func init() {

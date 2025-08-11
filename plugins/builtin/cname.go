@@ -28,12 +28,11 @@ import (
 	"github.com/bcurnow/zonemgr/version"
 )
 
-var _ plugins.TypeHandler = &CNAMEPlugin{}
+var _ plugins.ZoneMgrPlugin = &CNAMEPlugin{}
 
-var cnamePluginTypes = []plugins.PluginType{plugins.RecordCNAME}
+var cnameSupportedPluginTypes = []plugins.PluginType{plugins.RecordCNAME}
 
 type CNAMEPlugin struct {
-	config schema.Config
 }
 
 func (p *CNAMEPlugin) PluginVersion() (string, error) {
@@ -41,17 +40,17 @@ func (p *CNAMEPlugin) PluginVersion() (string, error) {
 }
 
 func (p *CNAMEPlugin) PluginTypes() ([]plugins.PluginType, error) {
-	return cnamePluginTypes, nil
+	return cnameSupportedPluginTypes, nil
 }
 
-func (p *CNAMEPlugin) Configure(config schema.Config) error {
+func (p *CNAMEPlugin) Configure(config *schema.Config) error {
 	// no config
 	return nil
 }
 
-func (p *CNAMEPlugin) Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error) {
-	if err := plugins.StandardValidations(identifier, &rr, cnamePluginTypes); err != nil {
-		return plugins.NilResourceRecord(), err
+func (p *CNAMEPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
+	if err := plugins.StandardValidations(identifier, rr, cnameSupportedPluginTypes); err != nil {
+		return err
 	}
 
 	if rr.Name == "" {
@@ -59,34 +58,35 @@ func (p *CNAMEPlugin) Normalize(identifier string, rr schema.ResourceRecord) (sc
 	}
 
 	if err := plugins.IsValidNameOrWildcard(rr.Name, identifier, rr); err != nil {
-		return plugins.NilResourceRecord(), err
+		return err
 	}
 
 	// Make sure the name isn't an IP
 	if net.ParseIP(rr.Name) != nil {
-		return plugins.NilResourceRecord(), fmt.Errorf("CNAME record invalid, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
+		return fmt.Errorf("CNAME record invalid, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
 	}
 
-	value, err := plugins.RetrieveSingleValue(identifier, &rr)
+	value, err := plugins.RetrieveSingleValue(identifier, rr)
 	if err != nil {
-		return plugins.NilResourceRecord(), err
+		return err
 	}
 	rr.Value = value
 
 	// Make sure the value isn't an IP
 	if net.ParseIP(value) != nil {
-		return plugins.NilResourceRecord(), fmt.Errorf("CNAME record invalid, '%s' must be a valid IP address, identifier: '%s'", rr.Value, identifier)
+		return fmt.Errorf("CNAME record invalid, '%s' must be a valid IP address, identifier: '%s'", rr.Value, identifier)
 	}
 
-	return rr, nil
+	return nil
 }
 
-func (p *CNAMEPlugin) ValidateZone(name string, zone schema.Zone) error {
-	aRecords := zone.ResourceRecordsByType()[schema.A]
-	cnameRecords := zone.ResourceRecordsByType()[schema.CNAME]
+func (p *CNAMEPlugin) ValidateZone(name string, zone *schema.Zone) error {
+	resourceRecordsByType := zone.ResourceRecordsByType()
+	aRecords := resourceRecordsByType[schema.A]
+	cnameRecords := resourceRecordsByType[schema.CNAME]
 
 	if len(cnameRecords) > 0 && len(aRecords) == 0 {
-		return fmt.Errorf("Found CNAME records but there are no A records present, all CNAMES must reference an A record name, zone: '%s'", name)
+		return fmt.Errorf("found CNAME records but there are no A records present, all CNAMES must reference an A record name, zone: '%s'", name)
 	}
 
 	for _, cnameRecord := range cnameRecords {
@@ -99,11 +99,11 @@ func (p *CNAMEPlugin) ValidateZone(name string, zone schema.Zone) error {
 	return nil
 }
 
-func (p *CNAMEPlugin) Render(identifier string, rr schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, &rr, cnamePluginTypes); err != nil {
+func (p *CNAMEPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
+	if err := plugins.IsSupportedPluginType(identifier, rr, cnameSupportedPluginTypes); err != nil {
 		return "", err
 	}
-	return plugins.RenderSingleValueResource(&rr), nil
+	return plugins.RenderSingleValueResource(rr), nil
 }
 
 func init() {

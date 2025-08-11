@@ -22,6 +22,7 @@ package plugins
 import (
 	"context"
 
+	"github.com/bcurnow/zonemgr/plugins/grpc"
 	"github.com/bcurnow/zonemgr/plugins/proto"
 	"github.com/bcurnow/zonemgr/schema"
 )
@@ -51,37 +52,50 @@ func (c *GRPCClient) PluginTypes() ([]PluginType, error) {
 
 	return supportedPluginTypes, nil
 }
-func (c *GRPCClient) Configure(config schema.Config) error {
-	_, err := c.client.Configure(context.Background(), &proto.ConfigureRequest{Config: config.ToProtoBuf()})
+
+func (c *GRPCClient) Configure(config *schema.Config) error {
+	_, err := c.client.Configure(context.Background(), &proto.ConfigureRequest{Config: grpc.ConfigToProtoBufTo(config)})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *GRPCClient) Normalize(identifier string, rr schema.ResourceRecord) (schema.ResourceRecord, error) {
-	resp, err := c.client.Normalize(context.Background(), &proto.NormalizeRequest{Identifier: identifier, ResourceRecord: rr.ToProtoBuf()})
-	if err != nil {
-		return schema.ResourceRecord{}, err
-	}
+func (c *GRPCClient) Normalize(identifier string, rr *schema.ResourceRecord) error {
+	resp, err := c.client.Normalize(context.Background(), &proto.NormalizeRequest{
+		Identifier:     identifier,
+		ResourceRecord: grpc.ResourceRecordToProtoBuf(rr),
+	})
 
-	return schema.ResourceRecord.FromProtoBuf(schema.ResourceRecord{}, resp.ResourceRecord), nil
+	if err != nil {
+		return err
+	}
+	// The expectation is that the Normalize method will make modifications to the ResourceRecord
+	// Take the values from the respons and apply them to the original ResourceRecord pointer we received
+	grpc.UpdateResourceRecordFromProtoBuf(resp.ResourceRecord, rr)
+	return nil
 }
 
-func (c *GRPCClient) ValidateZone(name string, zone schema.Zone) error {
-	_, err := c.client.ValidateZone(context.Background(), &proto.ValidateZoneRequest{Name: name, Zone: zone.ToProtoBuf()})
+func (c *GRPCClient) ValidateZone(name string, zone *schema.Zone) error {
+	_, err := c.client.ValidateZone(context.Background(), &proto.ValidateZoneRequest{
+		Name: name,
+		Zone: grpc.ZoneToProtoBuf(zone),
+	})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *GRPCClient) Render(identifier string, rr schema.ResourceRecord) (string, error) {
-	resp, err := c.client.Render(context.Background(), &proto.RenderRequest{Identifier: identifier, ResourceRecord: rr.ToProtoBuf()})
+func (c *GRPCClient) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
+	resp, err := c.client.Render(context.Background(), &proto.RenderRequest{
+		Identifier:     identifier,
+		ResourceRecord: grpc.ResourceRecordToProtoBuf(rr),
+	})
 	if err != nil {
 		return "", err
 	}
 	return resp.Content, nil
 }
 
-var _ TypeHandler = &GRPCClient{}
+var _ ZoneMgrPlugin = &GRPCClient{}

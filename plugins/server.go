@@ -22,12 +22,12 @@ package plugins
 import (
 	"context"
 
+	"github.com/bcurnow/zonemgr/plugins/grpc"
 	"github.com/bcurnow/zonemgr/plugins/proto"
-	"github.com/bcurnow/zonemgr/schema"
 )
 
 type GRPCServer struct {
-	Impl TypeHandler
+	Impl ZoneMgrPlugin
 }
 
 func (s *GRPCServer) PluginVersion(ctx context.Context, req *proto.Empty) (*proto.PluginVersionResponse, error) {
@@ -51,23 +51,24 @@ func (s *GRPCServer) PluginTypes(ctx context.Context, req *proto.Empty) (*proto.
 }
 
 func (s *GRPCServer) Configure(ctx context.Context, req *proto.ConfigureRequest) (*proto.Empty, error) {
-	err := s.Impl.Configure(schema.Config.FromProtoBuf(schema.Config{}, req.Config))
+	err := s.Impl.Configure(grpc.ConfigFromProtoBuf(req.Config))
 	return &proto.Empty{}, err
 }
 
 func (s *GRPCServer) Normalize(ctx context.Context, req *proto.NormalizeRequest) (*proto.NormalizeResponse, error) {
-	rr, err := s.Impl.Normalize(req.Identifier, schema.ResourceRecord.FromProtoBuf(schema.ResourceRecord{}, req.ResourceRecord))
-	return &proto.NormalizeResponse{ResourceRecord: rr.ToProtoBuf()}, err
+	rr := grpc.ResourceRecordFromProtoBuf(req.ResourceRecord)
+	err := s.Impl.Normalize(req.Identifier, rr)
+	return &proto.NormalizeResponse{ResourceRecord: grpc.ResourceRecordToProtoBuf(rr)}, err
 }
 
 func (s *GRPCServer) ValidateZone(ctx context.Context, req *proto.ValidateZoneRequest) (*proto.Empty, error) {
-	err := s.Impl.ValidateZone(req.Name, schema.Zone.FromProtoBuf(schema.Zone{}, req.Zone))
+	err := s.Impl.ValidateZone(req.Name, grpc.ZoneFromProtoBuf(req.Zone))
 	return &proto.Empty{}, err
 }
 
 func (s *GRPCServer) Render(ctx context.Context, req *proto.RenderRequest) (*proto.RenderResonse, error) {
-	record, err := s.Impl.Render(req.Identifier, schema.ResourceRecord.FromProtoBuf(schema.ResourceRecord{}, req.ResourceRecord))
-	return &proto.RenderResonse{Content: record}, err
+	renderedRecord, err := s.Impl.Render(req.Identifier, grpc.ResourceRecordFromProtoBuf(req.ResourceRecord))
+	return &proto.RenderResonse{Content: renderedRecord}, err
 }
 
 var _ proto.ZonemgrPluginServer = &GRPCServer{}

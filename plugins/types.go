@@ -29,27 +29,27 @@ import (
 )
 
 // This is the goplugin.Plugin implementation
-type Plugin struct {
+type GRPCPlugin struct {
 	goplugin.NetRPCUnsupportedPlugin
-	Impl TypeHandler
+	Impl ZoneMgrPlugin
 }
 
-func (p *Plugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) error {
+func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) error {
 	proto.RegisterZonemgrPluginServer(server, &GRPCServer{Impl: p.Impl})
 	return nil
 }
 
-func (p *Plugin) GRPCClient(ctx context.Context, broker *goplugin.GRPCBroker, client *grpc.ClientConn) (interface{}, error) {
+func (p *GRPCPlugin) GRPCClient(ctx context.Context, broker *goplugin.GRPCBroker, client *grpc.ClientConn) (interface{}, error) {
 	return &GRPCClient{client: proto.NewZonemgrPluginClient(client)}, nil
 }
 
 // Validate that we're correctly implenting goplugin.GRPCPlugin
-var _ goplugin.GRPCPlugin = &Plugin{}
+var _ goplugin.GRPCPlugin = &GRPCPlugin{}
 
 // Represents an instance of a plugin along with a bit of metadata
-type TypeHandlerPlugin struct {
+type Plugin struct {
 	IsBuiltIn  bool
 	PluginName string
 	PluginCmd  string
-	Plugin     TypeHandler
+	Plugin     ZoneMgrPlugin
 }

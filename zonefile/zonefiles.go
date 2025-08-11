@@ -25,15 +25,15 @@ import (
 
 func ToZoneFiles(zones map[string]*schema.Zone, outputDir string) error {
 	for name, zone := range zones {
-		if err := generateZone(name, zone, outputDir); err != nil {
+		if err := writeZoneFile(name, zone, outputDir); err != nil {
 			return err
 		}
 
 		if zone.Config.GenerateReverseLookupZones {
 			hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
-			err := generateReverseLookupZones(zone, outputDir)
+			err := generateReverseLookupZones(name, zone, outputDir)
 			if err != nil {
-				return fmt.Errorf("Unable to generate reverse lookup zones for zone %s: %w\n", name, err)
+				return fmt.Errorf("unable to generate reverse lookup zones for zone %s: %w", name, err)
 			}
 		}
 	}

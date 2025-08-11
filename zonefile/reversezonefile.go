@@ -19,16 +19,23 @@ package zonefile
 import (
 	"strings"
 
+	"github.com/bcurnow/zonemgr/normalize"
+	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/schema"
+	"github.com/hashicorp/go-hclog"
 )
 
 // Generates a set of reverse zone files for the specific forward zone
-func generateReverseLookupZones(zone *schema.Zone, outputDir string) error {
+func generateReverseLookupZones(name string, zone *schema.Zone, outputDir string) error {
 	// Convert the full set of resource records for this zone into a set of reverse lookup zones
-	reverseLookupZones := toReverseZones(zone)
+	hclog.L().Trace("Generating reverse lookup zones", "zoneName", name)
+	reverseLookupZones := toReverseZones(name, zone)
+	if err := normalize.NormalizeZones(reverseLookupZones); err != nil {
+		return err
+	}
 
 	for name, zone := range reverseLookupZones {
-		if err := generateZone(name, zone, outputDir); err != nil {
+		if err := writeZoneFile(name, zone, outputDir); err != nil {
 			return err
 		}
 	}
@@ -36,10 +43,10 @@ func generateReverseLookupZones(zone *schema.Zone, outputDir string) error {
 }
 
 // Converts a Zone to a a set of reverse lookup zones
-func toReverseZones(zone *schema.Zone) map[string]*schema.Zone {
+func toReverseZones(sourceZoneName string, zone *schema.Zone) map[string]*schema.Zone {
 	reverseLookupZones := make(map[string]*schema.Zone)
 
-	for identifier, rr := range zone.ResourceRecords {
+	for _, rr := range zone.ResourceRecords {
 		// We only care about A records as they're the ones we're trying to reverse
 		// TODO should we also reverse CNAMEs?
 		if rr.Type == string(schema.A) {
@@ -47,13 +54,14 @@ func toReverseZones(zone *schema.Zone) map[string]*schema.Zone {
 			reverseZone, ok := reverseLookupZones[zoneName]
 			if !ok {
 				reverseZone = &schema.Zone{
+					Config:          zone.Config,
+					ResourceRecords: make(map[string]*schema.ResourceRecord),
 					TTL:             zone.TTL,
-					ResourceRecords: make(map[string]schema.ResourceRecord),
 				}
 
 				// Add the SOA record for the zone
 				sourceSOA := zone.SOARecord()
-				reverseZone.ResourceRecords[zoneName] = schema.ResourceRecord{
+				reverseZone.ResourceRecords[zoneName] = &schema.ResourceRecord{
 					// Copy the values from the SOZ record in the source zone
 					Name:    zoneName,
 					Type:    string(schema.SOA),
@@ -66,7 +74,7 @@ func toReverseZones(zone *schema.Zone) map[string]*schema.Zone {
 				reverseLookupZones[zoneName] = reverseZone
 			}
 
-			ptr := toPTR(identifier, rr)
+			ptr := toPTR(sourceZoneName, rr)
 			reverseZone.ResourceRecords[ptr.Name] = ptr
 		}
 	}
@@ -74,14 +82,21 @@ func toReverseZones(zone *schema.Zone) map[string]*schema.Zone {
 	return reverseLookupZones
 }
 
-func toPTR(identifier string, rr schema.ResourceRecord) schema.ResourceRecord {
-	return schema.ResourceRecord{
-		Name:    lastOctet(rr.Value), //An A records Name/identifier should be an IP, the name of the PTR record is just the last octet
-		Type:    string(schema.PTR),
-		Class:   rr.Class,
-		TTL:     rr.TTL,
-		Values:  []schema.ResourceRecordValue{},
-		Value:   rr.Name,
+func toPTR(sourceZoneName string, rr *schema.ResourceRecord) *schema.ResourceRecord {
+	ptrName := rr.Name
+	if err := plugins.IsFullyQualified(ptrName, rr.Value, rr); err != nil {
+		ptrName = plugins.EnsureTrailingDot(ptrName + "." + sourceZoneName)
+
+	}
+
+	return &schema.ResourceRecord{
+		Name:   lastOctet(rr.Value), //An A records Name/identifier should be an IP, the name of the PTR record is just the last octet
+		Type:   string(schema.PTR),
+		Class:  rr.Class,
+		TTL:    rr.TTL,
+		Values: []*schema.ResourceRecordValue{},
+		// Each value must be fully qualified
+		Value:   ptrName,
 		Comment: rr.Comment,
 	}
 }
