@@ -68,9 +68,7 @@ func writeZoneFile(name string, zone *schema.Zone, outputDir string) error {
 		if nil == plugin {
 			return fmt.Errorf("unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}
-		hclog.L().Trace("Resource Record to render", "resourceRecord", rr)
 		renderedRecord, err := plugin.Plugin.Render(identifier, rr)
-		hclog.L().Trace("Rendered resource record", "string", renderedRecord)
 		if err != nil {
 			return err
 		}
