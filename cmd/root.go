@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/bcurnow/zonemgr/env"
 	"github.com/bcurnow/zonemgr/logging"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
@@ -43,6 +44,7 @@ var logJsonFormat bool
 var logTime bool
 var logColor bool
 var pluginDebug bool
+var pluginsDir string
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -59,6 +61,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&logTime, "log-time", "", false, "If set, prints the time on all the log messages")
 	rootCmd.PersistentFlags().BoolVarP(&logColor, "log-color", "", true, "If set, prints the log messages in color where possible")
 	rootCmd.PersistentFlags().BoolVarP(&pluginDebug, "plugin-debug", "", false, "If set, will including plugin stdout/stderr in the log messages")
+	rootCmd.PersistentFlags().StringVarP(&pluginsDir, "plugins-dir", "p", env.PluginsDirectory.Value, "The directory to find Zonemgr plugins")
 }
 
 func setupLogging() {

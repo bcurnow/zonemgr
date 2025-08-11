@@ -18,7 +18,9 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 
+	"github.com/bcurnow/zonemgr/env"
 	"github.com/bcurnow/zonemgr/parse"
 	"github.com/bcurnow/zonemgr/plugins/manager"
 	"github.com/bcurnow/zonemgr/zonefile"
@@ -37,14 +39,31 @@ var (
 		PreRun: func(cmd *cobra.Command, args []string) {
 			outputDir = toAbsoluteFilePath(outputDir, "output directory")
 			inputFile = toAbsoluteFilePath(inputFile, "input file")
+			serialChangeIndexDirectory = toAbsoluteFilePath(serialChangeIndexDirectory, "serial change index directory")
+
+			//Override the environment variables with any command line variables
+			if cmd.Flags().Changed("generate-reverse-lookup-zones") {
+				env.GenerateReverseLookupZones.Value = strconv.FormatBool(generateReverseLookupZones)
+			}
+
+			if cmd.Flags().Changed("generate-serial") {
+				env.GenerateSerial.Value = strconv.FormatBool(generateSerial)
+			}
+
+			if cmd.Flags().Changed("serial-change-index-directory") {
+				env.SerialChangeIndexDirectory.Value = serialChangeIndexDirectory
+			}
 
 			// Make sure we load up all the plugins at the start
 			manager.Plugins()
 		},
 	}
 
-	inputFile string
-	outputDir string
+	inputFile                  string
+	outputDir                  string
+	generateReverseLookupZones bool
+	generateSerial             bool
+	serialChangeIndexDirectory string
 )
 
 func generateZoneFile() error {
@@ -67,5 +86,19 @@ func init() {
 	generateCmd.Flags().StringVarP(&inputFile, "input-file`", "i", "zones.yaml", "Input YAML file")
 	generateCmd.MarkFlagRequired("input")
 	generateCmd.Flags().StringVarP(&outputDir, "output-dir", "o", ".", "Directory to output the BIND zone file(s) to")
+
+	generateReverseLookupZonesEnvValue, err := strconv.ParseBool(env.GenerateReverseLookupZones.Value)
+	if err != nil {
+		generateReverseLookupZonesEnvValue = false
+	}
+	generateCmd.Flags().BoolVarP(&generateReverseLookupZones, "generate-reverse-lookup-zones", "r", generateReverseLookupZonesEnvValue, "If true, reverse lookup zones will be generated as well")
+	generateSerialEnvValue, err := strconv.ParseBool(env.GenerateSerial.Value)
+	if err != nil {
+		generateSerialEnvValue = false
+	}
+	generateCmd.Flags().BoolVarP(&generateSerial, "generate-serial", "s", generateSerialEnvValue, "If true, the serial number on the SOA record will be automatically generated")
+	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, "serial-change-index-directory", "", env.SerialChangeIndexDirectory.Value, "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
+
 	rootCmd.AddCommand(generateCmd)
+
 }
