@@ -48,17 +48,17 @@ func StandardValidations(identifier string, rr *schema.ResourceRecord, supported
 	}
 
 	// Validate the class
-	if !IsValidClass(rr) {
+	if !rr.IsValidClass() {
 		return fmt.Errorf("%s record invalid, '%s' is not a valid class, identifier: '%s'", rr.Type, rr.Class, identifier)
 	}
 
 	// Validate that there is only one Value set
-	if err := IsValueSetInOnePlace(identifier, rr); err != nil {
+	if err := rr.IsValueSetInOnePlace(identifier); err != nil {
 		return err
 	}
 
 	// Validate that there is only one Comment set
-	if err := IsCommentSetInOnePlace(identifier, rr); err != nil {
+	if err := rr.IsCommentSetInOnePlace(identifier); err != nil {
 		return err
 	}
 
@@ -74,38 +74,6 @@ func NormalizeType(rr *schema.ResourceRecord) {
 func IsSupportedPluginType(identifier string, rr *schema.ResourceRecord, supportedTypes []PluginType) error {
 	if !slices.Contains(supportedTypes, PluginType(rr.Type)) {
 		return fmt.Errorf("This plugin does not handle resource records of type '%s' only '%s', identifier: '%s'", rr.Type, supportedTypes, identifier)
-	}
-	return nil
-}
-
-// Validates that the specified class, if set, is a valid ResourceRecordClass
-func IsValidClass(rr *schema.ResourceRecord) bool {
-	// Class is always optional
-	if rr.Class == "" {
-		return true
-	}
-
-	_, err := schema.ResourceRecordClassFromString(rr.Class)
-	if err != nil {
-		return false
-	}
-	return true
-}
-
-// Validates that either Values has more than one element or Value is set, not both
-// Allows for Value to be blank and does not check Values[*].Value at all
-func IsValueSetInOnePlace(identifier string, rr *schema.ResourceRecord) error {
-	if len(rr.Values) > 0 && rr.Value != "" {
-		return fmt.Errorf("%s record invalid, can not specify both value and values, identifier: '%s'", rr.Type, identifier)
-	}
-	return nil
-}
-
-// Validates that either Values has more than one element or Comment is set, not both
-// Allows for Comment to be blank and does not check Values[*].Comment at all
-func IsCommentSetInOnePlace(identifier string, rr *schema.ResourceRecord) error {
-	if len(rr.Values) > 0 && rr.Comment != "" {
-		return fmt.Errorf("%s record invalid, can not specify both comment and values, identifier: '%s'", rr.Type, identifier)
 	}
 	return nil
 }

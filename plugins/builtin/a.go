@@ -65,7 +65,7 @@ func (p *APlugin) Normalize(identifier string, rr *schema.ResourceRecord) error 
 		return fmt.Errorf("invalid A record, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
 	}
 
-	value, err := plugins.RetrieveSingleValue(identifier, rr)
+	value, err := rr.RetrieveSingleValue(identifier)
 	if err != nil {
 		return err
 	}

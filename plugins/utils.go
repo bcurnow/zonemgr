@@ -27,52 +27,6 @@ import (
 	"github.com/bcurnow/zonemgr/schema"
 )
 
-// There are two possible places to get a value from: Value or Values[0].Value
-// This method will validate that only Value or Values is populated, that, if Values is populated, there's only a single item.
-// Will return either Value or the Values[0].Value
-func RetrieveSingleValue(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := IsValueSetInOnePlace(identifier, rr); err != nil {
-		return "", err
-	}
-
-	if err := hasSingleValue(identifier, rr); err != nil {
-		return "", err
-	}
-
-	if len(rr.Values) == 0 {
-		return rr.Value, nil
-	}
-
-	//Only option left is the first value in Values
-	return rr.Values[0].Value, nil
-}
-
-// There are two possible places for a comment to be: Comment or Values[0].Comment
-// This method will validate that only Comment or Values is populated, that, if Values is populated, there's only a single item
-// Will return either Comment or Values[0].Comment
-func RetrieveSingleComment(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := IsCommentSetInOnePlace(identifier, rr); err != nil {
-		return "", err
-	}
-
-	if err := hasSingleValue(identifier, rr); err != nil {
-		return "", err
-	}
-
-	if len(rr.Values) == 0 {
-		return rr.Comment, nil
-	}
-
-	//Only option left is the first comment in Values
-	return rr.Values[0].Comment, nil
-}
-
-func hasSingleValue(identifier string, rr *schema.ResourceRecord) error {
-	if len(rr.Values) <= 1 {
-		return nil
-	}
-	return fmt.Errorf("%s record invalid, found more than one value in values element, identifier: '%s'", rr.Type, identifier)
-}
 
 func RenderResourceWithoutValue(rr *schema.ResourceRecord) string {
 	var record strings.Builder

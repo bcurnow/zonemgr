@@ -66,7 +66,7 @@ func (p *CNAMEPlugin) Normalize(identifier string, rr *schema.ResourceRecord) er
 		return fmt.Errorf("CNAME record invalid, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
 	}
 
-	value, err := plugins.RetrieveSingleValue(identifier, rr)
+	value, err := rr.RetrieveSingleValue(identifier)
 	if err != nil {
 		return err
 	}

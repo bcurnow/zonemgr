@@ -46,13 +46,6 @@ const (
 	HESIOD   ResourceRecordClass = "HS"
 )
 
-var resourceRecordClassToString = map[string]ResourceRecordClass{
-	string(INTERNET): INTERNET,
-	string(CSNET):    CSNET,
-	string(CHAOS):    CHAOS,
-	string(HESIOD):   HESIOD,
-}
-
 func (rrc ResourceRecordClass) IsValid() bool {
 	switch rrc {
 	case INTERNET, CSNET, CHAOS, HESIOD:
@@ -68,4 +61,87 @@ func ResourceRecordClassFromString(str string) (*ResourceRecordClass, error) {
 		return nil, fmt.Errorf("Invalid resource record class '%s'\n", str)
 	}
 	return &class, nil
+}
+
+var resourceRecordClassToString = map[string]ResourceRecordClass{
+	string(INTERNET): INTERNET,
+	string(CSNET):    CSNET,
+	string(CHAOS):    CHAOS,
+	string(HESIOD):   HESIOD,
+}
+
+// There are two possible places to get a value from: Value or Values[0].Value
+// This method will validate that only Value or Values is populated, that, if Values is populated, there's only a single item.
+// Will return either Value or the Values[0].Value
+func (rr *ResourceRecord) RetrieveSingleValue(identifier string) (string, error) {
+	if err := rr.IsValueSetInOnePlace(identifier); err != nil {
+		return "", err
+	}
+
+	if err := rr.hasSingleValue(identifier); err != nil {
+		return "", err
+	}
+
+	if len(rr.Values) == 0 {
+		return rr.Value, nil
+	}
+
+	//Only option left is the first value in Values
+	return rr.Values[0].Value, nil
+}
+
+// There are two possible places for a comment to be: Comment or Values[0].Comment
+// This method will validate that only Comment or Values is populated, that, if Values is populated, there's only a single item
+// Will return either Comment or Values[0].Comment
+func (rr *ResourceRecord) RetrieveSingleComment(identifier string) (string, error) {
+	if err := rr.IsCommentSetInOnePlace(identifier); err != nil {
+		return "", err
+	}
+
+	if err := rr.hasSingleValue(identifier); err != nil {
+		return "", err
+	}
+
+	if len(rr.Values) == 0 {
+		return rr.Comment, nil
+	}
+
+	//Only option left is the first comment in Values
+	return rr.Values[0].Comment, nil
+}
+
+// Validates that the specified class, if set, is a valid ResourceRecordClass
+func (rr *ResourceRecord) IsValidClass() bool {
+	// Class is always optional
+	if rr.Class == "" {
+		return true
+	}
+
+	_, err := ResourceRecordClassFromString(rr.Class)
+	return err == nil
+}
+
+// Validates that either Values has more than one element or Value is set, not both
+// Allows for Value to be blank and does not check Values[*].Value at all
+func (rr *ResourceRecord) IsValueSetInOnePlace(identifier string) error {
+	if len(rr.Values) > 0 && rr.Value != "" {
+		return fmt.Errorf("%s record invalid, can not specify both value and values, identifier: '%s'", rr.Type, identifier)
+	}
+	return nil
+}
+
+// Validates that either Values has more than one element or Comment is set, not both
+// Allows for Comment to be blank and does not check Values[*].Comment at all
+func (rr *ResourceRecord) IsCommentSetInOnePlace(identifier string) error {
+	if len(rr.Values) > 0 && rr.Comment != "" {
+		return fmt.Errorf("%s record invalid, can not specify both comment and values, identifier: '%s'", rr.Type, identifier)
+	}
+	return nil
+}
+
+func (rr *ResourceRecord) hasSingleValue(identifier string) error {
+	if len(rr.Values) <= 1 {
+		return nil
+	}
+	return fmt.Errorf("%s record invalid, found more than one value in values element, identifier: '%s'", rr.Type, identifier)
 }

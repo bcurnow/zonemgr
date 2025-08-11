@@ -64,7 +64,7 @@ func (p *NSPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error
 		rr.Name = "@"
 	}
 
-	value, err := plugins.RetrieveSingleValue(identifier, rr)
+	value, err := rr.RetrieveSingleValue(identifier)
 	if err != nil {
 		return err
 	}
@@ -83,13 +83,6 @@ func (p *NSPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error
 	if err != nil {
 		return err
 	}
-
-	//Check the comment
-	comment, err := plugins.RetrieveSingleComment(identifier, rr)
-	if err != nil {
-		return err
-	}
-	rr.Comment = comment
 
 	return nil
 }

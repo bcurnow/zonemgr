@@ -49,17 +49,12 @@ func (p *PTRPlugin) Normalize(identifier string, rr *schema.ResourceRecord) erro
 		return err
 	}
 
-	value, err := plugins.RetrieveSingleValue(identifier, rr)
+	value, err := rr.RetrieveSingleValue(identifier)
 	if err != nil {
 		return err
 	}
 
 	if err := plugins.IsFullyQualified(value, identifier, rr); err != nil {
-		return err
-	}
-
-	_, err = plugins.RetrieveSingleComment(identifier, rr)
-	if err != nil {
 		return err
 	}
 
