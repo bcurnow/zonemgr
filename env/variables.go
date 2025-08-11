@@ -35,7 +35,11 @@ type Env struct {
 }
 
 var (
-	PLUGINS *Env = &Env{EnvName: EnvPrefix + "PLUGINS"}
+	PluginsDirectory           = &Env{EnvName: EnvPrefix + "PLUGINS_DIR"}
+	GenerateSerial             = &Env{EnvName: EnvPrefix + "GENERATE_SERIAL"}
+	SerialChangeIndex          = &Env{EnvName: EnvPrefix + "SERIAL_CHANGE_INDEX"}
+	SerialChangeIndexDirectory = &Env{EnvName: EnvPrefix + "SERIAL_INDEX_DIR"}
+	GenerateReverseLookupZones = &Env{EnvName: EnvPrefix + "GENERATE_REVERSE_LOOKUP_ZONES"}
 )
 
 func init() {
@@ -47,7 +51,11 @@ func init() {
 	}
 	homeDir := user.HomeDir
 
-	PLUGINS.Value = defaultEnv(PLUGINS, filepath.Join(homeDir, ".local", "share", "yamlconv", "plugins"))
+	PluginsDirectory.Value = defaultEnv(PluginsDirectory, filepath.Join(homeDir, ".local", "share", "zonemgr", "plugins"))
+	GenerateSerial.Value = defaultEnv(GenerateSerial, "false")
+	SerialChangeIndex.Value = defaultEnv(SerialChangeIndex, "1")
+	SerialChangeIndexDirectory.Value = defaultEnv(SerialChangeIndexDirectory, filepath.Join(homeDir, ".local", "share", "zonemgr", "serial"))
+	GenerateReverseLookupZones.Value = defaultEnv(GenerateReverseLookupZones, "false")
 }
 
 func defaultEnv(e *Env, defaultValue string) string {

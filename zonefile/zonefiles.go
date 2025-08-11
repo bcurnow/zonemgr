@@ -29,7 +29,7 @@ func ToZoneFiles(zones map[string]*schema.Zone, outputDir string) error {
 			return err
 		}
 
-		if zone.Config.GenerateReverseLookupZones {
+		if zone.Config.GenerateReverseLookupZones != nil && *zone.Config.GenerateReverseLookupZones {
 			hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
 			err := generateReverseLookupZones(name, zone, outputDir)
 			if err != nil {

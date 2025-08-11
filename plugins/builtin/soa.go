@@ -109,10 +109,10 @@ func (p *SOAPlugin) Render(identifier string, rr *schema.ResourceRecord) (string
 	return plugins.RenderMultivalueResource(rr), nil
 }
 
-func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSerial bool, serialChangeIndex uint32) error {
+func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSerial *bool, serialChangeIndex *uint32) error {
 	numValues := len(rr.Values)
 
-	serialNumber, err := serial(serialChangeIndex)
+	serialNumber, err := serial(*serialChangeIndex)
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSeria
 	case 6:
 		hclog.L().Debug("No serial number present in SOA record, only have 6 values", "identifier", identifier)
 		// No serial number present, this is an error unless generateSerial is true
-		if !generateSerial {
+		if !*generateSerial {
 			return fmt.Errorf("must specify a serial number when generate serial is false, found only 6 values when 7 are required, name: '%s'", rr.Name)
 		}
 
@@ -193,15 +193,15 @@ func validateWithNoSerial(identifier string, rr *schema.ResourceRecord, generate
 	return nil
 }
 
-func validateWithSerial(identifier string, rr *schema.ResourceRecord, generateSerial bool, generatedSerialNumber string) error {
+func validateWithSerial(identifier string, rr *schema.ResourceRecord, generateSerial *bool, generatedSerialNumber string) error {
 	// Convert the array to individual variables, they are required to be in a specific order
 	// This method is used when there is a serial number field present (7 values total)
 	primaryNameServer := rr.Values[0].Value
 	administrator := rr.Values[1].Value
-	if rr.Values[2].Value != "" && generateSerial {
+	if rr.Values[2].Value != "" && *generateSerial {
 		hclog.L().Debug("Ignoring serial number of SOA record, using generated one", "identifier", identifier, "serialNumber", rr.Values[2].Value, "generateSerial", generateSerial, "generatedSerialNumber", generatedSerialNumber)
 	}
-	if generateSerial {
+	if *generateSerial {
 		rr.Values[2].Value = generatedSerialNumber
 		hclog.L().Debug("Replacing existing comment due to generated serial number", "oldComment", rr.Values[2].Comment, "newComment", generatedSerialNumberComment)
 		rr.Values[2].Comment = generatedSerialNumberComment

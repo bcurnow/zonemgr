@@ -133,10 +133,11 @@ Zonemgr parses a YAML with the following format:
 
 ```yaml
 <domain name>: # The origin
-  config:
+  config: // Optional element, will use environment variables or default values if not set
+    generate_reverse_lookup_zones: true # If true, any necessary reverse lookup zones x.x.x.in-addr.arpa will be created automatically
     generate_serial: yes|no|true|false # If true, a serial number will be generated for you and any serial number specified will be ignored
     serial_change_index: integer # This value is only used if generate_serial is set to true, this value will be added to the end of the generated serial number to allow for multiple changes in the same day
-    generate_reverse_lookup_zones: true # If true, any necessary reverse lookup zones x.x.x.in-addr.arpa will be created automatically
+    serial_change_index_directory: string # This value is only used if generate_serial is set to true, this value will be used as the directory to store the zone specific serial_change_index file which keeps track of how many changes have been made
   ttl:
     value: 14400
     comment: Optional 32 bit time interval in seconds, the default TTL for each resource record that doesn't explicitly define one

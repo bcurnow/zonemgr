@@ -39,6 +39,14 @@ func ToZones(inputFile string) (map[string]*schema.Zone, error) {
 		return nil, fmt.Errorf("failed to unmarshal input bytes: %w", err)
 	}
 
+	for _, zone := range zones {
+		// Make sure we always have a complete config
+		if nil == zone.Config {
+			zone.Config = &schema.Config{}
+		}
+		zone.Config.ConfigDefaults()
+	}
+
 	// Normalize the zones
 	hclog.L().Debug("Normalizing the zones", "inputFile", inputFile, "zoneCount", len(zones))
 	if err = normalize.NormalizeZones(zones); err != nil {

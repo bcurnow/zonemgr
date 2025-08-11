@@ -41,9 +41,11 @@ const (
 // Define the various schema objects
 type Config struct {
 	state                      protoimpl.MessageState `protogen:"open.v1"`
-	GenerateSerial             bool                   `protobuf:"varint,1,opt,name=generate_serial,json=generateSerial,proto3" json:"generate_serial,omitempty"`
-	SerialChangeIndex          uint32                 `protobuf:"varint,2,opt,name=serial_change_index,json=serialChangeIndex,proto3" json:"serial_change_index,omitempty"`
-	GenerateReverseLookupZones bool                   `protobuf:"varint,3,opt,name=generate_reverse_lookup_zones,json=generateReverseLookupZones,proto3" json:"generate_reverse_lookup_zones,omitempty"`
+	GenerateSerial             *bool                  `protobuf:"varint,1,opt,name=generate_serial,json=generateSerial,proto3,oneof" json:"generate_serial,omitempty"`
+	SerialChangeIndex          *uint32                `protobuf:"varint,2,opt,name=serial_change_index,json=serialChangeIndex,proto3,oneof" json:"serial_change_index,omitempty"`
+	GenerateReverseLookupZones *bool                  `protobuf:"varint,3,opt,name=generate_reverse_lookup_zones,json=generateReverseLookupZones,proto3,oneof" json:"generate_reverse_lookup_zones,omitempty"`
+	PluginsDirectory           string                 `protobuf:"bytes,4,opt,name=plugins_directory,json=pluginsDirectory,proto3" json:"plugins_directory,omitempty"`
+	SerialChangeIndexDirectory string                 `protobuf:"bytes,5,opt,name=serial_change_index_directory,json=serialChangeIndexDirectory,proto3" json:"serial_change_index_directory,omitempty"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -79,24 +81,38 @@ func (*Config) Descriptor() ([]byte, []int) {
 }
 
 func (x *Config) GetGenerateSerial() bool {
-	if x != nil {
-		return x.GenerateSerial
+	if x != nil && x.GenerateSerial != nil {
+		return *x.GenerateSerial
 	}
 	return false
 }
 
 func (x *Config) GetSerialChangeIndex() uint32 {
-	if x != nil {
-		return x.SerialChangeIndex
+	if x != nil && x.SerialChangeIndex != nil {
+		return *x.SerialChangeIndex
 	}
 	return 0
 }
 
 func (x *Config) GetGenerateReverseLookupZones() bool {
-	if x != nil {
-		return x.GenerateReverseLookupZones
+	if x != nil && x.GenerateReverseLookupZones != nil {
+		return *x.GenerateReverseLookupZones
 	}
 	return false
+}
+
+func (x *Config) GetPluginsDirectory() string {
+	if x != nil {
+		return x.PluginsDirectory
+	}
+	return ""
+}
+
+func (x *Config) GetSerialChangeIndexDirectory() string {
+	if x != nil {
+		return x.SerialChangeIndexDirectory
+	}
+	return ""
 }
 
 type ResourceRecordValue struct {
@@ -771,11 +787,16 @@ var File_plugins_proto_zonemgrplugin_proto protoreflect.FileDescriptor
 
 const file_plugins_proto_zonemgrplugin_proto_rawDesc = "" +
 	"\n" +
-	"!plugins/proto/zonemgrplugin.proto\"\xa4\x01\n" +
-	"\x06Config\x12'\n" +
-	"\x0fgenerate_serial\x18\x01 \x01(\bR\x0egenerateSerial\x12.\n" +
-	"\x13serial_change_index\x18\x02 \x01(\rR\x11serialChangeIndex\x12A\n" +
-	"\x1dgenerate_reverse_lookup_zones\x18\x03 \x01(\bR\x1agenerateReverseLookupZones\"E\n" +
+	"!plugins/proto/zonemgrplugin.proto\"\xf1\x02\n" +
+	"\x06Config\x12,\n" +
+	"\x0fgenerate_serial\x18\x01 \x01(\bH\x00R\x0egenerateSerial\x88\x01\x01\x123\n" +
+	"\x13serial_change_index\x18\x02 \x01(\rH\x01R\x11serialChangeIndex\x88\x01\x01\x12F\n" +
+	"\x1dgenerate_reverse_lookup_zones\x18\x03 \x01(\bH\x02R\x1agenerateReverseLookupZones\x88\x01\x01\x12+\n" +
+	"\x11plugins_directory\x18\x04 \x01(\tR\x10pluginsDirectory\x12A\n" +
+	"\x1dserial_change_index_directory\x18\x05 \x01(\tR\x1aserialChangeIndexDirectoryB\x12\n" +
+	"\x10_generate_serialB\x16\n" +
+	"\x14_serial_change_indexB \n" +
+	"\x1e_generate_reverse_lookup_zones\"E\n" +
 	"\x13ResourceRecordValue\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x18\n" +
 	"\acomment\x18\x02 \x01(\tR\acomment\"\xbe\x01\n" +
@@ -894,6 +915,7 @@ func file_plugins_proto_zonemgrplugin_proto_init() {
 	if File_plugins_proto_zonemgrplugin_proto != nil {
 		return
 	}
+	file_plugins_proto_zonemgrplugin_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

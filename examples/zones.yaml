@@ -1,7 +1,9 @@
 example.com.: # The origin, each origin in the file will receive it's own zone file
-  config:
+  config: #This element is optional, if not specified, will take from global environment variable configuration or default values
+    plugins_directory: ~/.local/share/zonemgr/plugins
     generate_serial: true # If true, the serial attribute will be auto generated using the current date (YYYYMMDD) and the serial_change_index
     serial_change_index: 22 # This value is only used if generate_serial is set to true, this value will be added to the end of the generated serial number to allow for multiple changes in the same day
+    serial_change_index_directory: ~/.local/zonemgr/serial
     generate_reverse_lookup_zones: true # If true, any necessary reverse lookup zones x.x.x.in-addr.arpa will be created automatically
   ttl:
     value: 60

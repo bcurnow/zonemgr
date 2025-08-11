@@ -53,7 +53,7 @@ func initializePlugins() error {
 
 	maps.Copy(allPlugins, builtin.BuiltinPlugins())
 
-	externalPlugins, err := registerPlugins()
+	externalPlugins, err := registerdPlugins()
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func handleOverride(pluginType plugins.PluginType, pluginName string) {
 		if plugin.IsBuiltIn {
 			hclog.L().Debug("Replacing default plugin", "resourceRecordType", pluginType, "newPluginName", pluginName)
 		} else {
-			hclog.L().Warn("Replacing non-default plugin", "resourceRecordType", pluginType, "oldPluginName", plugin.PluginName, "newPluginName", pluginName, "pluginDir", env.PLUGINS.Value)
+			hclog.L().Warn("Replacing non-default plugin", "resourceRecordType", pluginType, "oldPluginName", plugin.PluginName, "newPluginName", pluginName, "pluginDir", env.PluginsDirectory.Value)
 		}
 	}
 }
@@ -143,22 +143,22 @@ func discoverPlugins(dir string) (map[string]string, error) {
 	return executables, nil
 }
 
-func registerPlugins() (map[string]*plugins.Plugin, error) {
-	hclog.L().Debug("Loading plugins", "pluginDir", env.PLUGINS.Value)
+func registerdPlugins() (map[string]*plugins.Plugin, error) {
+	hclog.L().Debug("Loading plugins", "pluginDir", env.PluginsDirectory.Value)
 	typeHandlers := make(map[string]*plugins.Plugin)
-	executables, err := discoverPlugins(env.PLUGINS.Value)
+	executables, err := discoverPlugins(env.PluginsDirectory.Value)
 	if err != nil {
-		hclog.L().Error("Error discovering plugins", "pluginDir", env.PLUGINS.Value, "err", err)
+		hclog.L().Error("Error discovering plugins", "pluginDir", env.PluginsDirectory.Value, "err", err)
 		return nil, err
 	}
 
 	for pluginName, pluginCmd := range executables {
 		client := buildClient(pluginName, pluginCmd)
-		typeHandler, err := pluginInstance(pluginName, client)
+		zonemgrPlugin, err := pluginInstance(pluginName, client)
 		if err != nil {
 			return nil, err
 		}
-		typeHandlers[pluginName] = &plugins.Plugin{IsBuiltIn: false, PluginName: pluginName, PluginCmd: pluginCmd, Plugin: typeHandler}
+		typeHandlers[pluginName] = &plugins.Plugin{IsBuiltIn: false, PluginName: pluginName, PluginCmd: pluginCmd, Plugin: zonemgrPlugin}
 	}
 
 	return typeHandlers, nil

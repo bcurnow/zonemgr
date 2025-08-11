@@ -16,8 +16,53 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package schema
 
+import (
+	"strconv"
+
+	"github.com/bcurnow/zonemgr/env"
+)
+
 type Config struct {
-	GenerateSerial             bool   `yaml:"generate_serial"`
-	SerialChangeIndex          uint32 `yaml:"serial_change_index"`
-	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones"`
+	PluginsDirectory           string  `yaml:"plugins_directory"`
+	GenerateSerial             *bool   `yaml:"generate_serial"`
+	SerialChangeIndex          *uint32 `yaml:"serial_change_index"`
+	SerialChangeIndexDirectory string  `yaml:"serial_change_index_directory"`
+	GenerateReverseLookupZones *bool   `yaml:"generate_reverse_lookup_zones"`
+}
+
+func (c *Config) ConfigDefaults() error {
+	if c.PluginsDirectory == "" {
+		c.PluginsDirectory = env.PluginsDirectory.Value
+	}
+
+	if c.GenerateSerial == nil {
+		val, err := strconv.ParseBool(env.GenerateSerial.Value)
+		if err != nil {
+			return err
+		}
+		c.GenerateSerial = &val
+	}
+
+	if c.SerialChangeIndex == nil {
+		val, err := strconv.Atoi(env.SerialChangeIndex.Value)
+		if err != nil {
+			return err
+		}
+
+		uint32Val := uint32(val)
+		c.SerialChangeIndex = &uint32Val
+	}
+
+	if c.SerialChangeIndexDirectory == "" {
+		c.SerialChangeIndexDirectory = env.SerialChangeIndex.Value
+	}
+
+	if c.GenerateReverseLookupZones == nil {
+		val, err := strconv.ParseBool(env.GenerateReverseLookupZones.Value)
+		if err != nil {
+			return err
+		}
+		c.GenerateReverseLookupZones = &val
+	}
+	return nil
 }
