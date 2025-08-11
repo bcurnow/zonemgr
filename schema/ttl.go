@@ -19,7 +19,20 @@
 
 package schema
 
+import "fmt"
+
 type TTL struct {
 	Value   *int32 `yaml:"value"` // The use of a pointer to an int32 allows us to handle missing (nil) values more easily
 	Comment string `yaml:"comment"`
+}
+
+func (t *TTL) Render() string {
+	if t.Value != nil {
+		comment := t.Comment
+		if comment != "" {
+			comment = " ; " + comment
+		}
+		return fmt.Sprint("$TTL %d%s\n", *t.Value, comment)
+	}
+	return ""
 }

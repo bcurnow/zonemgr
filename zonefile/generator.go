@@ -42,13 +42,8 @@ func writeZoneFile(name string, zone *schema.Zone, outputDir string) error {
 	// Write out the origin
 	fmt.Fprintf(outputFile, "$ORIGIN %s\n", name)
 
-	// Write out the TTL
-	if zone.TTL.Value != nil {
-		comment := zone.TTL.Comment
-		if comment != "" {
-			comment = " ; " + comment
-		}
-		fmt.Fprintf(outputFile, "$TTL %d%s\n", *zone.TTL.Value, comment)
+	if zone.TTL != nil {
+		fmt.Fprintln(outputFile, zone.TTL.Render())
 	}
 
 	registeredPlugins, err := manager.Plugins()

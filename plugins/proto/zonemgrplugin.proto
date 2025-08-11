@@ -51,7 +51,7 @@ message TTL {
 message Zone {
   optional Config config = 1;
   map<string, ResourceRecord> resource_records = 2;
-  TTL ttl = 3;
+  optional TTL ttl = 3;
 }
 
 message Empty {}
