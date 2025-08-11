@@ -103,7 +103,7 @@ func (p *CNAMEPlugin) Render(identifier string, rr *schema.ResourceRecord) (stri
 	if err := plugins.IsSupportedPluginType(identifier, rr, cnameSupportedPluginTypes); err != nil {
 		return "", err
 	}
-	return plugins.RenderSingleValueResource(rr), nil
+	return rr.RenderSingleValueResource(), nil
 }
 
 func init() {

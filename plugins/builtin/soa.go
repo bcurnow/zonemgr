@@ -106,7 +106,7 @@ func (p *SOAPlugin) Render(identifier string, rr *schema.ResourceRecord) (string
 		return "", err
 	}
 
-	return plugins.RenderMultivalueResource(rr), nil
+	return rr.RenderMultivalueResource(), nil
 }
 
 func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSerial bool) error {

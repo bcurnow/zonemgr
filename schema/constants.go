@@ -40,3 +40,9 @@ const (
 	TXT   ResourceRecordType = "TXT"
 	WKS   ResourceRecordType = "WKS"
 )
+
+const (
+	ResourceRecordNameFormatString             = "%-40s"
+	ResourceRecordTypeFormatString             = "%-6s "
+	ResourceRecordMultivalueIndentFormatString = "%4s"
+)

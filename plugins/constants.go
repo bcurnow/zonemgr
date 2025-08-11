@@ -47,12 +47,6 @@ const (
 	RecordWKS   PluginType = PluginType(schema.WKS)
 )
 
-const (
-	ResourceRecordNameFormatString             = "%-40s"
-	ResourceRecordTypeFormatString             = "%-6s "
-	ResourceRecordMultivalueIndentFormatString = "%4s"
-)
-
 // This is the go-plugin handshake information that needs to be used for all plugins
 var HandshakeConfig = goplugin.HandshakeConfig{
 	ProtocolVersion:  1,

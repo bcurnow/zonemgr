@@ -18,6 +18,8 @@ package schema
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 // A generic type that can represent a variety of records types as many follow this specific format (A, CNAME, etc.	)
@@ -137,6 +139,59 @@ func (rr *ResourceRecord) IsCommentSetInOnePlace(identifier string) error {
 		return fmt.Errorf("%s record invalid, can not specify both comment and values, identifier: '%s'", rr.Type, identifier)
 	}
 	return nil
+}
+
+func (rr *ResourceRecord) RenderResourceWithoutValue() string {
+	var record strings.Builder
+
+	record.WriteString(fmt.Sprintf(ResourceRecordNameFormatString, rr.Name))
+	record.WriteString(fmt.Sprintf(ResourceRecordTypeFormatString, rr.Type))
+	if rr.Class != "" {
+		record.WriteString(" ")
+		record.WriteString(rr.Class)
+		record.WriteString(" ")
+	}
+
+	if rr.TTL != nil {
+		record.WriteString(" ")
+		record.WriteString(strconv.Itoa(int(*rr.TTL)))
+		record.WriteString(" ")
+	}
+
+	return record.String()
+}
+
+func (rr *ResourceRecord) RenderSingleValueResource() string {
+	var record strings.Builder
+	record.WriteString(rr.RenderResourceWithoutValue())
+	record.WriteString(rr.Value)
+	if rr.Comment != "" {
+		record.WriteString(" ; ")
+		record.WriteString(rr.Comment)
+	}
+
+	return record.String()
+}
+
+func (rr *ResourceRecord) RenderMultivalueResource() string {
+	var record strings.Builder
+	record.WriteString(rr.RenderResourceWithoutValue())
+	record.WriteString("(\n")
+	indentFormatString := "%" + strconv.Itoa(record.Len()-2) + "s"
+	for _, value := range rr.Values {
+		record.WriteString(fmt.Sprintf(indentFormatString, ""))                         // This will ensure that all the values are indented
+		record.WriteString(fmt.Sprintf(ResourceRecordMultivalueIndentFormatString, "")) // This will add an indent inside the parens
+		record.WriteString(fmt.Sprintf(ResourceRecordNameFormatString, value.Value))
+		if value.Comment != "" {
+			record.WriteString(" ; ")
+			record.WriteString(value.Comment)
+		}
+		record.WriteString("\n")
+	}
+	record.WriteString(fmt.Sprintf(indentFormatString, ""))
+	record.WriteString(")")
+
+	return record.String()
 }
 
 func (rr *ResourceRecord) hasSingleValue(identifier string) error {

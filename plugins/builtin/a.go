@@ -89,7 +89,7 @@ func (p *APlugin) Render(identifier string, rr *schema.ResourceRecord) (string, 
 		return "", err
 	}
 
-	return plugins.RenderSingleValueResource(rr), nil
+	return rr.RenderSingleValueResource(), nil
 }
 
 func init() {
