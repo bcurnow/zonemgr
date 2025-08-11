@@ -32,7 +32,6 @@ var envCmd = &cobra.Command{
 		fmt.Printf("%s=\"%s\"\n", env.GenerateReverseLookupZones.EnvName, env.GenerateReverseLookupZones.Value)
 		fmt.Printf("%s=\"%s\"\n", env.GenerateSerial.EnvName, env.GenerateSerial.Value)
 		fmt.Printf("%s=\"%s\"\n", env.PluginsDirectory.EnvName, env.PluginsDirectory.Value)
-		fmt.Printf("%s=\"%s\"\n", env.SerialChangeIndex.EnvName, env.SerialChangeIndex.Value)
 		fmt.Printf("%s=\"%s\"\n", env.SerialChangeIndexDirectory.EnvName, env.SerialChangeIndexDirectory.Value)
 	},
 }

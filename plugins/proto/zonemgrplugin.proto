@@ -20,7 +20,8 @@ option go_package = "./plugins/proto";
 // Define the various schema objects
 message Config {
   optional bool generate_serial = 1;
-  optional uint32 serial_change_index = 2;
+  // This used to be SerialChangeindex
+  reserved 2;
   optional bool generate_reverse_lookup_zones = 3;
   string plugins_directory = 4;
   string serial_change_index_directory = 5;
@@ -48,7 +49,7 @@ message TTL {
 }
 
 message Zone {
-  Config config = 1;
+  optional Config config = 1;
   map<string, ResourceRecord> resource_records = 2;
   TTL ttl = 3;
 }

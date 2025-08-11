@@ -22,10 +22,10 @@ package builtin
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/schema"
+	"github.com/bcurnow/zonemgr/serial"
 	"github.com/bcurnow/zonemgr/version"
 	"github.com/hashicorp/go-hclog"
 )
@@ -75,7 +75,7 @@ func (p *SOAPlugin) Normalize(identifier string, rr *schema.ResourceRecord) erro
 		return fmt.Errorf("comment field can not be used on SOA records, please use the values field, identifier: '%s'", identifier)
 	}
 
-	if err := normalizeValues(identifier, rr, p.config.GenerateSerial, p.config.SerialChangeIndex); err != nil {
+	if err := normalizeValues(identifier, rr, *p.config.GenerateSerial); err != nil {
 		return err
 	}
 
@@ -109,10 +109,11 @@ func (p *SOAPlugin) Render(identifier string, rr *schema.ResourceRecord) (string
 	return plugins.RenderMultivalueResource(rr), nil
 }
 
-func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSerial *bool, serialChangeIndex *uint32) error {
+func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSerial bool) error {
 	numValues := len(rr.Values)
 
-	serialNumber, err := serial(*serialChangeIndex)
+	// The name of the SOA record is also the name of the zone
+	serialNumber, err := serial.GetNext(rr.Name)
 	if err != nil {
 		return err
 	}
@@ -121,15 +122,15 @@ func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSeria
 	case 6:
 		hclog.L().Debug("No serial number present in SOA record, only have 6 values", "identifier", identifier)
 		// No serial number present, this is an error unless generateSerial is true
-		if !*generateSerial {
-			return fmt.Errorf("must specify a serial number when generate serial is false, found only 6 values when 7 are required, name: '%s'", rr.Name)
+		if !generateSerial {
+			return fmt.Errorf("must specify a serial number when generate serial is false, found only 6 values when 7 are required, identifier: '%s', name: '%s'", identifier, rr.Name)
 		}
 
 		if err := validateWithNoSerial(identifier, rr, serialNumber); err != nil {
 			return err
 		}
 	case 7:
-		hclog.L().Debug("Serial number present in SOA record", "identifier", identifier, "generateSerialNumber", generateSerial)
+		hclog.L().Debug("Serial number present in SOA record", "serialNumber", rr.Values[2].Value, "identifier", identifier, "generateSerialNumber", generateSerial)
 		// There is a serial number provided
 		if err := validateWithSerial(identifier, rr, generateSerial, serialNumber); err != nil {
 			return err
@@ -193,15 +194,15 @@ func validateWithNoSerial(identifier string, rr *schema.ResourceRecord, generate
 	return nil
 }
 
-func validateWithSerial(identifier string, rr *schema.ResourceRecord, generateSerial *bool, generatedSerialNumber string) error {
+func validateWithSerial(identifier string, rr *schema.ResourceRecord, generateSerial bool, generatedSerialNumber string) error {
 	// Convert the array to individual variables, they are required to be in a specific order
 	// This method is used when there is a serial number field present (7 values total)
 	primaryNameServer := rr.Values[0].Value
 	administrator := rr.Values[1].Value
-	if rr.Values[2].Value != "" && *generateSerial {
+	if rr.Values[2].Value != "" && generateSerial {
 		hclog.L().Debug("Ignoring serial number of SOA record, using generated one", "identifier", identifier, "serialNumber", rr.Values[2].Value, "generateSerial", generateSerial, "generatedSerialNumber", generatedSerialNumber)
 	}
-	if *generateSerial {
+	if generateSerial {
 		rr.Values[2].Value = generatedSerialNumber
 		hclog.L().Debug("Replacing existing comment due to generated serial number", "oldComment", rr.Values[2].Comment, "newComment", generatedSerialNumberComment)
 		rr.Values[2].Comment = generatedSerialNumberComment
@@ -253,20 +254,6 @@ func greaterThanZero(str string, fieldName string, rr *schema.ResourceRecord) er
 	}
 
 	return nil
-}
-
-// Generates a time-based serial number plus a numeric index
-func serial(index uint32) (string, error) {
-	t := time.Now()
-	serialString := fmt.Sprintf("%02d%02d%04d%02d", t.Day(), t.Month(), t.Year(), index)
-
-	parsedSerial, err := strconv.ParseUint(serialString, 10, 32)
-	if err != nil {
-		return "", fmt.Errorf("unable to generate a serial number from day: %d, month: %d, year: %d, changeIndex: %d: %w", t.Day(), t.Month(), t.Year(), index, err)
-	}
-
-	// Explicitly convert to a uint32 to make sure it fits
-	return strconv.Itoa(int(uint32(parsedSerial))), nil
 }
 
 func init() {

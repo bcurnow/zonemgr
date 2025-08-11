@@ -1,0 +1,32 @@
+example.com.: # The origin, each origin in the file will receive it's own zone file
+  ttl:
+    value: 60
+    comment: 1 minute
+  resource_records:
+    example.com.:
+      type: SOA
+      values:
+        - value: n1.example.com.
+          comment: primary name server for the zone
+        - value: admin@example.com
+          comment: The mailbox of the person responsible for the zone, could also be specified as admin.example.com.
+        - value: 27
+          comment: Serial number for the zone, this field is ignored if generate_serial is true
+        - value: 7200
+          comment: refresh (2hours)
+        - value: 600
+          comment: retry (10 minutes)
+        - value: 3600000
+          comment: expire (~42 days)
+        - value: 172800
+          comment: minimum (2 days)
+    ns1.example.com.:
+      type: NS
+    ns2.example.com.: # another authoritative nameserver for this zone
+      type: NS
+    www:
+      type: A
+      value: 1.2.3.4
+    base:
+      type: CNAME
+      value: www

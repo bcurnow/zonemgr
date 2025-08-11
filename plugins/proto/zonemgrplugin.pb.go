@@ -42,7 +42,6 @@ const (
 type Config struct {
 	state                      protoimpl.MessageState `protogen:"open.v1"`
 	GenerateSerial             *bool                  `protobuf:"varint,1,opt,name=generate_serial,json=generateSerial,proto3,oneof" json:"generate_serial,omitempty"`
-	SerialChangeIndex          *uint32                `protobuf:"varint,2,opt,name=serial_change_index,json=serialChangeIndex,proto3,oneof" json:"serial_change_index,omitempty"`
 	GenerateReverseLookupZones *bool                  `protobuf:"varint,3,opt,name=generate_reverse_lookup_zones,json=generateReverseLookupZones,proto3,oneof" json:"generate_reverse_lookup_zones,omitempty"`
 	PluginsDirectory           string                 `protobuf:"bytes,4,opt,name=plugins_directory,json=pluginsDirectory,proto3" json:"plugins_directory,omitempty"`
 	SerialChangeIndexDirectory string                 `protobuf:"bytes,5,opt,name=serial_change_index_directory,json=serialChangeIndexDirectory,proto3" json:"serial_change_index_directory,omitempty"`
@@ -85,13 +84,6 @@ func (x *Config) GetGenerateSerial() bool {
 		return *x.GenerateSerial
 	}
 	return false
-}
-
-func (x *Config) GetSerialChangeIndex() uint32 {
-	if x != nil && x.SerialChangeIndex != nil {
-		return *x.SerialChangeIndex
-	}
-	return 0
 }
 
 func (x *Config) GetGenerateReverseLookupZones() bool {
@@ -314,7 +306,7 @@ func (x *TTL) GetComment() string {
 
 type Zone struct {
 	state           protoimpl.MessageState     `protogen:"open.v1"`
-	Config          *Config                    `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	Config          *Config                    `protobuf:"bytes,1,opt,name=config,proto3,oneof" json:"config,omitempty"`
 	ResourceRecords map[string]*ResourceRecord `protobuf:"bytes,2,rep,name=resource_records,json=resourceRecords,proto3" json:"resource_records,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Ttl             *TTL                       `protobuf:"bytes,3,opt,name=ttl,proto3" json:"ttl,omitempty"`
 	unknownFields   protoimpl.UnknownFields
@@ -788,16 +780,14 @@ var File_plugins_proto_zonemgrplugin_proto protoreflect.FileDescriptor
 
 const file_plugins_proto_zonemgrplugin_proto_rawDesc = "" +
 	"\n" +
-	"!plugins/proto/zonemgrplugin.proto\"\xf1\x02\n" +
+	"!plugins/proto/zonemgrplugin.proto\"\xaa\x02\n" +
 	"\x06Config\x12,\n" +
-	"\x0fgenerate_serial\x18\x01 \x01(\bH\x00R\x0egenerateSerial\x88\x01\x01\x123\n" +
-	"\x13serial_change_index\x18\x02 \x01(\rH\x01R\x11serialChangeIndex\x88\x01\x01\x12F\n" +
-	"\x1dgenerate_reverse_lookup_zones\x18\x03 \x01(\bH\x02R\x1agenerateReverseLookupZones\x88\x01\x01\x12+\n" +
+	"\x0fgenerate_serial\x18\x01 \x01(\bH\x00R\x0egenerateSerial\x88\x01\x01\x12F\n" +
+	"\x1dgenerate_reverse_lookup_zones\x18\x03 \x01(\bH\x01R\x1agenerateReverseLookupZones\x88\x01\x01\x12+\n" +
 	"\x11plugins_directory\x18\x04 \x01(\tR\x10pluginsDirectory\x12A\n" +
 	"\x1dserial_change_index_directory\x18\x05 \x01(\tR\x1aserialChangeIndexDirectoryB\x12\n" +
-	"\x10_generate_serialB\x16\n" +
-	"\x14_serial_change_indexB \n" +
-	"\x1e_generate_reverse_lookup_zones\"E\n" +
+	"\x10_generate_serialB \n" +
+	"\x1e_generate_reverse_lookup_zonesJ\x04\b\x02\x10\x03\"E\n" +
 	"\x13ResourceRecordValue\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x18\n" +
 	"\acomment\x18\x02 \x01(\tR\acomment\"\xcb\x01\n" +
@@ -813,14 +803,15 @@ const file_plugins_proto_zonemgrplugin_proto_rawDesc = "" +
 	"\x03TTL\x12\x15\n" +
 	"\x03ttl\x18\x01 \x01(\x05H\x00R\x03ttl\x88\x01\x01\x12\x18\n" +
 	"\acomment\x18\x02 \x01(\tR\acommentB\x06\n" +
-	"\x04_ttl\"\xdb\x01\n" +
-	"\x04Zone\x12\x1f\n" +
-	"\x06config\x18\x01 \x01(\v2\a.ConfigR\x06config\x12E\n" +
+	"\x04_ttl\"\xeb\x01\n" +
+	"\x04Zone\x12$\n" +
+	"\x06config\x18\x01 \x01(\v2\a.ConfigH\x00R\x06config\x88\x01\x01\x12E\n" +
 	"\x10resource_records\x18\x02 \x03(\v2\x1a.Zone.ResourceRecordsEntryR\x0fresourceRecords\x12\x16\n" +
 	"\x03ttl\x18\x03 \x01(\v2\x04.TTLR\x03ttl\x1aS\n" +
 	"\x14ResourceRecordsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12%\n" +
-	"\x05value\x18\x02 \x01(\v2\x0f.ResourceRecordR\x05value:\x028\x01\"\a\n" +
+	"\x05value\x18\x02 \x01(\v2\x0f.ResourceRecordR\x05value:\x028\x01B\t\n" +
+	"\a_config\"\a\n" +
 	"\x05Empty\"1\n" +
 	"\x15PluginVersionResponse\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\tR\aversion\"=\n" +
@@ -921,6 +912,7 @@ func file_plugins_proto_zonemgrplugin_proto_init() {
 	file_plugins_proto_zonemgrplugin_proto_msgTypes[0].OneofWrappers = []any{}
 	file_plugins_proto_zonemgrplugin_proto_msgTypes[2].OneofWrappers = []any{}
 	file_plugins_proto_zonemgrplugin_proto_msgTypes[3].OneofWrappers = []any{}
+	file_plugins_proto_zonemgrplugin_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

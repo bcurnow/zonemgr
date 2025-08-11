@@ -23,11 +23,10 @@ import (
 )
 
 type Config struct {
-	PluginsDirectory           string  `yaml:"plugins_directory"`
-	GenerateSerial             *bool   `yaml:"generate_serial"`
-	SerialChangeIndex          *uint32 `yaml:"serial_change_index"`
-	SerialChangeIndexDirectory string  `yaml:"serial_change_index_directory"`
-	GenerateReverseLookupZones *bool   `yaml:"generate_reverse_lookup_zones"`
+	PluginsDirectory           string `yaml:"plugins_directory"`
+	GenerateSerial             *bool  `yaml:"generate_serial"`
+	SerialChangeIndexDirectory string `yaml:"serial_change_index_directory"`
+	GenerateReverseLookupZones *bool  `yaml:"generate_reverse_lookup_zones"`
 }
 
 func (c *Config) ConfigDefaults() error {
@@ -43,18 +42,8 @@ func (c *Config) ConfigDefaults() error {
 		c.GenerateSerial = &val
 	}
 
-	if c.SerialChangeIndex == nil {
-		val, err := strconv.Atoi(env.SerialChangeIndex.Value)
-		if err != nil {
-			return err
-		}
-
-		uint32Val := uint32(val)
-		c.SerialChangeIndex = &uint32Val
-	}
-
 	if c.SerialChangeIndexDirectory == "" {
-		c.SerialChangeIndexDirectory = env.SerialChangeIndex.Value
+		c.SerialChangeIndexDirectory = env.SerialChangeIndexDirectory.Value
 	}
 
 	if c.GenerateReverseLookupZones == nil {
