@@ -51,13 +51,13 @@ func generateZoneFile() error {
 	hclog.L().Info("Generating BIND zone file(s)", "outputDir", outputDir, "inputFile", inputFile)
 	zones, err := parse.ToZones(inputFile)
 	if err != nil {
-		return fmt.Errorf("Failed to parse input file %s: %w", inputFile, err)
+		return fmt.Errorf("failed to parse input file %s: %w", inputFile, err)
 
 	}
 
 	err = zonefile.ToZoneFiles(zones, outputDir)
 	if err != nil {
-		return fmt.Errorf("Failed to generate zone files: %w", err)
+		return fmt.Errorf("failed to generate zone files: %w", err)
 	}
 
 	return nil

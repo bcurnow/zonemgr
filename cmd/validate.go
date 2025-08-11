@@ -42,7 +42,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, err := parse.ToZones(input)
 			if err != nil {
-				return fmt.Errorf("Failed to parse input file %s: %w", input, err)
+				return fmt.Errorf("failed to parse input file %s: %w", input, err)
 
 			}
 			fmt.Printf("%s is valid\n", input)

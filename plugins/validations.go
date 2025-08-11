@@ -73,7 +73,7 @@ func NormalizeType(rr *schema.ResourceRecord) {
 // Checks if the supplied resource record matches one of the support plugin types
 func IsSupportedPluginType(identifier string, rr *schema.ResourceRecord, supportedTypes []PluginType) error {
 	if !slices.Contains(supportedTypes, PluginType(rr.Type)) {
-		return fmt.Errorf("This plugin does not handle resource records of type '%s' only '%s', identifier: '%s'", rr.Type, supportedTypes, identifier)
+		return fmt.Errorf("this plugin does not handle resource records of type '%s' only '%s', identifier: '%s'", rr.Type, supportedTypes, identifier)
 	}
 	return nil
 }

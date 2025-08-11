@@ -76,7 +76,7 @@ func (p *NSPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error
 
 	// Check if the value is a valid name (not an IP address)
 	if net.ParseIP(rr.Value) != nil {
-		return fmt.Errorf("NS record invalid, '%s' cannot be an IP address, identifier: '%s'", rr.Value, identifier)
+		return fmt.Errorf("invalid NS record, '%s' cannot be an IP address, identifier: '%s'", rr.Value, identifier)
 	}
 
 	err = plugins.IsFullyQualified(rr.Value, identifier, rr)

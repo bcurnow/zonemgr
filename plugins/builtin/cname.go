@@ -63,7 +63,7 @@ func (p *CNAMEPlugin) Normalize(identifier string, rr *schema.ResourceRecord) er
 
 	// Make sure the name isn't an IP
 	if net.ParseIP(rr.Name) != nil {
-		return fmt.Errorf("CNAME record invalid, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
+		return fmt.Errorf("invalid CNAME record, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
 	}
 
 	value, err := rr.RetrieveSingleValue(identifier)
@@ -74,7 +74,7 @@ func (p *CNAMEPlugin) Normalize(identifier string, rr *schema.ResourceRecord) er
 
 	// Make sure the value isn't an IP
 	if net.ParseIP(value) != nil {
-		return fmt.Errorf("CNAME record invalid, '%s' must be a valid IP address, identifier: '%s'", rr.Value, identifier)
+		return fmt.Errorf("invalid CNAME record, '%s' must be a valid IP address, identifier: '%s'", rr.Value, identifier)
 	}
 
 	return nil
@@ -92,7 +92,7 @@ func (p *CNAMEPlugin) ValidateZone(name string, zone *schema.Zone) error {
 	for _, cnameRecord := range cnameRecords {
 		_, ok := aRecords[cnameRecord.Value]
 		if !ok {
-			return fmt.Errorf("CNAME record '%s' has a value of '%s' which does not match any defined A record name, zone: '%s'", cnameRecord.Name, cnameRecord.Value, name)
+			return fmt.Errorf("invalid CNAME record, '%s' has a value of '%s' which does not match any defined A record name, zone: '%s'", cnameRecord.Name, cnameRecord.Value, name)
 		}
 	}
 

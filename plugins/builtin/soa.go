@@ -135,7 +135,7 @@ func normalizeValues(identifier string, rr *schema.ResourceRecord, generateSeria
 			return err
 		}
 	default:
-		return fmt.Errorf("SOA records must have either 6 (no serial number) or 7 values, found %d values, name: '%s'", numValues, rr.Name)
+		return fmt.Errorf("invalid SOA record, must have either 6 (no serial number) or 7 values, found %d values, name: '%s'", numValues, rr.Name)
 	}
 
 	return nil

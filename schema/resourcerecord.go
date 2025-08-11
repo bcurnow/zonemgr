@@ -58,7 +58,7 @@ func (rrc ResourceRecordClass) IsValid() bool {
 func ResourceRecordClassFromString(str string) (*ResourceRecordClass, error) {
 	class, ok := resourceRecordClassToString[str]
 	if !ok {
-		return nil, fmt.Errorf("Invalid resource record class '%s'\n", str)
+		return nil, fmt.Errorf("invalid resource record class '%s'", str)
 	}
 	return &class, nil
 }
