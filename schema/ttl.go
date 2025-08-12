@@ -32,7 +32,7 @@ func (t *TTL) Render() string {
 		if comment != "" {
 			comment = " ; " + comment
 		}
-		return fmt.Sprint("$TTL %d%s\n", *t.Value, comment)
+		return fmt.Sprintf("$TTL %d%s\n", *t.Value, comment)
 	}
 	return ""
 }
