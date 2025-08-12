@@ -9,8 +9,8 @@ import (
 func UpdateResourceRecordFromProtoBuf(p *proto.ResourceRecord, rr *schema.ResourceRecord) {
 	//Update the resource record with the new values
 	rr.Name = p.Name
-	rr.Type = p.Type
-	rr.Class = p.Class
+	rr.Type = schema.ResourceRecordType(p.Type)
+	rr.Class = schema.ResourceRecordClass(p.Class)
 	rr.TTL = p.Ttl
 	UpdateResourceRecordValuesFromProtoBuf(p.Values, rr.Values)
 	rr.Value = p.Value
@@ -26,8 +26,8 @@ func ResourceRecordFromProtoBuf(p *proto.ResourceRecord) *schema.ResourceRecord 
 func ResourceRecordToProtoBuf(rr *schema.ResourceRecord) *proto.ResourceRecord {
 	ret := &proto.ResourceRecord{
 		Name:    rr.Name,
-		Type:    rr.Type,
-		Class:   rr.Class,
+		Type:    string(rr.Type),
+		Class:   string(rr.Class),
 		Ttl:     rr.TTL,
 		Value:   rr.Value,
 		Values:  ResourceRecordValuesToProtoBuf(rr.Values),

@@ -40,15 +40,13 @@ var dnsNameRegexRFC1035 = regexp.MustCompile(dnsNameRegexRFC1035String)
 //   - Validation that only Value or Values is populated
 //   - Validation that only Comment or Values is populated
 func StandardValidations(identifier string, rr *schema.ResourceRecord, supportedTypes []PluginType) error {
-	NormalizeType(rr)
-
 	// Validate that this resource record is of the supported type
 	if err := IsSupportedPluginType(identifier, rr, supportedTypes); err != nil {
 		return err
 	}
 
 	// Validate the class
-	if !rr.IsValidClass() {
+	if !rr.Class.IsValid() {
 		return fmt.Errorf("%s record invalid, '%s' is not a valid class, identifier: '%s'", rr.Type, rr.Class, identifier)
 	}
 
@@ -63,11 +61,6 @@ func StandardValidations(identifier string, rr *schema.ResourceRecord, supported
 	}
 
 	return nil
-}
-
-// Ensures that the resource record type is a consistent value
-func NormalizeType(rr *schema.ResourceRecord) {
-	rr.Type = strings.ToUpper(rr.Type)
 }
 
 // Checks if the supplied resource record matches one of the support plugin types

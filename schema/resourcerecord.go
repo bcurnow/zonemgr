@@ -25,51 +25,12 @@ import (
 // A generic type that can represent a variety of records types as many follow this specific format (A, CNAME, etc.	)
 type ResourceRecord struct {
 	Name    string                 `yaml:"name"`
-	Type    string                 `yaml:"type"`  //TODO see if we can use something similar to ResourceRecordClass instead, this would simplify validations
-	Class   string                 `yaml:"class"` //TODO See if we can use ResourceRecordClass instead, this would simplify validations
+	Type    ResourceRecordType     `yaml:"type"`  //TODO see if we can use something similar to ResourceRecordClass instead, this would simplify validations
+	Class   ResourceRecordClass    `yaml:"class"` //TODO See if we can use ResourceRecordClass instead, this would simplify validations
 	TTL     *int32                 `yaml:"ttl"`
 	Values  []*ResourceRecordValue `yaml:"values"`
 	Value   string                 `yaml:"value"`
 	Comment string                 `yaml:"comment"`
-}
-
-type ResourceRecordValue struct {
-	Value   string `yaml:"value"`
-	Comment string `yaml:"comment"`
-}
-
-// Defines the types of classes available in a zone file
-type ResourceRecordClass string
-
-const (
-	INTERNET ResourceRecordClass = "IN"
-	CSNET    ResourceRecordClass = "CS"
-	CHAOS    ResourceRecordClass = "CH"
-	HESIOD   ResourceRecordClass = "HS"
-)
-
-func (rrc ResourceRecordClass) IsValid() bool {
-	switch rrc {
-	case INTERNET, CSNET, CHAOS, HESIOD:
-		return true
-	default:
-		return false
-	}
-}
-
-func ResourceRecordClassFromString(str string) (*ResourceRecordClass, error) {
-	class, ok := resourceRecordClassToString[str]
-	if !ok {
-		return nil, fmt.Errorf("invalid resource record class '%s'", str)
-	}
-	return &class, nil
-}
-
-var resourceRecordClassToString = map[string]ResourceRecordClass{
-	string(INTERNET): INTERNET,
-	string(CSNET):    CSNET,
-	string(CHAOS):    CHAOS,
-	string(HESIOD):   HESIOD,
 }
 
 // There are two possible places to get a value from: Value or Values[0].Value
@@ -112,17 +73,6 @@ func (rr *ResourceRecord) RetrieveSingleComment(identifier string) (string, erro
 	return rr.Values[0].Comment, nil
 }
 
-// Validates that the specified class, if set, is a valid ResourceRecordClass
-func (rr *ResourceRecord) IsValidClass() bool {
-	// Class is always optional
-	if rr.Class == "" {
-		return true
-	}
-
-	_, err := ResourceRecordClassFromString(rr.Class)
-	return err == nil
-}
-
 // Validates that either Values has more than one element or Value is set, not both
 // Allows for Value to be blank and does not check Values[*].Value at all
 func (rr *ResourceRecord) IsValueSetInOnePlace(identifier string) error {
@@ -148,7 +98,7 @@ func (rr *ResourceRecord) RenderResourceWithoutValue() string {
 	record.WriteString(fmt.Sprintf(ResourceRecordTypeFormatString, rr.Type))
 	if rr.Class != "" {
 		record.WriteString(" ")
-		record.WriteString(rr.Class)
+		record.WriteString(string(rr.Class))
 		record.WriteString(" ")
 	}
 
@@ -199,4 +149,44 @@ func (rr *ResourceRecord) hasSingleValue(identifier string) error {
 		return nil
 	}
 	return fmt.Errorf("%s record invalid, found more than one value in values element, identifier: '%s'", rr.Type, identifier)
+}
+
+type ResourceRecordValue struct {
+	Value   string `yaml:"value"`
+	Comment string `yaml:"comment"`
+}
+
+// Defines the types of classes available in a zone file
+type ResourceRecordClass string
+
+const (
+	INTERNET ResourceRecordClass = "IN"
+	CSNET    ResourceRecordClass = "CS"
+	CHAOS    ResourceRecordClass = "CH"
+	HESIOD   ResourceRecordClass = "HS"
+)
+
+func (rrc ResourceRecordClass) IsValid() bool {
+	switch rrc {
+
+	case INTERNET, CSNET, CHAOS, HESIOD, "": //It's always valid for the class to be empty
+		return true
+	default:
+		return false
+	}
+}
+
+func ResourceRecordClassFromString(str string) (*ResourceRecordClass, error) {
+	class, ok := resourceRecordClassToString[str]
+	if !ok {
+		return nil, fmt.Errorf("invalid resource record class '%s'", str)
+	}
+	return &class, nil
+}
+
+var resourceRecordClassToString = map[string]ResourceRecordClass{
+	string(INTERNET): INTERNET,
+	string(CSNET):    CSNET,
+	string(CHAOS):    CHAOS,
+	string(HESIOD):   HESIOD,
 }

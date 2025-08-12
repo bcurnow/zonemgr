@@ -26,7 +26,7 @@ type Zone struct {
 
 func (z *Zone) SOARecord() *ResourceRecord {
 	for _, rr := range z.ResourceRecords {
-		if rr.Type == string(SOA) {
+		if rr.Type == SOA {
 			return rr
 		}
 	}

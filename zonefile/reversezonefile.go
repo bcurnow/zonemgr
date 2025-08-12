@@ -49,7 +49,7 @@ func toReverseZones(sourceZoneName string, zone *schema.Zone) map[string]*schema
 	for _, rr := range zone.ResourceRecords {
 		// We only care about A records as they're the ones we're trying to reverse
 		// TODO should we also reverse CNAMEs?
-		if rr.Type == string(schema.A) {
+		if rr.Type == schema.A {
 			zoneName := reverseZoneName(rr.Value)
 			reverseZone, ok := reverseLookupZones[zoneName]
 			if !ok {
@@ -64,7 +64,7 @@ func toReverseZones(sourceZoneName string, zone *schema.Zone) map[string]*schema
 				reverseZone.ResourceRecords[zoneName] = &schema.ResourceRecord{
 					// Copy the values from the SOZ record in the source zone
 					Name:    zoneName,
-					Type:    string(schema.SOA),
+					Type:    schema.SOA,
 					Class:   sourceSOA.Class,
 					TTL:     sourceSOA.TTL,
 					Values:  sourceSOA.Values,
@@ -91,7 +91,7 @@ func toPTR(sourceZoneName string, rr *schema.ResourceRecord) *schema.ResourceRec
 
 	return &schema.ResourceRecord{
 		Name:   lastOctet(rr.Value), //An A records Name/identifier should be an IP, the name of the PTR record is just the last octet
-		Type:   string(schema.PTR),
+		Type:   schema.PTR,
 		Class:  rr.Class,
 		TTL:    rr.TTL,
 		Values: []*schema.ResourceRecordValue{},
