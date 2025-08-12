@@ -23,7 +23,6 @@ import (
 	"context"
 
 	"github.com/bcurnow/zonemgr/plugins/proto"
-	"github.com/hashicorp/go-plugin"
 	goplugin "github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 )
@@ -34,7 +33,7 @@ type GRPCPlugin struct {
 	Impl ZoneMgrPlugin
 }
 
-func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, server *grpc.Server) error {
+func (p *GRPCPlugin) GRPCServer(broker *goplugin.GRPCBroker, server *grpc.Server) error {
 	proto.RegisterZonemgrPluginServer(server, &GRPCServer{Impl: p.Impl})
 	return nil
 }
