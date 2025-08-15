@@ -35,28 +35,32 @@ type Env struct {
 }
 
 var (
-	PluginsDirectory           = &Env{EnvName: EnvPrefix + "PLUGINS_DIR"}
-	GenerateSerial             = &Env{EnvName: EnvPrefix + "GENERATE_SERIAL"}
-	SerialChangeIndexDirectory = &Env{EnvName: EnvPrefix + "SERIAL_INDEX_DIR"}
 	GenerateReverseLookupZones = &Env{EnvName: EnvPrefix + "GENERATE_REVERSE_LOOKUP_ZONES"}
+	GenerateSerial             = &Env{EnvName: EnvPrefix + "GENERATE_SERIAL"}
+	PluginsDirectory           = &Env{EnvName: EnvPrefix + "PLUGINS_DIR"}
+	SerialChangeIndexDirectory = &Env{EnvName: EnvPrefix + "SERIAL_INDEX_DIR"}
 )
 
 func init() {
+	defaultValues()
+}
+
+func defaultValues() {
 	// Get the current user
 	user, err := user.Current()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to determine the current user, can not continue")
 		os.Exit(1)
 	}
-	homeDir := user.HomeDir
 
-	PluginsDirectory.Value = defaultEnv(PluginsDirectory, filepath.Join(homeDir, ".local", "share", "zonemgr", "plugins"))
-	GenerateSerial.Value = defaultEnv(GenerateSerial, "false")
-	SerialChangeIndexDirectory.Value = defaultEnv(SerialChangeIndexDirectory, filepath.Join(homeDir, ".local", "share", "zonemgr", "serial"))
-	GenerateReverseLookupZones.Value = defaultEnv(GenerateReverseLookupZones, "false")
+	GenerateReverseLookupZones.Value = defaultValue(GenerateReverseLookupZones, "false")
+	GenerateSerial.Value = defaultValue(GenerateSerial, "false")
+	PluginsDirectory.Value = defaultValue(PluginsDirectory, filepath.Join(user.HomeDir, ".local", "share", "zonemgr", "plugins"))
+	SerialChangeIndexDirectory.Value = defaultValue(SerialChangeIndexDirectory, filepath.Join(user.HomeDir, ".local", "share", "zonemgr", "serial"))
+
 }
 
-func defaultEnv(e *Env, defaultValue string) string {
+func defaultValue(e *Env, defaultValue string) string {
 	value := os.Getenv(e.EnvName)
 
 	if value == "" {
