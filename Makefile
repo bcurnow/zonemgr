@@ -25,3 +25,8 @@ zonemgr-a-record-comment-override-plugin:
 
 run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
 	ZONEMGR_PLUGINS=examples/bin/ ./bin/zonemgr plugins
+
+mocks:
+	mkdir -p testing/mocks
+	mockgen -source=plugins/interface.go -package mocks -self_package "github.com/bcurnow/zonemgr/testing/mocks">testing/mocks/plugins_zonemgrplugin.go
+	mockgen -source=plugins/manager/interface.go -package mocks -self_package "github.com/bcurnow/zonemgr/testingmocks" >testing/mocks/manager_pluginmanager.go
