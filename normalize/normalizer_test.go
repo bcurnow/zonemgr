@@ -39,9 +39,9 @@ var (
 	testZone = &schema.Zone{
 		Config: &schema.Config{
 			PluginsDirectory:           "testZone-plugins",
-			GenerateSerial:             boolPtr(true),
+			GenerateSerial:             true,
 			SerialChangeIndexDirectory: "testZone-scid",
-			GenerateReverseLookupZones: boolPtr(true),
+			GenerateReverseLookupZones: true,
 		},
 		ResourceRecords: map[string]*schema.ResourceRecord{
 			"record1": {Type: schema.A},
@@ -221,8 +221,4 @@ func TestNormalizeZones_ValidateError(t *testing.T) {
 
 func int32Ptr(i int32) *int32 {
 	return &i
-}
-
-func boolPtr(b bool) *bool {
-	return &b
 }

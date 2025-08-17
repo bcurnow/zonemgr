@@ -24,34 +24,24 @@ import (
 
 type Config struct {
 	PluginsDirectory           string `yaml:"plugins_directory"`
-	GenerateSerial             *bool  `yaml:"generate_serial"`
+	GenerateSerial             bool   `yaml:"generate_serial"`
 	SerialChangeIndexDirectory string `yaml:"serial_change_index_directory"`
-	GenerateReverseLookupZones *bool  `yaml:"generate_reverse_lookup_zones"`
+	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones"`
 }
 
 func (c *Config) ConfigDefaults() error {
-	if c.PluginsDirectory == "" {
-		c.PluginsDirectory = env.PluginsDirectory.Value
+	c.PluginsDirectory = env.PluginsDirectory.Value
+	val, err := strconv.ParseBool(env.GenerateSerial.Value)
+	if err != nil {
+		return err
 	}
+	c.GenerateSerial = val
 
-	if c.GenerateSerial == nil {
-		val, err := strconv.ParseBool(env.GenerateSerial.Value)
-		if err != nil {
-			return err
-		}
-		c.GenerateSerial = &val
+	c.SerialChangeIndexDirectory = env.SerialChangeIndexDirectory.Value
+	val, err = strconv.ParseBool(env.GenerateReverseLookupZones.Value)
+	if err != nil {
+		return err
 	}
-
-	if c.SerialChangeIndexDirectory == "" {
-		c.SerialChangeIndexDirectory = env.SerialChangeIndexDirectory.Value
-	}
-
-	if c.GenerateReverseLookupZones == nil {
-		val, err := strconv.ParseBool(env.GenerateReverseLookupZones.Value)
-		if err != nil {
-			return err
-		}
-		c.GenerateReverseLookupZones = &val
-	}
+	c.GenerateReverseLookupZones = val
 	return nil
 }

@@ -86,7 +86,7 @@ func generateZoneFile() error {
 			return err
 		}
 
-		if zone.Config.GenerateReverseLookupZones != nil && *zone.Config.GenerateReverseLookupZones {
+		if zone.Config.GenerateReverseLookupZones {
 			hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
 			reverseLookupZones := zoneReverser.ReverseZone(name, zone)
 			if err := normalize.Default().Normalize(reverseLookupZones); err != nil {

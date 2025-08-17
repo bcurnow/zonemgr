@@ -75,7 +75,7 @@ func (p *SOAPlugin) Normalize(identifier string, rr *schema.ResourceRecord) erro
 		return fmt.Errorf("comment field can not be used on SOA records, please use the values field, identifier: '%s'", identifier)
 	}
 
-	if err := normalizeValues(identifier, rr, *p.config.GenerateSerial); err != nil {
+	if err := normalizeValues(identifier, rr, p.config.GenerateSerial); err != nil {
 		return err
 	}
 
