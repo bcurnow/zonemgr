@@ -30,6 +30,8 @@ type zoneYamlParser struct {
 	ZoneYamlParser
 }
 
+var normalizer = normalize.Default()
+
 func Parser() ZoneYamlParser {
 	return &zoneYamlParser{}
 }
@@ -44,10 +46,14 @@ func (p *zoneYamlParser) Parse(inputFile string) (map[string]*schema.Zone, error
 	hclog.L().Debug("Unmarshaling YAML", "inputFile", inputFile)
 	zones, err := unmarshal(inputBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal input bytes: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal from %s: %w", inputFile, err)
 	}
 
-	for _, zone := range zones {
+	for name, zone := range zones {
+		// It is possible for the zone itself to be nil, this happens if a file is parsed which only contains the name of the zone and no other info
+		if zone == nil {
+			return nil, fmt.Errorf("invalid input file %s, no zone information for zone %s", inputFile, name)
+		}
 		// Make sure we always have a complete config
 		if nil == zone.Config {
 			zone.Config = &schema.Config{}
@@ -56,7 +62,7 @@ func (p *zoneYamlParser) Parse(inputFile string) (map[string]*schema.Zone, error
 	}
 
 	// Normalize the zones
-	if err = normalize.Default().Normalize(zones); err != nil {
+	if err = normalizer.Normalize(zones); err != nil {
 		return nil, fmt.Errorf("failed to normalize zones: %w", err)
 	}
 	return zones, nil
