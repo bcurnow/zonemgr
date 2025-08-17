@@ -21,6 +21,7 @@ import (
 	"strconv"
 
 	"github.com/bcurnow/zonemgr/env"
+	"github.com/bcurnow/zonemgr/normalize"
 	"github.com/bcurnow/zonemgr/parse"
 	"github.com/bcurnow/zonemgr/plugins/manager"
 	"github.com/bcurnow/zonemgr/zonefile"
@@ -36,7 +37,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return generateZoneFile()
 		},
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			outputDir = toAbsoluteFilePath(outputDir, "output directory")
 			inputFile = toAbsoluteFilePath(inputFile, "input file")
 			serialChangeIndexDirectory = toAbsoluteFilePath(serialChangeIndexDirectory, "serial change index directory")
@@ -55,7 +56,10 @@ var (
 			}
 
 			// Make sure we load up all the plugins at the start
-			manager.Plugins()
+			if _, err := manager.Default().Plugins(); err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 
@@ -64,21 +68,38 @@ var (
 	generateReverseLookupZones bool
 	generateSerial             bool
 	serialChangeIndexDirectory string
+	zoneReverser               = zonefile.Reverser()
+	zoneFileGenerator          = zonefile.Generator()
+	zoneYamlParser             = parse.Parser()
 )
 
 func generateZoneFile() error {
 	hclog.L().Info("Generating BIND zone file(s)", "outputDir", outputDir, "inputFile", inputFile)
-	zones, err := parse.ToZones(inputFile)
+	zones, err := zoneYamlParser.Parse(inputFile)
 	if err != nil {
 		return fmt.Errorf("failed to parse input file %s: %w", inputFile, err)
 
 	}
 
-	err = zonefile.ToZoneFiles(zones, outputDir)
-	if err != nil {
-		return fmt.Errorf("failed to generate zone files: %w", err)
-	}
+	for name, zone := range zones {
+		if err := zoneFileGenerator.GenerateZone(name, zone, outputDir); err != nil {
+			return err
+		}
 
+		if zone.Config.GenerateReverseLookupZones != nil && *zone.Config.GenerateReverseLookupZones {
+			hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
+			reverseLookupZones := zoneReverser.ReverseZone(name, zone)
+			if err := normalize.Default().Normalize(reverseLookupZones); err != nil {
+				return err
+			}
+
+			for name, zone := range reverseLookupZones {
+				if err := zoneFileGenerator.GenerateZone(name, zone, outputDir); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	return nil
 }
 

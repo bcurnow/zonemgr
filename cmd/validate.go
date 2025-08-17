@@ -40,7 +40,7 @@ var (
 		Use:   "yaml",
 		Short: "Validates the YAML input file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := parse.ToZones(input)
+			_, err := parse.Parser().Parse(input)
 			if err != nil {
 				return fmt.Errorf("failed to parse input file %s: %w", input, err)
 

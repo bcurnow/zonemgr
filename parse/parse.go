@@ -26,7 +26,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func ToZones(inputFile string) (map[string]*schema.Zone, error) {
+type zoneYamlParser struct {
+	ZoneYamlParser
+}
+
+func Parser() ZoneYamlParser {
+	return &zoneYamlParser{}
+}
+
+func (p *zoneYamlParser) Parse(inputFile string) (map[string]*schema.Zone, error) {
 	hclog.L().Debug("Opening input file", "inputFile", inputFile)
 	inputBytes, err := os.ReadFile(inputFile)
 	if err != nil {
@@ -48,7 +56,7 @@ func ToZones(inputFile string) (map[string]*schema.Zone, error) {
 	}
 
 	// Normalize the zones
-	if err = normalize.NormalizeZones(zones); err != nil {
+	if err = normalize.Default().Normalize(zones); err != nil {
 		return nil, fmt.Errorf("failed to normalize zones: %w", err)
 	}
 	return zones, nil

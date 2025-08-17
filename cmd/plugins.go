@@ -31,7 +31,7 @@ var pluginsCmd = &cobra.Command{
 	Use:   "plugins",
 	Short: "Prints information about the current plugins",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		registeredPlugins, err := manager.Plugins()
+		registeredPlugins, err := manager.Default().Plugins()
 		if err != nil {
 			return err
 		}

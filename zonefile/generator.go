@@ -30,7 +30,17 @@ import (
 	"github.com/hashicorp/go-hclog"
 )
 
-func writeZoneFile(name string, zone *schema.Zone, outputDir string) error {
+type zoneFileGenerator struct {
+	ZoneFileGenerator
+}
+
+func Generator() ZoneFileGenerator {
+	return &zoneFileGenerator{}
+}
+
+var pluginManager = manager.Default()
+
+func (zfg *zoneFileGenerator) GenerateZone(name string, zone *schema.Zone, outputDir string) error {
 	outputFile, err := os.Create(filepath.Join(outputDir, name))
 	if err != nil {
 		return fmt.Errorf("failed to create output file for zone %s: %w", name, err)
@@ -46,7 +56,7 @@ func writeZoneFile(name string, zone *schema.Zone, outputDir string) error {
 		fmt.Fprintln(outputFile, zone.TTL.Render())
 	}
 
-	registeredPlugins, err := manager.Plugins()
+	registeredPlugins, err := pluginManager.Plugins()
 	if err != nil {
 		return err
 	}
