@@ -51,11 +51,15 @@ func ConfigureLogging(level hclog.Level, jsonFormat bool, disableTime bool, logC
 	hclog.DefaultOptions.DisableTime = disableTime
 }
 
-func init() {
+func defaultLogging() {
 	hclog.DefaultOptions.Name = "zonemgr"
 	hclog.DefaultOptions.Output = os.Stderr
 	hclog.DefaultOptions.Level = hclog.Info
 	hclog.DefaultOptions.Color = hclog.AutoColor
 	hclog.DefaultOptions.JSONFormat = false
 	hclog.DefaultOptions.DisableTime = true
+}
+
+func init() {
+	defaultLogging()
 }
