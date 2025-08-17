@@ -21,6 +21,7 @@ package normalize
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/manager"
@@ -44,12 +45,21 @@ func (n *normalizer) Normalize(zones map[string]*schema.Zone) error {
 		return fmt.Errorf("no zones found")
 	}
 
+	// Get the zone names so we can sort them and provide a stable iteration order, this will make the log output look better as well has help with testing
+	zoneNames := make([]string, 0, len(zones))
+	for k := range zones {
+		zoneNames = append(zoneNames, k)
+	}
+	sort.Strings(zoneNames)
+
 	registeredPlugins, err := pluginManager.Plugins()
 	if err != nil {
 		return err
 	}
 
-	for name, zone := range zones {
+	for _, name := range zoneNames {
+		zone := zones[name]
+
 		// Configure each of the plugins for this specific zone
 		for _, plugin := range registeredPlugins {
 			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", plugin.PluginName)
