@@ -43,6 +43,6 @@ const (
 
 const (
 	ResourceRecordNameFormatString             = "%-40s"
-	ResourceRecordTypeFormatString             = "%-6s "
+	ResourceRecordTypeFormatString             = "%-6s"
 	ResourceRecordMultivalueIndentFormatString = "%4s"
 )
