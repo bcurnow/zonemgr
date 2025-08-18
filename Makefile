@@ -28,9 +28,9 @@ run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
 
 mocks:
 	mkdir -p testing/mocks
-	mockgen -source=plugins/interface.go -package mocks -self_package "github.com/bcurnow/zonemgr/testing/mocks">testing/mocks/plugins_zonemgrplugin.go
-	mockgen -source=plugins/manager/interface.go -package mocks -self_package "github.com/bcurnow/zonemgr/testingmocks" >testing/mocks/manager_pluginmanager.go
-	mockgen -source=normalize/interface.go -package mocks -self_package "github.com/bcurnow/zonemgr/testingmocks" >testing/mocks/normalize_normalizer.go
+	mockgen -source=plugins/interface.go -package mocks -self_package "github.com/bcurnow/zonemgr/test/mocks">test/mocks/plugins_zonemgrplugin.go
+	mockgen -source=plugins/manager/interface.go -package mocks -self_package "github.com/bcurnow/zonemgr/test/mocks" >test/mocks/manager_pluginmanager.go
+	mockgen -source=normalize/interface.go -package mocks -self_package "github.com/bcurnow/zonemgr/test/mocks" >test/mocks/normalize_normalizer.go
 
 proto:
 	buf generate
