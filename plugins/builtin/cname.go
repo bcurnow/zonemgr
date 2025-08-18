@@ -57,7 +57,7 @@ func (p *CNAMEPlugin) Normalize(identifier string, rr *schema.ResourceRecord) er
 		rr.Name = identifier
 	}
 
-	if err := plugins.IsValidNameOrWildcard(rr.Name, identifier, rr); err != nil {
+	if err := plugins.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
 		return err
 	}
 
@@ -100,10 +100,10 @@ func (p *CNAMEPlugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (p *CNAMEPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, rr, cnameSupportedPluginTypes); err != nil {
+	if err := plugins.IsSupportedPluginType(identifier, rr.Type, cnameSupportedPluginTypes); err != nil {
 		return "", err
 	}
-	return rr.RenderSingleValueResource(), nil
+	return rr.RenderSingleValueResource(identifier)
 }
 
 func init() {

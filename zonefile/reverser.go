@@ -75,7 +75,7 @@ func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *schema.Zone) ma
 
 func (zr *zoneReverser) toPTR(sourceZoneName string, rr *schema.ResourceRecord) *schema.ResourceRecord {
 	ptrName := rr.Name
-	if err := plugins.IsFullyQualified(ptrName, rr.Value, rr); err != nil {
+	if err := plugins.IsFullyQualified(rr.Value, ptrName, rr.Type); err != nil {
 		ptrName = plugins.EnsureTrailingDot(ptrName + "." + sourceZoneName)
 
 	}

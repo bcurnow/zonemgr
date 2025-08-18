@@ -54,7 +54,7 @@ func (p *PTRPlugin) Normalize(identifier string, rr *schema.ResourceRecord) erro
 		return err
 	}
 
-	if err := plugins.IsFullyQualified(value, identifier, rr); err != nil {
+	if err := plugins.IsFullyQualified(identifier, value, rr.Type); err != nil {
 		return err
 	}
 
@@ -66,11 +66,11 @@ func (p *PTRPlugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (p *PTRPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, rr, ptrSupportedPluginTypes); err != nil {
+	if err := plugins.IsSupportedPluginType(identifier, rr.Type, ptrSupportedPluginTypes); err != nil {
 		return "", err
 	}
 
-	return rr.RenderSingleValueResource(), nil
+	return rr.RenderSingleValueResource(identifier)
 }
 
 func init() {

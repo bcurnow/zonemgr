@@ -56,7 +56,7 @@ func (p *NSPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error
 
 	// Empty names are allowed in NS record but if set, must be valid or a wild card (e.g. @)
 	if rr.Name != "" {
-		if err := plugins.IsValidNameOrWildcard(rr.Name, identifier, rr); err != nil {
+		if err := plugins.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
 			return err
 		}
 	} else {
@@ -79,7 +79,7 @@ func (p *NSPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error
 		return fmt.Errorf("invalid NS record, '%s' cannot be an IP address, identifier: '%s'", rr.Value, identifier)
 	}
 
-	err = plugins.IsFullyQualified(rr.Value, identifier, rr)
+	err = plugins.IsFullyQualified(identifier, rr.Value, rr.Type)
 	if err != nil {
 		return err
 	}
@@ -93,11 +93,11 @@ func (p *NSPlugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (p *NSPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, rr, nsSupportedPluginTypes); err != nil {
+	if err := plugins.IsSupportedPluginType(identifier, rr.Type, nsSupportedPluginTypes); err != nil {
 		return "", err
 	}
 
-	return rr.RenderSingleValueResource(), nil
+	return rr.RenderSingleValueResource(identifier)
 }
 
 func init() {

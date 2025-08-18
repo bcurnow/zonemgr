@@ -62,7 +62,7 @@ func (p *SOAPlugin) Normalize(identifier string, rr *schema.ResourceRecord) erro
 		rr.Name = identifier
 	}
 
-	if err := plugins.IsFullyQualified(rr.Name, identifier, rr); err != nil {
+	if err := plugins.IsFullyQualified(identifier, rr.Name, rr.Type); err != nil {
 		return err
 	}
 
@@ -102,7 +102,7 @@ func (p *SOAPlugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (p *SOAPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, rr, soaSupportedPluginTypes); err != nil {
+	if err := plugins.IsSupportedPluginType(identifier, rr.Type, soaSupportedPluginTypes); err != nil {
 		return "", err
 	}
 
@@ -153,11 +153,11 @@ func validateWithNoSerial(identifier string, rr *schema.ResourceRecord, generate
 	expire := rr.Values[4].Value
 	negativeCache := rr.Values[5].Value
 
-	if err := plugins.IsFullyQualified(primaryNameServer, identifier, rr); err != nil {
+	if err := plugins.IsFullyQualified(identifier, primaryNameServer, rr.Type); err != nil {
 		return err
 	}
 
-	email, err := plugins.FormatEmail(administrator, identifier, rr)
+	email, err := plugins.FormatEmail(identifier, administrator, rr.Type)
 	if err != nil {
 		return err
 	}
@@ -212,11 +212,11 @@ func validateWithSerial(identifier string, rr *schema.ResourceRecord, generateSe
 	expire := rr.Values[5].Value
 	negativeCache := rr.Values[6].Value
 
-	if err := plugins.IsFullyQualified(primaryNameServer, identifier, rr); err != nil {
+	if err := plugins.IsFullyQualified(identifier, primaryNameServer, rr.Type); err != nil {
 		return err
 	}
 
-	email, err := plugins.FormatEmail(administrator, identifier, rr)
+	email, err := plugins.FormatEmail(identifier, administrator, rr.Type)
 	if err != nil {
 		return err
 	}

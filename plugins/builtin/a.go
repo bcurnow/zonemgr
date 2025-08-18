@@ -56,20 +56,14 @@ func (p *APlugin) Normalize(identifier string, rr *schema.ResourceRecord) error 
 		rr.Name = identifier
 	}
 
-	if err := plugins.IsValidNameOrWildcard(rr.Name, identifier, rr); err != nil {
+	if err := plugins.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
 		return err
-	}
-
-	// Make sure the name isn't an IP
-	if net.ParseIP(rr.Name) != nil {
-		return fmt.Errorf("invalid A record, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
 	}
 
 	value, err := rr.RetrieveSingleValue(identifier)
 	if err != nil {
 		return err
 	}
-	rr.Value = value
 
 	// Make sure the value IS an IP
 	if net.ParseIP(value) == nil {
@@ -85,11 +79,11 @@ func (p *APlugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (p *APlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, rr, aSupportedPluginTypes); err != nil {
+	if err := plugins.IsSupportedPluginType(identifier, rr.Type, aSupportedPluginTypes); err != nil {
 		return "", err
 	}
 
-	return rr.RenderSingleValueResource(), nil
+	return rr.RenderSingleValueResource(identifier)
 }
 
 func init() {

@@ -77,7 +77,7 @@ func (rr *ResourceRecord) RetrieveSingleComment(identifier string) (string, erro
 // Allows for Value to be blank and does not check Values[*].Value at all
 func (rr *ResourceRecord) IsValueSetInOnePlace(identifier string) error {
 	if len(rr.Values) > 0 && rr.Value != "" {
-		return fmt.Errorf("%s record invalid, can not specify both value and values, identifier: '%s'", rr.Type, identifier)
+		return fmt.Errorf("invalid %s record, can not specify both value and values, identifier: '%s'", rr.Type, identifier)
 	}
 	return nil
 }
@@ -86,7 +86,7 @@ func (rr *ResourceRecord) IsValueSetInOnePlace(identifier string) error {
 // Allows for Comment to be blank and does not check Values[*].Comment at all
 func (rr *ResourceRecord) IsCommentSetInOnePlace(identifier string) error {
 	if len(rr.Values) > 0 && rr.Comment != "" {
-		return fmt.Errorf("%s record invalid, can not specify both comment and values, identifier: '%s'", rr.Type, identifier)
+		return fmt.Errorf("invalid %s record, can not specify both comment and values, identifier: '%s'", rr.Type, identifier)
 	}
 	return nil
 }
@@ -95,15 +95,15 @@ func (rr *ResourceRecord) RenderResourceWithoutValue() string {
 	var record strings.Builder
 
 	record.WriteString(fmt.Sprintf(ResourceRecordNameFormatString, rr.Name))
+	record.WriteString(" ")
 	record.WriteString(fmt.Sprintf(ResourceRecordTypeFormatString, rr.Type))
+	record.WriteString(" ")
 	if rr.Class != "" {
-		record.WriteString(" ")
 		record.WriteString(string(rr.Class))
 		record.WriteString(" ")
 	}
 
 	if rr.TTL != nil {
-		record.WriteString(" ")
 		record.WriteString(strconv.Itoa(int(*rr.TTL)))
 		record.WriteString(" ")
 	}
@@ -111,16 +111,27 @@ func (rr *ResourceRecord) RenderResourceWithoutValue() string {
 	return record.String()
 }
 
-func (rr *ResourceRecord) RenderSingleValueResource() string {
+func (rr *ResourceRecord) RenderSingleValueResource(identifier string) (string, error) {
 	var record strings.Builder
 	record.WriteString(rr.RenderResourceWithoutValue())
-	record.WriteString(rr.Value)
-	if rr.Comment != "" {
-		record.WriteString(" ; ")
-		record.WriteString(rr.Comment)
+
+	value, err := rr.RetrieveSingleValue(identifier)
+	if err != nil {
+		return "", err
+	}
+	record.WriteString(value)
+
+	comment, err := rr.RetrieveSingleComment(identifier)
+	if err != nil {
+		return "", err
 	}
 
-	return record.String()
+	if comment != "" {
+		record.WriteString(" ;")
+		record.WriteString(comment)
+	}
+
+	return record.String(), nil
 }
 
 func (rr *ResourceRecord) RenderMultivalueResource() string {
@@ -148,7 +159,7 @@ func (rr *ResourceRecord) hasSingleValue(identifier string) error {
 	if len(rr.Values) <= 1 {
 		return nil
 	}
-	return fmt.Errorf("%s record invalid, found more than one value in values element, identifier: '%s'", rr.Type, identifier)
+	return fmt.Errorf("invalid %s record, found more than one value in values element, identifier: '%s'", rr.Type, identifier)
 }
 
 type ResourceRecordValue struct {
