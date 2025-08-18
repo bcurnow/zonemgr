@@ -67,7 +67,7 @@ func (th *Plugin) ValidateZone(name string, zone *schema.Zone) error {
 
 func (th *Plugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
 	// Leverage the standard rendering
-	return rr.RenderSingleValueResource(), nil
+	return rr.RenderSingleValueResource(identifier)
 }
 
 func main() {
