@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/schema"
-	"github.com/bcurnow/zonemgr/testing/mocks"
+	"github.com/bcurnow/zonemgr/test/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 )

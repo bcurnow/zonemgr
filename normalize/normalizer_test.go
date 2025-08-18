@@ -25,7 +25,8 @@ import (
 
 	plugins "github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/schema"
-	"github.com/bcurnow/zonemgr/testing/mocks"
+	"github.com/bcurnow/zonemgr/test"
+	"github.com/bcurnow/zonemgr/test/mocks"
 	"github.com/golang/mock/gomock"
 )
 
@@ -48,7 +49,7 @@ var (
 			"record2": {Type: schema.CNAME},
 		},
 		TTL: &schema.TTL{
-			Value:   int32Ptr(30),
+			Value:   test.ToInt32Ptr(30),
 			Comment: "testZone-TTL",
 		},
 	}
@@ -217,8 +218,4 @@ func TestNormalizeZones_ValidateError(t *testing.T) {
 	} else {
 		t.Errorf("Error NormalizingZones: %s", err)
 	}
-}
-
-func int32Ptr(i int32) *int32 {
-	return &i
 }
