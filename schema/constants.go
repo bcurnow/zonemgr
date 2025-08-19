@@ -19,28 +19,6 @@
 
 package schema
 
-// Defines the types of plugins which can be support
-type ResourceRecordType string
-
-const (
-	A     ResourceRecordType = "A"
-	CNAME ResourceRecordType = "CNAME"
-	HINFO ResourceRecordType = "HINFO"
-	MB    ResourceRecordType = "MB"
-	MD    ResourceRecordType = "MD"
-	MF    ResourceRecordType = "MF"
-	MG    ResourceRecordType = "MG"
-	MINFO ResourceRecordType = "MINFO"
-	MR    ResourceRecordType = "MR"
-	MX    ResourceRecordType = "MX"
-	NS    ResourceRecordType = "NS"
-	NULL  ResourceRecordType = "NULL"
-	PTR   ResourceRecordType = "PTR"
-	SOA   ResourceRecordType = "SOA"
-	TXT   ResourceRecordType = "TXT"
-	WKS   ResourceRecordType = "WKS"
-)
-
 const (
 	ResourceRecordNameFormatString             = "%-40s"
 	ResourceRecordTypeFormatString             = "%-6s"

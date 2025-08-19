@@ -88,7 +88,8 @@ func (n *normalizer) Normalize(zones map[string]*schema.Zone) error {
 
 func (n *normalizer) normalizeZone(name string, zone *schema.Zone, registeredPlugins map[plugins.PluginType]*plugins.Plugin) error {
 	hclog.L().Debug("Normalizing zone", "name", name)
-	for identifier, rr := range zone.ResourceRecords {
+	for _, identifier := range zone.SortedResourceRecordKeys() {
+		rr := zone.ResourceRecords[identifier]
 		hclog.L().Trace("Normalizing record", "identifier", identifier, "zoneName", name)
 		plugin := registeredPlugins[plugins.PluginType(rr.Type)]
 		if nil == plugin {

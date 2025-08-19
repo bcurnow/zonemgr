@@ -18,3 +18,7 @@
  */
 
 package plugins
+
+func PluginTypes(pluginTypes ...PluginType) []PluginType {
+	return pluginTypes
+}

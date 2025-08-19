@@ -20,9 +20,6 @@
 package builtin
 
 import (
-	"fmt"
-	"net"
-
 	"github.com/bcurnow/zonemgr/plugins"
 
 	"github.com/bcurnow/zonemgr/schema"
@@ -32,16 +29,16 @@ import (
 // Make sure we're correctly implementing the ZonmgrPlugin interface
 var _ plugins.ZoneMgrPlugin = &NSPlugin{}
 
-var nsSupportedPluginTypes = []plugins.PluginType{plugins.RecordNS}
-
-type NSPlugin struct{}
+type NSPlugin struct {
+	plugins.ZoneMgrPlugin
+}
 
 func (p *NSPlugin) PluginVersion() (string, error) {
 	return version.Version(), nil
 }
 
 func (p *NSPlugin) PluginTypes() ([]plugins.PluginType, error) {
-	return nsSupportedPluginTypes, nil
+	return plugins.PluginTypes(plugins.NS), nil
 }
 
 func (p *NSPlugin) Configure(config *schema.Config) error {
@@ -50,37 +47,30 @@ func (p *NSPlugin) Configure(config *schema.Config) error {
 }
 
 func (p *NSPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
-	if err := plugins.StandardValidations(identifier, rr, nsSupportedPluginTypes); err != nil {
+	if err := validations.StandardValidations(identifier, rr, plugins.NS); err != nil {
 		return err
 	}
 
 	// Empty names are allowed in NS record but if set, must be valid or a wild card (e.g. @)
-	if rr.Name != "" {
-		if err := plugins.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
-			return err
-		}
-	} else {
+	if rr.Name == "" {
 		// Default to the wildcard
 		rr.Name = "@"
 	}
 
-	value, err := rr.RetrieveSingleValue(identifier)
-	if err != nil {
+	if err := validations.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
 		return err
 	}
-	rr.Value = value
 
-	if value == "" {
+	if rr.RetrieveSingleValue() == "" {
 		rr.Value = identifier
 	}
 
 	// Check if the value is a valid name (not an IP address)
-	if net.ParseIP(rr.Value) != nil {
-		return fmt.Errorf("invalid NS record, '%s' cannot be an IP address, identifier: '%s'", rr.Value, identifier)
+	if err := validations.EnsureIP(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
+		return err
 	}
 
-	err = plugins.IsFullyQualified(identifier, rr.Value, rr.Type)
-	if err != nil {
+	if err := validations.IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
 		return err
 	}
 
@@ -93,13 +83,13 @@ func (p *NSPlugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (p *NSPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, rr.Type, nsSupportedPluginTypes); err != nil {
+	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.NS); err != nil {
 		return "", err
 	}
 
-	return rr.RenderSingleValueResource(identifier)
+	return rr.RenderSingleValueResource(), nil
 }
 
 func init() {
-	registerBuiltIn(plugins.RecordNS, &NSPlugin{})
+	registerBuiltIn(plugins.NS, &NSPlugin{})
 }

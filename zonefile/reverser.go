@@ -26,6 +26,8 @@ import (
 	"github.com/bcurnow/zonemgr/schema"
 )
 
+var validations = plugins.Validations()
+
 type zoneReverser struct {
 	ZoneReverser
 }
@@ -75,8 +77,8 @@ func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *schema.Zone) ma
 
 func (zr *zoneReverser) toPTR(sourceZoneName string, rr *schema.ResourceRecord) *schema.ResourceRecord {
 	ptrName := rr.Name
-	if err := plugins.IsFullyQualified(rr.Value, ptrName, rr.Type); err != nil {
-		ptrName = plugins.EnsureTrailingDot(ptrName + "." + sourceZoneName)
+	if err := validations.IsFullyQualified(rr.Value, ptrName, rr.Type); err != nil {
+		ptrName = validations.EnsureTrailingDot(ptrName + "." + sourceZoneName)
 
 	}
 

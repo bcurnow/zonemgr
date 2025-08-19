@@ -20,31 +20,7 @@
 package plugins
 
 import (
-	"github.com/bcurnow/zonemgr/schema"
 	goplugin "github.com/hashicorp/go-plugin"
-)
-
-// Defines the types of plugins which can be support
-type PluginType string
-
-const (
-	// Define the record handling plugin types in terms of the record type
-	RecordA     PluginType = PluginType(schema.A)
-	RecordCNAME PluginType = PluginType(schema.CNAME)
-	RecordHINFO PluginType = PluginType(schema.HINFO)
-	RecordMB    PluginType = PluginType(schema.MB)
-	RecordMD    PluginType = PluginType(schema.MD)
-	RecordMF    PluginType = PluginType(schema.MF)
-	RecordMG    PluginType = PluginType(schema.MG)
-	RecordMINFO PluginType = PluginType(schema.MINFO)
-	RecordMR    PluginType = PluginType(schema.MR)
-	RecordMX    PluginType = PluginType(schema.MX)
-	RecordNS    PluginType = PluginType(schema.NS)
-	RecordNULL  PluginType = PluginType(schema.NULL)
-	RecordPTR   PluginType = PluginType(schema.PTR)
-	RecordSOA   PluginType = PluginType(schema.SOA)
-	RecordTXT   PluginType = PluginType(schema.TXT)
-	RecordWKS   PluginType = PluginType(schema.WKS)
 )
 
 // This is the go-plugin handshake information that needs to be used for all plugins

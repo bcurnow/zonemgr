@@ -19,7 +19,11 @@
 
 package builtin
 
-import "github.com/bcurnow/zonemgr/plugins"
+import (
+	"github.com/bcurnow/zonemgr/plugins"
+)
+
+var validations = plugins.Validations()
 
 var builtins map[plugins.PluginType]*plugins.Plugin = make(map[plugins.PluginType]*plugins.Plugin)
 

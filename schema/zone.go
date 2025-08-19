@@ -16,6 +16,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package schema
 
+import "sort"
+
 // Represents the overall Zone file structure, the YAML file is an array of these
 type Zone struct {
 	Config                *Config                    `yaml:"config"`
@@ -51,4 +53,13 @@ func (z *Zone) ResourceRecordsByType() map[ResourceRecordType]map[string]*Resour
 	}
 
 	return z.resourceRecordsByType
+}
+
+func (z *Zone) SortedResourceRecordKeys() []string {
+	keys := make([]string, 0, len(z.ResourceRecords))
+	for k := range z.ResourceRecords {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

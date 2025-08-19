@@ -27,69 +27,70 @@ import (
 	"github.com/bcurnow/zonemgr/schema"
 )
 
-func TestAPluginVersion(t *testing.T) {
-	testPluginVersion(t, &APlugin{})
+func TestPTRPluginVersion(t *testing.T) {
+	testPluginVersion(t, &PTRPlugin{})
 }
 
-func TestAPluginTypes(t *testing.T) {
-	testPluginTypes(t, &APlugin{}, plugins.A)
+func TestPTRPluginTypes(t *testing.T) {
+	testPluginTypes(t, &PTRPlugin{}, plugins.PTR)
 }
 
-func TestAConfigure(t *testing.T) {
-	testConfigure(t, &APlugin{})
+func TestPTRConfigure(t *testing.T) {
+	testConfigure(t, &PTRPlugin{})
 }
 
-func TestANormalize(t *testing.T) {
+func TestPTRNormalize(t *testing.T) {
 	setup(t)
 	defer teardown(t)
-	plugin := &APlugin{}
+	plugin := &PTRPlugin{}
 	testNormalizeValidNameAndDefaulting(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: plugins.A,
-		rrType:     schema.A,
+		pluginType: plugins.PTR,
+		rrType:     schema.PTR,
 		expects: func(identifier string, rr *schema.ResourceRecord) {
-			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.A)
+			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.PTR)
 			if rr.Name == "" {
 				mockValidations.EXPECT().IsValidNameOrWildcard(identifier, identifier, rr.Type)
 			} else {
 				mockValidations.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, rr.Type)
 			}
 
-			mockValidations.EXPECT().EnsureIP(identifier, rr.RetrieveSingleValue(), rr.Type)
+			mockValidations.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type)
 		},
 	})
 	testNormalizeInvalidName(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: plugins.A,
-		rrType:     schema.A,
+		pluginType: plugins.PTR,
+		rrType:     schema.PTR,
 		expects: func(identifier string, rr *schema.ResourceRecord) {
-			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.A)
-			mockValidations.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, schema.A).Return(fmt.Errorf("not a valid name"))
+			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.PTR)
+			mockValidations.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, schema.PTR).Return(fmt.Errorf("not a valid name"))
+
 		},
 	})
-	testNormalizeValueIsIP(t, &testNormalize{
+	testNormalizeValueNotFullyQualified(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: plugins.A,
-		rrType:     schema.A,
+		pluginType: plugins.PTR,
+		rrType:     schema.PTR,
 		expects: func(identifier string, rr *schema.ResourceRecord) {
-			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.A)
-			mockValidations.EXPECT().IsValidNameOrWildcard(identifier, identifier, schema.A)
-			mockValidations.EXPECT().EnsureIP(identifier, rr.Value, schema.A).Return(fmt.Errorf("is not IP"))
+			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.PTR)
+			mockValidations.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, schema.PTR)
+			mockValidations.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), schema.PTR).Return(fmt.Errorf("not fully qualified"))
 		},
 	})
 }
 
-func TestAValidateZone(t *testing.T) {
-	testValidateZone(t, &APlugin{})
+func TestPTRValidateZone(t *testing.T) {
+	testValidateZone(t, &PTRPlugin{})
 }
 
-func TestARender(t *testing.T) {
+func TestPTRRender(t *testing.T) {
 	setup(t)
 	defer teardown(t)
 	//Render uses the standard method so we're going to cheat
-	mockValidations.EXPECT().IsSupportedPluginType("testing", schema.A, plugins.A)
-	plugin := &APlugin{}
-	_, err := plugin.Render("testing", &schema.ResourceRecord{Type: schema.A})
+	mockValidations.EXPECT().IsSupportedPluginType("testing", schema.PTR, plugins.PTR)
+	plugin := &PTRPlugin{}
+	_, err := plugin.Render("testing", &schema.ResourceRecord{Type: schema.PTR})
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}

@@ -18,9 +18,11 @@ package plugins
 
 import (
 	"fmt"
+	"net"
 	"net/mail"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/bcurnow/zonemgr/schema"
@@ -29,9 +31,17 @@ import (
 // This regex is based on RFC1035 and allows for:
 //   - Label: Up to 63 characters a-z, A-Z, 0-9, and hyphen which does not start (?!-) or end (?<=\w) with a hypen
 //   - Domain: Any number of sub-domain entries separate by "." which follow the same rules as the label
-const dnsNameRegexRFC1035String = `^([A-Za-z])([A-Za-z0-9-]{1,62})(\.[A-Za-z0-9-]{1,63})*\.{0,1}$`
+const dnsNameRegexRFC1035String = `^([A-Za-z0-9-]{1,63})(\.[A-Za-z0-9-]{1,63})*\.{0,1}$`
 
 var dnsNameRegexRFC1035 = regexp.MustCompile(dnsNameRegexRFC1035String)
+
+type validator struct {
+	Validator
+}
+
+func Validations() Validator {
+	return &validator{}
+}
 
 // Performs the standard validations for resource records
 // This includes:
@@ -39,9 +49,9 @@ var dnsNameRegexRFC1035 = regexp.MustCompile(dnsNameRegexRFC1035String)
 //   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsiblity of the individual plugins
 //   - Validation that only Value or Values is populated
 //   - Validation that only Comment or Values is populated
-func StandardValidations(identifier string, rr *schema.ResourceRecord, supportedTypes []PluginType) error {
+func (v *validator) StandardValidations(identifier string, rr *schema.ResourceRecord, supportedTypes ...PluginType) error {
 	// Validate that this resource record is of the supported type
-	if err := IsSupportedPluginType(identifier, rr.Type, supportedTypes); err != nil {
+	if err := v.IsSupportedPluginType(identifier, rr.Type, supportedTypes...); err != nil {
 		return err
 	}
 
@@ -51,20 +61,20 @@ func StandardValidations(identifier string, rr *schema.ResourceRecord, supported
 	}
 
 	// Validate that there is only one Value set
-	if err := rr.IsValueSetInOnePlace(identifier); err != nil {
-		return err
+	if !rr.IsValueSetInOnePlace() {
+		return fmt.Errorf("invalid %s record, both value and values are set, identifier: '%s'", rr.Type, identifier)
 	}
 
 	// Validate that there is only one Comment set
-	if err := rr.IsCommentSetInOnePlace(identifier); err != nil {
-		return err
+	if !rr.IsCommentSetInOnePlace() {
+		return fmt.Errorf("invalid %s record, both comment and values are set, identifier: '%s'", rr.Type, identifier)
 	}
 
 	return nil
 }
 
 // Checks if the supplied resource record matches one of the support plugin types
-func IsSupportedPluginType(identifier string, rrType schema.ResourceRecordType, supportedTypes []PluginType) error {
+func (v *validator) IsSupportedPluginType(identifier string, rrType schema.ResourceRecordType, supportedTypes ...PluginType) error {
 	if !slices.Contains(supportedTypes, PluginType(rrType)) {
 		return fmt.Errorf("this plugin does not handle resource records of type '%s' only '%s', identifier: '%s'", rrType, supportedTypes, identifier)
 	}
@@ -73,41 +83,41 @@ func IsSupportedPluginType(identifier string, rrType schema.ResourceRecordType, 
 
 // Validates that the name provided matches the RFC1035 regex for valid names according to RFC1035
 // and is less then or equal to 255 total characters
-func IsValidRFC1035Name(identifier string, name string, rrType schema.ResourceRecordType) error {
+func (v *validator) IsValidRFC1035Name(identifier string, name string, rrType schema.ResourceRecordType) error {
 	if len(name) > 255 {
-		return fmt.Errorf("invalid %s record, must be less than 255 characters: '%s', identifier=%s", rrType, name, identifier)
+		return fmt.Errorf("invalid %s record, must be less than 255 characters: '%s', identifier:'%s'", rrType, name, identifier)
 	}
 
 	if !dnsNameRegexRFC1035.MatchString(name) {
-		return fmt.Errorf("invalid %s record, does not match regexp '%s': '%s', identifier=%s", rrType, dnsNameRegexRFC1035String, name, identifier)
+		return fmt.Errorf("invalid %s record, does not match regexp '%s': '%s', identifier:'%s'", rrType, dnsNameRegexRFC1035String, name, identifier)
 	}
 
 	//Split the domain at each part (".") and then run some additional validations
 	parts := strings.Split(name, ".")
 	for _, part := range parts {
 		if strings.HasPrefix(part, "-") || strings.HasSuffix(part, "-") {
-			return fmt.Errorf("invalid %s record, can not start or end with a hyphen (-): '%s', identifier=%s", rrType, name, identifier)
+			return fmt.Errorf("invalid %s record, cannot start or end with a hyphen (-): '%s', identifier:'%s'", rrType, name, identifier)
 		}
 	}
 	return nil
 }
 
 // Checks if the name provide is either the wildcard ('@') or is a valid name
-func IsValidNameOrWildcard(identifier string, name string, rrType schema.ResourceRecordType) error {
+func (v *validator) IsValidNameOrWildcard(identifier string, name string, rrType schema.ResourceRecordType) error {
 	// Check if the name matches the regex or is a wildcard
 	if name == "@" {
 		return nil
 	}
-	return IsValidRFC1035Name(identifier, name, rrType)
+	return v.IsValidRFC1035Name(identifier, name, rrType)
 }
 
 // Formats and email address according to RFC1035
-func FormatEmail(identifier string, email string, rrType schema.ResourceRecordType) (string, error) {
+func (v *validator) FormatEmail(identifier string, email string, rrType schema.ResourceRecordType) (string, error) {
 	if strings.Contains(email, "@") {
 		// Assume this is a standard email address that will be parseable
 		address, err := mail.ParseAddress(email)
 		if err != nil {
-			return "", fmt.Errorf("invalid %s record, invalid email address: %s, identifier=%s", rrType, email, identifier)
+			return "", fmt.Errorf("invalid %s record, invalid email address: '%s', identifier:'%s'", rrType, email, identifier)
 		}
 
 		// Get the username portion of the email (<username>@<domain>), keep in mind that valid usernames can continue '@'
@@ -124,35 +134,65 @@ func FormatEmail(identifier string, email string, rrType schema.ResourceRecordTy
 	}
 
 	// At this point, assume that email address is a properly formatted RFC1035 string, there's only so much we can do to parse at this point
-	return EnsureTrailingDot(email), nil
+	return v.EnsureTrailingDot(email), nil
 }
 
 // Most DNS names in a zone file need to be fully qualified domain names, while we can't validate if the entire name itself is valid,
 // we can ensure that it is a valid name and ends with a trailing dot
-func IsFullyQualified(identifier string, name string, rrType schema.ResourceRecordType) error {
-	if err := IsValidRFC1035Name(identifier, name, rrType); err != nil {
+func (v *validator) IsFullyQualified(identifier string, name string, rrType schema.ResourceRecordType) error {
+	if err := v.IsValidRFC1035Name(identifier, name, rrType); err != nil {
 		return err
 	}
 
-	if !hasTrailingDot(name) {
-		return fmt.Errorf("invalid %s record, must end with a trailing dot: '%s', identifier=%s", rrType, name, identifier)
+	if !v.hasTrailingDot(name) {
+		return fmt.Errorf("invalid %s record, must end with a trailing dot: '%s', identifier: '%s'", rrType, name, identifier)
 	}
 
 	// Count the full stops ('.') in the name, there must be at least two (one for the root and one for the domain)
 	if strings.Count(name, ".") < 2 {
-		return fmt.Errorf("invalid %s record, must be fully qualified with at least two dots: '%s', identifier=%s", rrType, name, identifier)
+		return fmt.Errorf("invalid %s record, must be fully qualified with at least two dots: '%s', identifier: '%s'", rrType, name, identifier)
 	}
 	return nil
 }
 
 // Ensure that the string passed in ends with a trailing dot
-func EnsureTrailingDot(name string) string {
-	if !hasTrailingDot(name) {
+func (v *validator) EnsureTrailingDot(name string) string {
+	if !v.hasTrailingDot(name) {
 		return name + "."
 	}
 	return name
 }
 
-func hasTrailingDot(name string) bool {
+// Ensure that the string is a valid IP
+func (v *validator) EnsureIP(identifier string, s string, rrType schema.ResourceRecordType) error {
+	if net.ParseIP(s) == nil {
+		return fmt.Errorf("invalid %s record, '%s' must be a valid IP address, identifier: '%s'", rrType, s, identifier)
+	}
+	return nil
+}
+
+// Ensure that the string is NOT a valid  IP
+func (v *validator) EnsureNotIP(identifier string, s string, rrType schema.ResourceRecordType) error {
+	if net.ParseIP(s) != nil {
+		return fmt.Errorf("invalid %s record, '%s' must not be an IP address, identifier: '%s'", rrType, s, identifier)
+	}
+	return nil
+}
+
+// Ensure that the string is a 32-bit integer which is a positive number greater than zero
+func (v *validator) IsPositive(identifier string, s string, fieldName string, rrType schema.ResourceRecordType) error {
+	value, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		return err
+	}
+
+	if value < 0 {
+		return fmt.Errorf("%s must not be less than 0 on a %s record, was '%s', identifier: '%s'", fieldName, rrType, s, identifier)
+	}
+
+	return nil
+}
+
+func (v *validator) hasTrailingDot(name string) bool {
 	return len(name) > 0 && name[len(name)-1] == '.'
 }

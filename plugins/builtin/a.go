@@ -20,18 +20,15 @@
 package builtin
 
 import (
-	"fmt"
-	"net"
-
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/schema"
 	"github.com/bcurnow/zonemgr/version"
 )
 
 var _ plugins.ZoneMgrPlugin = &APlugin{}
-var aSupportedPluginTypes = []plugins.PluginType{plugins.RecordA}
 
 type APlugin struct {
+	plugins.ZoneMgrPlugin
 }
 
 func (p *APlugin) PluginVersion() (string, error) {
@@ -39,7 +36,7 @@ func (p *APlugin) PluginVersion() (string, error) {
 }
 
 func (p *APlugin) PluginTypes() ([]plugins.PluginType, error) {
-	return aSupportedPluginTypes, nil
+	return plugins.PluginTypes(plugins.A), nil
 }
 
 func (p *APlugin) Configure(config *schema.Config) error {
@@ -48,7 +45,7 @@ func (p *APlugin) Configure(config *schema.Config) error {
 }
 
 func (p *APlugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
-	if err := plugins.StandardValidations(identifier, rr, aSupportedPluginTypes); err != nil {
+	if err := validations.StandardValidations(identifier, rr, plugins.A); err != nil {
 		return err
 	}
 
@@ -56,18 +53,13 @@ func (p *APlugin) Normalize(identifier string, rr *schema.ResourceRecord) error 
 		rr.Name = identifier
 	}
 
-	if err := plugins.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
-		return err
-	}
-
-	value, err := rr.RetrieveSingleValue(identifier)
-	if err != nil {
+	if err := validations.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
 		return err
 	}
 
 	// Make sure the value IS an IP
-	if net.ParseIP(value) == nil {
-		return fmt.Errorf("invalid A record, '%s' must be a valid IP address, identifier: '%s'", rr.Value, identifier)
+	if err := validations.EnsureIP(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
+		return err
 	}
 
 	return nil
@@ -79,13 +71,13 @@ func (p *APlugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (p *APlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, rr.Type, aSupportedPluginTypes); err != nil {
+	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.A); err != nil {
 		return "", err
 	}
 
-	return rr.RenderSingleValueResource(identifier)
+	return rr.RenderSingleValueResource(), nil
 }
 
 func init() {
-	registerBuiltIn(plugins.RecordA, &APlugin{})
+	registerBuiltIn(plugins.A, &APlugin{})
 }

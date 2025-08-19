@@ -25,7 +25,7 @@ import (
 	goplugin "github.com/hashicorp/go-plugin"
 )
 
-var pluginTypes = []plugins.PluginType{plugins.RecordA}
+var validations = plugins.Validations()
 
 // Concrete implementation of the TypeHandler
 type Plugin struct {
@@ -36,7 +36,7 @@ func (th *Plugin) PluginVersion() (string, error) {
 }
 
 func (th *Plugin) PluginTypes() ([]plugins.PluginType, error) {
-	return pluginTypes, nil
+	return plugins.PluginTypes(plugins.A), nil
 }
 
 func (th *Plugin) Configure(config *schema.Config) error {
@@ -45,7 +45,7 @@ func (th *Plugin) Configure(config *schema.Config) error {
 }
 
 func (th *Plugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
-	if err := plugins.StandardValidations(identifier, rr, pluginTypes); err != nil {
+	if err := validations.StandardValidations(identifier, rr, plugins.A); err != nil {
 		return err
 	}
 
@@ -66,8 +66,9 @@ func (th *Plugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (th *Plugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
+	validations.IsSupportedPluginType(identifier, rr.Type, plugins.A)
 	// Leverage the standard rendering
-	return rr.RenderSingleValueResource(identifier)
+	return rr.RenderSingleValueResource(), nil
 }
 
 func main() {

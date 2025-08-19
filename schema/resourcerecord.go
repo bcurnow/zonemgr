@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/go-hclog"
 )
 
 // A generic type that can represent a variety of records types as many follow this specific format (A, CNAME, etc.	)
@@ -36,59 +38,74 @@ type ResourceRecord struct {
 // There are two possible places to get a value from: Value or Values[0].Value
 // This method will validate that only Value or Values is populated, that, if Values is populated, there's only a single item.
 // Will return either Value or the Values[0].Value
-func (rr *ResourceRecord) RetrieveSingleValue(identifier string) (string, error) {
-	if err := rr.IsValueSetInOnePlace(identifier); err != nil {
-		return "", err
+func (rr *ResourceRecord) RetrieveSingleValue() string {
+	valueCount := len(rr.Values)
+	if valueCount > 0 && rr.Value == "" {
+		if valueCount > 1 {
+			hclog.L().Trace("Resource record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount)
+		}
+		return rr.Values[0].Value
 	}
 
-	if err := rr.hasSingleValue(identifier); err != nil {
-		return "", err
+	if valueCount == 0 && rr.Value != "" {
+		return rr.Value
 	}
 
-	if len(rr.Values) == 0 {
-		return rr.Value, nil
-	}
-
-	//Only option left is the first value in Values
-	return rr.Values[0].Value, nil
+	//If we get here then values is empty and Value isn't set, return empty string
+	return ""
 }
 
 // There are two possible places for a comment to be: Comment or Values[0].Comment
 // This method will validate that only Comment or Values is populated, that, if Values is populated, there's only a single item
 // Will return either Comment or Values[0].Comment
-func (rr *ResourceRecord) RetrieveSingleComment(identifier string) (string, error) {
-	if err := rr.IsCommentSetInOnePlace(identifier); err != nil {
-		return "", err
+func (rr *ResourceRecord) RetrieveSingleComment() string {
+	valueCount := len(rr.Values)
+	if valueCount > 0 && rr.Comment == "" {
+		if valueCount > 1 {
+			hclog.L().Trace("Resoure record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount)
+		}
+		return rr.Values[0].Comment
 	}
 
-	if err := rr.hasSingleValue(identifier); err != nil {
-		return "", err
+	if valueCount == 0 && rr.Comment != "" {
+		return rr.Comment
 	}
 
-	if len(rr.Values) == 0 {
-		return rr.Comment, nil
-	}
-
-	//Only option left is the first comment in Values
-	return rr.Values[0].Comment, nil
+	//If we get here then values is empty and comment isn't set, return empty string
+	return ""
 }
 
 // Validates that either Values has more than one element or Value is set, not both
 // Allows for Value to be blank and does not check Values[*].Value at all
-func (rr *ResourceRecord) IsValueSetInOnePlace(identifier string) error {
-	if len(rr.Values) > 0 && rr.Value != "" {
-		return fmt.Errorf("invalid %s record, can not specify both value and values, identifier: '%s'", rr.Type, identifier)
+func (rr *ResourceRecord) IsValueSetInOnePlace() bool {
+	// If we have no values, we can't possibly be set in more than one place
+	if len(rr.Values) == 0 {
+		return true
+
 	}
-	return nil
+
+	// If we do have values, make sure that the value is also empty
+	if len(rr.Values) > 0 && rr.Value == "" {
+		return true
+	}
+
+	return false
 }
 
 // Validates that either Values has more than one element or Comment is set, not both
 // Allows for Comment to be blank and does not check Values[*].Comment at all
-func (rr *ResourceRecord) IsCommentSetInOnePlace(identifier string) error {
-	if len(rr.Values) > 0 && rr.Comment != "" {
-		return fmt.Errorf("invalid %s record, can not specify both comment and values, identifier: '%s'", rr.Type, identifier)
+func (rr *ResourceRecord) IsCommentSetInOnePlace() bool {
+	// If we have no values, we can't possibly be set in more than one place
+	if len(rr.Values) == 0 {
+		return true
 	}
-	return nil
+
+	// If we do have values, make sure that the comment is also empty
+	if len(rr.Values) > 0 && rr.Comment == "" {
+		return true
+	}
+
+	return false
 }
 
 func (rr *ResourceRecord) RenderResourceWithoutValue() string {
@@ -111,27 +128,18 @@ func (rr *ResourceRecord) RenderResourceWithoutValue() string {
 	return record.String()
 }
 
-func (rr *ResourceRecord) RenderSingleValueResource(identifier string) (string, error) {
+func (rr *ResourceRecord) RenderSingleValueResource() string {
 	var record strings.Builder
 	record.WriteString(rr.RenderResourceWithoutValue())
 
-	value, err := rr.RetrieveSingleValue(identifier)
-	if err != nil {
-		return "", err
-	}
-	record.WriteString(value)
+	record.WriteString(rr.RetrieveSingleValue())
 
-	comment, err := rr.RetrieveSingleComment(identifier)
-	if err != nil {
-		return "", err
-	}
-
-	if comment != "" {
+	if rr.RetrieveSingleComment() != "" {
 		record.WriteString(" ;")
-		record.WriteString(comment)
+		record.WriteString(rr.RetrieveSingleComment())
 	}
 
-	return record.String(), nil
+	return record.String()
 }
 
 func (rr *ResourceRecord) RenderMultivalueResource() string {
@@ -139,6 +147,7 @@ func (rr *ResourceRecord) RenderMultivalueResource() string {
 	record.WriteString(rr.RenderResourceWithoutValue())
 	record.WriteString("(\n")
 	indentFormatString := "%" + strconv.Itoa(record.Len()-2) + "s"
+	fmt.Println(indentFormatString)
 	for _, value := range rr.Values {
 		record.WriteString(fmt.Sprintf(indentFormatString, ""))                         // This will ensure that all the values are indented
 		record.WriteString(fmt.Sprintf(ResourceRecordMultivalueIndentFormatString, "")) // This will add an indent inside the parens
@@ -153,13 +162,6 @@ func (rr *ResourceRecord) RenderMultivalueResource() string {
 	record.WriteString(")")
 
 	return record.String()
-}
-
-func (rr *ResourceRecord) hasSingleValue(identifier string) error {
-	if len(rr.Values) <= 1 {
-		return nil
-	}
-	return fmt.Errorf("invalid %s record, found more than one value in values element, identifier: '%s'", rr.Type, identifier)
 }
 
 type ResourceRecordValue struct {

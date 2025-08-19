@@ -27,69 +27,60 @@ import (
 	"github.com/bcurnow/zonemgr/schema"
 )
 
-func TestAPluginVersion(t *testing.T) {
-	testPluginVersion(t, &APlugin{})
+func TestCNAMEPluginVersion(t *testing.T) {
+	testPluginVersion(t, &CNAMEPlugin{})
 }
 
-func TestAPluginTypes(t *testing.T) {
-	testPluginTypes(t, &APlugin{}, plugins.A)
+func TestCNAMEPluginTypes(t *testing.T) {
+	testPluginTypes(t, &CNAMEPlugin{}, plugins.CNAME)
 }
 
-func TestAConfigure(t *testing.T) {
-	testConfigure(t, &APlugin{})
+func TestCNAMEConfigure(t *testing.T) {
+	testConfigure(t, &CNAMEPlugin{})
 }
 
-func TestANormalize(t *testing.T) {
+func TestCNAMENormalize(t *testing.T) {
 	setup(t)
 	defer teardown(t)
-	plugin := &APlugin{}
+	plugin := &CNAMEPlugin{}
 	testNormalizeValidNameAndDefaulting(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: plugins.A,
-		rrType:     schema.A,
+		pluginType: plugins.CNAME,
+		rrType:     schema.CNAME,
 		expects: func(identifier string, rr *schema.ResourceRecord) {
-			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.A)
+			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.CNAME)
 			if rr.Name == "" {
 				mockValidations.EXPECT().IsValidNameOrWildcard(identifier, identifier, rr.Type)
 			} else {
 				mockValidations.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, rr.Type)
 			}
 
-			mockValidations.EXPECT().EnsureIP(identifier, rr.RetrieveSingleValue(), rr.Type)
+			mockValidations.EXPECT().EnsureNotIP(identifier, rr.RetrieveSingleValue(), rr.Type)
 		},
 	})
 	testNormalizeInvalidName(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: plugins.A,
-		rrType:     schema.A,
+		pluginType: plugins.CNAME,
+		rrType:     schema.CNAME,
 		expects: func(identifier string, rr *schema.ResourceRecord) {
-			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.A)
-			mockValidations.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, schema.A).Return(fmt.Errorf("not a valid name"))
+			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.CNAME)
+			mockValidations.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, schema.CNAME).Return(fmt.Errorf("not a valid name"))
 		},
 	})
-	testNormalizeValueIsIP(t, &testNormalize{
-		plugin:     plugin,
-		pluginType: plugins.A,
-		rrType:     schema.A,
-		expects: func(identifier string, rr *schema.ResourceRecord) {
-			mockValidations.EXPECT().StandardValidations(identifier, rr, plugins.A)
-			mockValidations.EXPECT().IsValidNameOrWildcard(identifier, identifier, schema.A)
-			mockValidations.EXPECT().EnsureIP(identifier, rr.Value, schema.A).Return(fmt.Errorf("is not IP"))
-		},
-	})
+	testNormalizeValueNotIP(t, plugin, plugins.CNAME, schema.CNAME)
 }
 
-func TestAValidateZone(t *testing.T) {
-	testValidateZone(t, &APlugin{})
+func TestCNAMEValidateZone(t *testing.T) {
+	testValidateZone(t, &CNAMEPlugin{})
 }
 
-func TestARender(t *testing.T) {
+func TestCNAMERender(t *testing.T) {
 	setup(t)
 	defer teardown(t)
 	//Render uses the standard method so we're going to cheat
-	mockValidations.EXPECT().IsSupportedPluginType("testing", schema.A, plugins.A)
-	plugin := &APlugin{}
-	_, err := plugin.Render("testing", &schema.ResourceRecord{Type: schema.A})
+	mockValidations.EXPECT().IsSupportedPluginType("testing", schema.CNAME, plugins.CNAME)
+	plugin := &CNAMEPlugin{}
+	_, err := plugin.Render("testing", &schema.ResourceRecord{Type: schema.CNAME})
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}

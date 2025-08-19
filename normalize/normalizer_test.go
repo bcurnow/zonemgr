@@ -66,8 +66,8 @@ func setup(t *testing.T) {
 	mockAPlugin = mocks.NewMockZoneMgrPlugin(mockController)
 	mockCNAMEPlugin = mocks.NewMockZoneMgrPlugin(mockController)
 	mockPlugins = make(map[plugins.PluginType]*plugins.Plugin)
-	mockPlugins[plugins.RecordA] = &plugins.Plugin{PluginName: "Mock A Plugin", Plugin: mockAPlugin}
-	mockPlugins[plugins.RecordCNAME] = &plugins.Plugin{PluginName: "Mock CNAME Plugin", Plugin: mockCNAMEPlugin}
+	mockPlugins[plugins.A] = &plugins.Plugin{PluginName: "Mock A Plugin", Plugin: mockAPlugin}
+	mockPlugins[plugins.CNAME] = &plugins.Plugin{PluginName: "Mock CNAME Plugin", Plugin: mockCNAMEPlugin}
 
 	testZones = make(map[string]*schema.Zone)
 	testZones["zone 1"] = testZone

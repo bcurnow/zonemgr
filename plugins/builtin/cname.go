@@ -21,7 +21,6 @@ package builtin
 
 import (
 	"fmt"
-	"net"
 
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/schema"
@@ -30,9 +29,8 @@ import (
 
 var _ plugins.ZoneMgrPlugin = &CNAMEPlugin{}
 
-var cnameSupportedPluginTypes = []plugins.PluginType{plugins.RecordCNAME}
-
 type CNAMEPlugin struct {
+	plugins.ZoneMgrPlugin
 }
 
 func (p *CNAMEPlugin) PluginVersion() (string, error) {
@@ -40,7 +38,7 @@ func (p *CNAMEPlugin) PluginVersion() (string, error) {
 }
 
 func (p *CNAMEPlugin) PluginTypes() ([]plugins.PluginType, error) {
-	return cnameSupportedPluginTypes, nil
+	return plugins.PluginTypes(plugins.CNAME), nil
 }
 
 func (p *CNAMEPlugin) Configure(config *schema.Config) error {
@@ -49,7 +47,7 @@ func (p *CNAMEPlugin) Configure(config *schema.Config) error {
 }
 
 func (p *CNAMEPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
-	if err := plugins.StandardValidations(identifier, rr, cnameSupportedPluginTypes); err != nil {
+	if err := validations.StandardValidations(identifier, rr, plugins.CNAME); err != nil {
 		return err
 	}
 
@@ -57,24 +55,13 @@ func (p *CNAMEPlugin) Normalize(identifier string, rr *schema.ResourceRecord) er
 		rr.Name = identifier
 	}
 
-	if err := plugins.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
+	if err := validations.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
 		return err
 	}
-
-	// Make sure the name isn't an IP
-	if net.ParseIP(rr.Name) != nil {
-		return fmt.Errorf("invalid CNAME record, '%s' cannot be an IP address, identifier: '%s'", rr.Name, identifier)
-	}
-
-	value, err := rr.RetrieveSingleValue(identifier)
-	if err != nil {
-		return err
-	}
-	rr.Value = value
 
 	// Make sure the value isn't an IP
-	if net.ParseIP(value) != nil {
-		return fmt.Errorf("invalid CNAME record, '%s' must be a valid IP address, identifier: '%s'", rr.Value, identifier)
+	if err := validations.EnsureNotIP(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
+		return err
 	}
 
 	return nil
@@ -100,12 +87,12 @@ func (p *CNAMEPlugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (p *CNAMEPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, rr.Type, cnameSupportedPluginTypes); err != nil {
+	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.CNAME); err != nil {
 		return "", err
 	}
-	return rr.RenderSingleValueResource(identifier)
+	return rr.RenderSingleValueResource(), nil
 }
 
 func init() {
-	registerBuiltIn(plugins.RecordCNAME, &CNAMEPlugin{})
+	registerBuiltIn(plugins.CNAME, &CNAMEPlugin{})
 }

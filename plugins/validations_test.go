@@ -27,6 +27,8 @@ import (
 	"github.com/bcurnow/zonemgr/schema"
 )
 
+var validations Validator = &validator{}
+
 func TestStandardValidations(t *testing.T) {
 	testCases := []struct {
 		rr         *schema.ResourceRecord
@@ -37,12 +39,12 @@ func TestStandardValidations(t *testing.T) {
 		{identifier: "ValidRecord", rr: &schema.ResourceRecord{Type: schema.A, Value: "1.2.3.4"}, name: "ValidRecordWithoutAName"},
 		{identifier: "Wrong resource record type for plugin", rr: &schema.ResourceRecord{Type: schema.CNAME, Value: "1.2.3.4"}, err: "this plugin does not handle resource records of type 'CNAME' only '[A]', identifier: 'Wrong resource record type for plugin'"},
 		{identifier: "Wrong class", rr: &schema.ResourceRecord{Type: schema.A, Class: "bogus", Value: "1.2.3.4"}, err: "invalid A record, 'bogus' is not a valid class, identifier: 'Wrong class'"},
-		{identifier: "Value set twice", rr: &schema.ResourceRecord{Type: schema.A, Value: "and again", Values: []*schema.ResourceRecordValue{{Value: "and again"}}}, err: "invalid A record, can not specify both value and values, identifier: 'Value set twice'"},
-		{identifier: "Comment set twice", rr: &schema.ResourceRecord{Type: schema.A, Values: []*schema.ResourceRecordValue{{Comment: "once"}}, Comment: "once"}, err: "invalid A record, can not specify both comment and values, identifier: 'Comment set twice'"},
+		{identifier: "Value set twice", rr: &schema.ResourceRecord{Type: schema.A, Values: []*schema.ResourceRecordValue{{Value: "value once"}}, Value: "value again"}, err: "invalid A record, both value and values are set, identifier: 'Value set twice'"},
+		{identifier: "Comment set twice", rr: &schema.ResourceRecord{Type: schema.A, Values: []*schema.ResourceRecordValue{{Comment: "comment again"}}, Comment: "comment once"}, err: "invalid A record, both comment and values are set, identifier: 'Comment set twice'"},
 	}
 
 	for _, tc := range testCases {
-		err := StandardValidations(tc.identifier, tc.rr, []PluginType{RecordA})
+		err := validations.StandardValidations(tc.identifier, tc.rr, A)
 		if err != nil {
 			if tc.err == "" {
 				t.Errorf("unexpected error: %s", err)
@@ -61,12 +63,12 @@ func TestIsSupportedPluginType(t *testing.T) {
 		supportedTypes []PluginType
 		err            string
 	}{
-		{rrType: schema.A, supportedTypes: []PluginType{RecordA}},
-		{rrType: schema.A, supportedTypes: []PluginType{RecordCNAME, RecordNS}, err: "this plugin does not handle resource records of type 'A' only '[CNAME NS]', identifier: 'testing'"},
+		{rrType: schema.A, supportedTypes: []PluginType{A}},
+		{rrType: schema.A, supportedTypes: []PluginType{CNAME, NS}, err: "this plugin does not handle resource records of type 'A' only '[CNAME NS]', identifier: 'testing'"},
 	}
 
 	for _, tc := range testCases {
-		if err := IsSupportedPluginType("testing", tc.rrType, tc.supportedTypes); err != nil {
+		if err := validations.IsSupportedPluginType("testing", tc.rrType, tc.supportedTypes...); err != nil {
 			if tc.err == "" {
 				t.Errorf("unexpected error: %s", err)
 			} else {
@@ -90,14 +92,14 @@ func TestIsValidRFC1035Name(t *testing.T) {
 		err  string
 	}{
 		{name: "valid"},
-		{name: longRecordName, err: fmt.Sprintf("invalid A record, must be less than 255 characters: '%s', identifier=testing", longRecordName)},
-		{name: "1invalid", err: fmt.Sprintf("invalid A record, does not match regexp '%s': '1invalid', identifier=testing", `^([A-Za-z])([A-Za-z0-9-]{1,62})(\.[A-Za-z0-9-]{1,63})*\.{0,1}$`)},
-		{name: "withhyphenstart.-valid", err: "invalid A record, can not start or end with a hyphen (-): 'withhyphenstart.-valid', identifier=testing"},
-		{name: "withhyphenend.valid-", err: "invalid A record, can not start or end with a hyphen (-): 'withhyphenend.valid-', identifier=testing"},
+		{name: longRecordName, err: fmt.Sprintf("invalid A record, must be less than 255 characters: '%s', identifier:'testing'", longRecordName)},
+		{name: "1isvalid"},
+		{name: "withhyphenstart.-valid", err: "invalid A record, cannot start or end with a hyphen (-): 'withhyphenstart.-valid', identifier:'testing'"},
+		{name: "withhyphenend.valid-", err: "invalid A record, cannot start or end with a hyphen (-): 'withhyphenend.valid-', identifier:'testing'"},
 	}
 
 	for _, tc := range testCases {
-		if err := IsValidRFC1035Name("testing", tc.name, schema.A); err != nil {
+		if err := validations.IsValidRFC1035Name("testing", tc.name, schema.A); err != nil {
 			if tc.err == "" {
 				t.Errorf("unexpected error: %s", err)
 			} else {
@@ -115,7 +117,7 @@ func TestIsValidRFC1035Name(t *testing.T) {
 
 func TestIValidNameOrWildcard(t *testing.T) {
 	// We just need to valid the @ case, the others are already tested
-	if err := IsValidNameOrWildcard("testing", "@", schema.A); err != nil {
+	if err := validations.IsValidNameOrWildcard("testing", "@", schema.A); err != nil {
 		t.Errorf("unexpected exception")
 	}
 }
@@ -130,11 +132,11 @@ func TestFormatEmail(t *testing.T) {
 		{email: "name@example.com", want: "name.example.com."},
 		{email: "name.example.com.", want: "name.example.com."},
 		{email: "name.example.com", want: "name.example.com."},
-		{email: "bogus@example.com@example.com", err: "invalid A record, invalid email address: bogus@example.com@example.com, identifier=testing"},
+		{email: "bogus@example.com@example.com", err: "invalid A record, invalid email address: 'bogus@example.com@example.com', identifier:'testing'"},
 	}
 
 	for _, tc := range testCases {
-		formattedEmail, err := FormatEmail("testing", tc.email, schema.A)
+		formattedEmail, err := validations.FormatEmail("testing", tc.email, schema.A)
 		if err != nil {
 			if tc.err == "" {
 				t.Errorf("unexpected error: %s", err)
@@ -158,12 +160,12 @@ func TestIsFullyQualified(t *testing.T) {
 		err  string
 	}{
 		{name: "name.domain.com."},
-		{name: "name.domain.com", err: "invalid A record, must end with a trailing dot: 'name.domain.com', identifier=testing"},
-		{name: "name.", err: "invalid A record, must be fully qualified with at least two dots: 'name.', identifier=testing"},
+		{name: "name.domain.com", err: "invalid A record, must end with a trailing dot: 'name.domain.com', identifier: 'testing'"},
+		{name: "name.", err: "invalid A record, must be fully qualified with at least two dots: 'name.', identifier: 'testing'"},
 	}
 
 	for _, tc := range testCases {
-		err := IsFullyQualified("testing", tc.name, schema.A)
+		err := validations.IsFullyQualified("testing", tc.name, schema.A)
 		if err != nil {
 			if tc.err == "" {
 				t.Errorf("unexpected error: %s", err)

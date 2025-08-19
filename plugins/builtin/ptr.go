@@ -27,9 +27,8 @@ import (
 
 var _ plugins.ZoneMgrPlugin = &PTRPlugin{}
 
-var ptrSupportedPluginTypes = []plugins.PluginType{plugins.RecordPTR}
-
 type PTRPlugin struct {
+	plugins.ZoneMgrPlugin
 }
 
 func (p *PTRPlugin) PluginVersion() (string, error) {
@@ -37,7 +36,7 @@ func (p *PTRPlugin) PluginVersion() (string, error) {
 }
 
 func (p *PTRPlugin) PluginTypes() ([]plugins.PluginType, error) {
-	return ptrSupportedPluginTypes, nil
+	return plugins.PluginTypes(plugins.PTR), nil
 }
 
 func (p *PTRPlugin) Configure(config *schema.Config) error {
@@ -45,16 +44,19 @@ func (p *PTRPlugin) Configure(config *schema.Config) error {
 }
 
 func (p *PTRPlugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
-	if err := plugins.StandardValidations(identifier, rr, ptrSupportedPluginTypes); err != nil {
+	if err := validations.StandardValidations(identifier, rr, plugins.PTR); err != nil {
 		return err
 	}
 
-	value, err := rr.RetrieveSingleValue(identifier)
-	if err != nil {
+	if rr.Name == "" {
+		rr.Name = identifier
+	}
+
+	if err := validations.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
 		return err
 	}
 
-	if err := plugins.IsFullyQualified(identifier, value, rr.Type); err != nil {
+	if err := validations.IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
 		return err
 	}
 
@@ -66,13 +68,13 @@ func (p *PTRPlugin) ValidateZone(name string, zone *schema.Zone) error {
 }
 
 func (p *PTRPlugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
-	if err := plugins.IsSupportedPluginType(identifier, rr.Type, ptrSupportedPluginTypes); err != nil {
+	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.PTR); err != nil {
 		return "", err
 	}
 
-	return rr.RenderSingleValueResource(identifier)
+	return rr.RenderSingleValueResource(), nil
 }
 
 func init() {
-	registerBuiltIn(plugins.RecordPTR, &PTRPlugin{})
+	registerBuiltIn(plugins.PTR, &PTRPlugin{})
 }

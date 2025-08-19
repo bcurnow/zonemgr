@@ -49,7 +49,7 @@ func defaultValues() {
 	// Get the current user
 	user, err := user.Current()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to determine the current user, can not continue")
+		fmt.Fprintf(os.Stderr, "Unable to determine the current user, cannot continue")
 		os.Exit(1)
 	}
 
