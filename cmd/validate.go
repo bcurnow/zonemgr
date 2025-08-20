@@ -19,7 +19,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/bcurnow/zonemgr/parse"
+	"github.com/bcurnow/zonemgr/dns"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +40,7 @@ var (
 		Use:   "yaml",
 		Short: "Validates the YAML input file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := parse.Parser().Parse(input)
+			_, err := parser.Parse(input)
 			if err != nil {
 				return fmt.Errorf("failed to parse input file %s: %w", input, err)
 
@@ -50,7 +50,8 @@ var (
 		},
 	}
 
-	input string
+	input  string
+	parser dns.ZoneParser = &dns.YamlZoneParser{}
 )
 
 func init() {

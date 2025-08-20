@@ -28,7 +28,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/bcurnow/zonemgr/env"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/gofrs/flock"
 	"github.com/hashicorp/go-hclog"
 	"gopkg.in/yaml.v3"
@@ -184,7 +184,7 @@ func marshal(file *os.File, serialIndex *SerialIndex) error {
 }
 
 func fileName(zoneName string) string {
-	return filepath.Join(env.SerialChangeIndexDirectory.Value, zoneName+serialChangeIndexFileExtension)
+	return filepath.Join(utils.SerialChangeIndexDirectory.Value, zoneName+serialChangeIndexFileExtension)
 }
 
 func exists(serialFile string) bool {
@@ -194,8 +194,8 @@ func exists(serialFile string) bool {
 }
 
 func createSerialChangeIndexDirectory() error {
-	if _, err := os.Stat(env.SerialChangeIndexDirectory.Value); os.IsNotExist(err) {
-		if err := os.MkdirAll(env.SerialChangeIndexDirectory.Value, os.FileMode(0750)); err != nil {
+	if _, err := os.Stat(utils.SerialChangeIndexDirectory.Value); os.IsNotExist(err) {
+		if err := os.MkdirAll(utils.SerialChangeIndexDirectory.Value, os.FileMode(0750)); err != nil {
 			return err
 		}
 	}

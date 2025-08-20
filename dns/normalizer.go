@@ -17,7 +17,7 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package normalize
+package dns
 
 import (
 	"fmt"
@@ -29,17 +29,17 @@ import (
 	"github.com/hashicorp/go-hclog"
 )
 
-type normalizer struct {
+type Normalizer interface {
+	Normalize(zones map[string]*schema.Zone) error
+}
+
+type StandardNormalizer struct {
 	Normalizer
 }
 
 var pluginManager = manager.Default()
 
-func Default() Normalizer {
-	return &normalizer{}
-}
-
-func (n *normalizer) Normalize(zones map[string]*schema.Zone) error {
+func (n *StandardNormalizer) Normalize(zones map[string]*schema.Zone) error {
 	hclog.L().Trace("Normalizing zones", "count", len(zones))
 	if len(zones) == 0 {
 		return fmt.Errorf("no zones found")
@@ -86,7 +86,7 @@ func (n *normalizer) Normalize(zones map[string]*schema.Zone) error {
 	return nil
 }
 
-func (n *normalizer) normalizeZone(name string, zone *schema.Zone, registeredPlugins map[plugins.PluginType]*plugins.Plugin) error {
+func (n *StandardNormalizer) normalizeZone(name string, zone *schema.Zone, registeredPlugins map[plugins.PluginType]*plugins.Plugin) error {
 	hclog.L().Debug("Normalizing zone", "name", name)
 	for _, identifier := range zone.SortedResourceRecordKeys() {
 		rr := zone.ResourceRecords[identifier]

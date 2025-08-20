@@ -17,7 +17,7 @@
  * along with yamlconv.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package env
+package utils
 
 import (
 	"fmt"

@@ -25,10 +25,9 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/bcurnow/zonemgr/env"
-	"github.com/bcurnow/zonemgr/logging"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/builtin"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
 )
@@ -89,7 +88,7 @@ func (pm *pluginManager) handleOverride(pluginType plugins.PluginType, pluginNam
 		if plugin.IsBuiltIn {
 			hclog.L().Debug("Replacing default plugin", "resourceRecordType", pluginType, "newPluginName", pluginName)
 		} else {
-			hclog.L().Warn("Replacing non-default plugin", "resourceRecordType", pluginType, "oldPluginName", plugin.PluginName, "newPluginName", pluginName, "pluginDir", env.PluginsDirectory.Value)
+			hclog.L().Warn("Replacing non-default plugin", "resourceRecordType", pluginType, "oldPluginName", plugin.PluginName, "newPluginName", pluginName, "pluginDir", utils.PluginsDirectory.Value)
 		}
 	}
 }
@@ -148,11 +147,11 @@ func (pm *pluginManager) discoverPlugins(dir string) (map[string]string, error) 
 }
 
 func (pm *pluginManager) externalPlugins() (map[string]*plugins.Plugin, error) {
-	hclog.L().Debug("Loading plugins", "pluginDir", env.PluginsDirectory.Value)
+	hclog.L().Debug("Loading plugins", "pluginDir", utils.PluginsDirectory.Value)
 	typeHandlers := make(map[string]*plugins.Plugin)
-	executables, err := pm.discoverPlugins(env.PluginsDirectory.Value)
+	executables, err := pm.discoverPlugins(utils.PluginsDirectory.Value)
 	if err != nil {
-		hclog.L().Error("Error discovering plugins", "pluginDir", env.PluginsDirectory.Value, "err", err)
+		hclog.L().Error("Error discovering plugins", "pluginDir", utils.PluginsDirectory.Value, "err", err)
 		return nil, err
 	}
 
@@ -177,10 +176,10 @@ func (pm *pluginManager) buildClient(pluginName string, pluginCmd string) *goplu
 			pluginName: &plugins.GRPCPlugin{},
 		},
 		Managed:          true,                                       // Allow the plugin runtime to manage this plugin
-		SyncStdout:       logging.PluginStdout(),                     // Print any extra output to Stdout from the plugin to the host processes Stdout
-		SyncStderr:       logging.PluginStderr(),                     // Discard any any extra output to Stderr from the plugin
+		SyncStdout:       utils.PluginStdout(),                       // Print any extra output to Stdout from the plugin to the host processes Stdout
+		SyncStderr:       utils.PluginStderr(),                       // Discard any any extra output to Stderr from the plugin
 		AllowedProtocols: []goplugin.Protocol{goplugin.ProtocolGRPC}, // We only support plugins of type grpc
-		Logger:           logging.PluginLogger(),
+		Logger:           utils.PluginLogger(),
 		SkipHostEnv:      true, // Don't pass the host environment to the plugin to avoid security issues
 		AutoMTLS:         true, // Ensure that we're using MTLS for communication between the plugin and the host
 		Cmd:              exec.Command(pluginCmd),

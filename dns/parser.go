@@ -14,29 +14,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package parse
+package dns
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/bcurnow/zonemgr/normalize"
 	"github.com/bcurnow/zonemgr/schema"
 	"github.com/hashicorp/go-hclog"
 	"gopkg.in/yaml.v3"
 )
 
-type zoneYamlParser struct {
-	ZoneYamlParser
+type ZoneParser interface {
+	Parse(inputFile string) (map[string]*schema.Zone, error)
 }
 
-var normalizer = normalize.Default()
-
-func Parser() ZoneYamlParser {
-	return &zoneYamlParser{}
+type YamlZoneParser struct {
+	ZoneParser
 }
 
-func (p *zoneYamlParser) Parse(inputFile string) (map[string]*schema.Zone, error) {
+var normalizer Normalizer = &StandardNormalizer{}
+
+func (p *YamlZoneParser) Parse(inputFile string) (map[string]*schema.Zone, error) {
 	hclog.L().Debug("Opening input file", "inputFile", inputFile)
 	inputBytes, err := os.ReadFile(inputFile)
 	if err != nil {
@@ -44,7 +43,7 @@ func (p *zoneYamlParser) Parse(inputFile string) (map[string]*schema.Zone, error
 	}
 
 	hclog.L().Debug("Unmarshaling YAML", "inputFile", inputFile)
-	zones, err := unmarshal(inputBytes)
+	zones, err := p.unmarshal(inputBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal from %s: %w", inputFile, err)
 	}
@@ -68,7 +67,7 @@ func (p *zoneYamlParser) Parse(inputFile string) (map[string]*schema.Zone, error
 	return zones, nil
 }
 
-func unmarshal(inputBytes []byte) (map[string]*schema.Zone, error) {
+func (p *YamlZoneParser) unmarshal(inputBytes []byte) (map[string]*schema.Zone, error) {
 	var zones map[string]*schema.Zone
 	err := yaml.Unmarshal(inputBytes, &zones)
 	if err != nil {

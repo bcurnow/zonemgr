@@ -21,8 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bcurnow/zonemgr/env"
-	"github.com/bcurnow/zonemgr/logging"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/spf13/cobra"
@@ -61,12 +60,12 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&logTime, "log-time", "", false, "If set, prints the time on all the log messages")
 	rootCmd.PersistentFlags().BoolVarP(&logColor, "log-color", "", true, "If set, prints the log messages in color where possible")
 	rootCmd.PersistentFlags().BoolVarP(&pluginDebug, "plugin-debug", "", false, "If set, will including plugin stdout/stderr in the log messages")
-	rootCmd.PersistentFlags().StringVarP(&pluginsDir, "plugins-dir", "p", env.PluginsDirectory.Value, "The directory to find Zonemgr plugins")
+	rootCmd.PersistentFlags().StringVarP(&pluginsDir, "plugins-dir", "p", utils.PluginsDirectory.Value, "The directory to find Zonemgr plugins")
 }
 
 func setupLogging() {
 	if pluginDebug {
-		logging.EnablePluginDebug()
+		utils.EnablePluginDebug()
 	}
 
 	level := hclog.LevelFromString(logLevel)
@@ -76,7 +75,7 @@ func setupLogging() {
 		level = hclog.Info
 		hclog.L().Error("Invalid log level specified, defaulting to Info", "level", logLevel)
 	}
-	logging.ConfigureLogging(level, logJsonFormat, !logTime, logColor)
+	utils.ConfigureLogging(level, logJsonFormat, !logTime, logColor)
 	hclog.L().Trace("Log level set", "level", logLevel)
 
 }

@@ -17,7 +17,7 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package env
+package utils
 
 import (
 	"os"

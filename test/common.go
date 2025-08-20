@@ -17,12 +17,20 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package normalize
+package test
 
 import (
-	"github.com/bcurnow/zonemgr/schema"
+	"testing"
+
+	"github.com/golang/mock/gomock"
 )
 
-type Normalizer interface {
-	Normalize(zones map[string]*schema.Zone) error
+var MockController *gomock.Controller
+
+func Setup(t *testing.T) {
+	MockController = gomock.NewController(t)
+}
+
+func Teardown(_ *testing.T) {
+	MockController.Finish()
 }

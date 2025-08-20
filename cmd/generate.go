@@ -20,10 +20,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/bcurnow/zonemgr/env"
-	"github.com/bcurnow/zonemgr/normalize"
-	"github.com/bcurnow/zonemgr/parse"
+	"github.com/bcurnow/zonemgr/dns"
 	"github.com/bcurnow/zonemgr/plugins/manager"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/bcurnow/zonemgr/zonefile"
 	"github.com/hashicorp/go-hclog"
 
@@ -44,15 +43,15 @@ var (
 
 			//Override the environment variables with any command line variables
 			if cmd.Flags().Changed("generate-reverse-lookup-zones") {
-				env.GenerateReverseLookupZones.Value = strconv.FormatBool(generateReverseLookupZones)
+				utils.GenerateReverseLookupZones.Value = strconv.FormatBool(generateReverseLookupZones)
 			}
 
 			if cmd.Flags().Changed("generate-serial") {
-				env.GenerateSerial.Value = strconv.FormatBool(generateSerial)
+				utils.GenerateSerial.Value = strconv.FormatBool(generateSerial)
 			}
 
 			if cmd.Flags().Changed("serial-change-index-directory") {
-				env.SerialChangeIndexDirectory.Value = serialChangeIndexDirectory
+				utils.SerialChangeIndexDirectory.Value = serialChangeIndexDirectory
 			}
 
 			// Make sure we load up all the plugins at the start
@@ -68,9 +67,10 @@ var (
 	generateReverseLookupZones bool
 	generateSerial             bool
 	serialChangeIndexDirectory string
-	zoneReverser               = zonefile.Reverser()
-	zoneFileGenerator          = zonefile.Generator()
-	zoneYamlParser             = parse.Parser()
+	zoneReverser                              = zonefile.Reverser()
+	zoneFileGenerator                         = zonefile.Generator()
+	zoneYamlParser             dns.ZoneParser = &dns.YamlZoneParser{}
+	normalizer                                = &dns.StandardNormalizer{}
 )
 
 func generateZoneFile() error {
@@ -89,7 +89,7 @@ func generateZoneFile() error {
 		if zone.Config.GenerateReverseLookupZones {
 			hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
 			reverseLookupZones := zoneReverser.ReverseZone(name, zone)
-			if err := normalize.Default().Normalize(reverseLookupZones); err != nil {
+			if err := normalizer.Normalize(reverseLookupZones); err != nil {
 				return err
 			}
 
@@ -108,17 +108,17 @@ func init() {
 	generateCmd.MarkFlagRequired("input")
 	generateCmd.Flags().StringVarP(&outputDir, "output-dir", "o", ".", "Directory to output the BIND zone file(s) to")
 
-	generateReverseLookupZonesEnvValue, err := strconv.ParseBool(env.GenerateReverseLookupZones.Value)
+	generateReverseLookupZonesEnvValue, err := strconv.ParseBool(utils.GenerateReverseLookupZones.Value)
 	if err != nil {
 		generateReverseLookupZonesEnvValue = false
 	}
 	generateCmd.Flags().BoolVarP(&generateReverseLookupZones, "generate-reverse-lookup-zones", "r", generateReverseLookupZonesEnvValue, "If true, reverse lookup zones will be generated as well")
-	generateSerialEnvValue, err := strconv.ParseBool(env.GenerateSerial.Value)
+	generateSerialEnvValue, err := strconv.ParseBool(utils.GenerateSerial.Value)
 	if err != nil {
 		generateSerialEnvValue = false
 	}
 	generateCmd.Flags().BoolVarP(&generateSerial, "generate-serial", "s", generateSerialEnvValue, "If true, the serial number on the SOA record will be automatically generated")
-	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, "serial-change-index-directory", "", env.SerialChangeIndexDirectory.Value, "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
+	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, "serial-change-index-directory", "", utils.SerialChangeIndexDirectory.Value, "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
 
 	rootCmd.AddCommand(generateCmd)
 

@@ -19,7 +19,7 @@ package schema
 import (
 	"strconv"
 
-	"github.com/bcurnow/zonemgr/env"
+	"github.com/bcurnow/zonemgr/utils"
 )
 
 type Config struct {
@@ -30,15 +30,15 @@ type Config struct {
 }
 
 func (c *Config) ConfigDefaults() error {
-	c.PluginsDirectory = env.PluginsDirectory.Value
-	val, err := strconv.ParseBool(env.GenerateSerial.Value)
+	c.PluginsDirectory = utils.PluginsDirectory.Value
+	val, err := strconv.ParseBool(utils.GenerateSerial.Value)
 	if err != nil {
 		return err
 	}
 	c.GenerateSerial = val
 
-	c.SerialChangeIndexDirectory = env.SerialChangeIndexDirectory.Value
-	val, err = strconv.ParseBool(env.GenerateReverseLookupZones.Value)
+	c.SerialChangeIndexDirectory = utils.SerialChangeIndexDirectory.Value
+	val, err = strconv.ParseBool(utils.GenerateReverseLookupZones.Value)
 	if err != nil {
 		return err
 	}

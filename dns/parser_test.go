@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
-package parse
+package dns
 
 import (
 	"fmt"
@@ -29,26 +29,21 @@ import (
 )
 
 var (
-	mockController *gomock.Controller
 	mockNormalizer *test.MockNormalizer
 	defaultConfig  *schema.Config
 )
 
-func setup(t *testing.T) {
-	mockController = gomock.NewController(t)
-	mockNormalizer = test.NewMockNormalizer(mockController)
+func testZoneYamlParserSetup(t *testing.T) {
+	test.Setup(t)
+	mockNormalizer = test.NewMockNormalizer(test.MockController)
 	normalizer = mockNormalizer
 	defaultConfig = &schema.Config{}
 	defaultConfig.ConfigDefaults()
 }
 
-func teardown(_ *testing.T) {
-	mockController.Finish()
-}
-
 func TestParse(t *testing.T) {
-	setup(t)
-	defer teardown(t)
+	testZoneYamlParserSetup(t)
+	defer test.Teardown(t)
 
 	testCases := []struct {
 		count     int
@@ -66,7 +61,7 @@ func TestParse(t *testing.T) {
 	mockNormalizer.EXPECT().Normalize(gomock.Any()).MaxTimes(len(testCases))
 
 	for _, tc := range testCases {
-		zones, err := Parser().Parse(tc.inputFile)
+		zones, err := (&YamlZoneParser{}).Parse(tc.inputFile)
 
 		if err != nil {
 			if tc.err == "" {
@@ -99,12 +94,12 @@ func TestParse(t *testing.T) {
 }
 
 func TestParse_NormalizerError(t *testing.T) {
-	setup(t)
-	defer teardown(t)
+	testZoneYamlParserSetup(t)
+	defer test.Teardown(t)
 
 	mockNormalizer.EXPECT().Normalize(gomock.Any()).Return(fmt.Errorf("testing normalizer error"))
 
-	_, err := Parser().Parse("minimal.zones.yaml")
+	_, err := (&YamlZoneParser{}).Parse("minimal.zones.yaml")
 	if err == nil {
 		t.Errorf("expected error")
 	} else {
