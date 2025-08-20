@@ -1,29 +1,29 @@
 package grpc
 
 import (
+	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins/proto"
-	"github.com/bcurnow/zonemgr/schema"
 )
 
 // Updates the passed in ResourceRecord with values from the protocol buff
-func UpdateResourceRecordFromProtoBuf(p *proto.ResourceRecord, rr *schema.ResourceRecord) {
+func UpdateResourceRecordFromProtoBuf(p *proto.ResourceRecord, rr *models.ResourceRecord) {
 	//Update the resource record with the new values
 	rr.Name = p.Name
-	rr.Type = schema.ResourceRecordType(p.Type)
-	rr.Class = schema.ResourceRecordClass(p.Class)
+	rr.Type = models.ResourceRecordType(p.Type)
+	rr.Class = models.ResourceRecordClass(p.Class)
 	rr.TTL = p.Ttl
 	UpdateResourceRecordValuesFromProtoBuf(p.Values, rr.Values)
 	rr.Value = p.Value
 	rr.Comment = p.Comment
 }
 
-func ResourceRecordFromProtoBuf(p *proto.ResourceRecord) *schema.ResourceRecord {
-	rr := &schema.ResourceRecord{}
+func ResourceRecordFromProtoBuf(p *proto.ResourceRecord) *models.ResourceRecord {
+	rr := &models.ResourceRecord{}
 	UpdateResourceRecordFromProtoBuf(p, rr)
 	return rr
 }
 
-func ResourceRecordToProtoBuf(rr *schema.ResourceRecord) *proto.ResourceRecord {
+func ResourceRecordToProtoBuf(rr *models.ResourceRecord) *proto.ResourceRecord {
 	ret := &proto.ResourceRecord{
 		Name:    rr.Name,
 		Type:    string(rr.Type),
@@ -37,24 +37,24 @@ func ResourceRecordToProtoBuf(rr *schema.ResourceRecord) *proto.ResourceRecord {
 	return ret
 }
 
-func UpdateResourceRecordValuesFromProtoBuf(p []*proto.ResourceRecordValue, rrs []*schema.ResourceRecordValue) {
+func UpdateResourceRecordValuesFromProtoBuf(p []*proto.ResourceRecordValue, rrs []*models.ResourceRecordValue) {
 	for i, value := range p {
 		UpdateResourceRecordValueFromProtoBuf(value, rrs[i])
 	}
 }
 
-func UpdateResourceRecordValueFromProtoBuf(p *proto.ResourceRecordValue, rr *schema.ResourceRecordValue) {
+func UpdateResourceRecordValueFromProtoBuf(p *proto.ResourceRecordValue, rr *models.ResourceRecordValue) {
 	rr.Value = p.Value
 	rr.Comment = p.Comment
 }
 
-func ResourceRecordValueFromProtoBuf(p *proto.ResourceRecordValue) *schema.ResourceRecordValue {
-	rr := &schema.ResourceRecordValue{}
+func ResourceRecordValueFromProtoBuf(p *proto.ResourceRecordValue) *models.ResourceRecordValue {
+	rr := &models.ResourceRecordValue{}
 	UpdateResourceRecordValueFromProtoBuf(p, rr)
 	return rr
 }
 
-func ResourceRecordValuesToProtoBuf(rrvs []*schema.ResourceRecordValue) []*proto.ResourceRecordValue {
+func ResourceRecordValuesToProtoBuf(rrvs []*models.ResourceRecordValue) []*proto.ResourceRecordValue {
 	protoValues := make([]*proto.ResourceRecordValue, len(rrvs))
 	for i, rrv := range rrvs {
 		protoValues[i] = ResourceRecordValueToProtoBuf(rrv)
@@ -62,6 +62,6 @@ func ResourceRecordValuesToProtoBuf(rrvs []*schema.ResourceRecordValue) []*proto
 	return protoValues
 }
 
-func ResourceRecordValueToProtoBuf(rrv *schema.ResourceRecordValue) *proto.ResourceRecordValue {
+func ResourceRecordValueToProtoBuf(rrv *models.ResourceRecordValue) *proto.ResourceRecordValue {
 	return &proto.ResourceRecordValue{Value: rrv.Value, Comment: rrv.Comment}
 }

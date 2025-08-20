@@ -19,7 +19,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/bcurnow/zonemgr/version"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Version of the zonemgr application",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(version.Version())
+		fmt.Println(utils.Version())
 	},
 }
 

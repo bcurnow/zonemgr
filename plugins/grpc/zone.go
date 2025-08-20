@@ -1,24 +1,24 @@
 package grpc
 
 import (
+	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins/proto"
-	"github.com/bcurnow/zonemgr/schema"
 )
 
 // Updates the passed in zone with values from the protocol buff
-func UpdateZoneFromProtoBuf(p *proto.Zone, zone *schema.Zone) {
+func UpdateZoneFromProtoBuf(p *proto.Zone, zone *models.Zone) {
 	UpdateConfigFromProtoBuf(p.Config, zone.Config)
 	UpdateResourceRecordsFromProtoBuf(p.ResourceRecords, zone.ResourceRecords)
 	UpdateTTLFromProtoBuf(p.Ttl, zone.TTL)
 }
 
-func ZoneFromProtoBuf(p *proto.Zone) *schema.Zone {
-	zone := &schema.Zone{}
+func ZoneFromProtoBuf(p *proto.Zone) *models.Zone {
+	zone := &models.Zone{}
 	UpdateZoneFromProtoBuf(p, zone)
 	return zone
 }
 
-func ZoneToProtoBuf(z *schema.Zone) *proto.Zone {
+func ZoneToProtoBuf(z *models.Zone) *proto.Zone {
 	return &proto.Zone{
 		Config:          ConfigToProtoBufTo(z.Config),
 		ResourceRecords: ResourceRecordsToProtoBuf(z.ResourceRecords),
@@ -26,16 +26,16 @@ func ZoneToProtoBuf(z *schema.Zone) *proto.Zone {
 	}
 }
 
-func UpdateResourceRecordsFromProtoBuf(p map[string]*proto.ResourceRecord, rrs map[string]*schema.ResourceRecord) {
+func UpdateResourceRecordsFromProtoBuf(p map[string]*proto.ResourceRecord, rrs map[string]*models.ResourceRecord) {
 	for identifier, rr := range p {
 		UpdateResourceRecordFromProtoBuf(rr, rrs[identifier])
 	}
 }
 
-func ResoureRecordsFromProtoBuf(p map[string]*proto.ResourceRecord) map[string]*schema.ResourceRecord {
-	rrs := make(map[string]*schema.ResourceRecord, len(p))
+func ResoureRecordsFromProtoBuf(p map[string]*proto.ResourceRecord) map[string]*models.ResourceRecord {
+	rrs := make(map[string]*models.ResourceRecord, len(p))
 	for identifier, prr := range p {
-		rr := &schema.ResourceRecord{}
+		rr := &models.ResourceRecord{}
 		UpdateResourceRecordFromProtoBuf(prr, rr)
 		rrs[identifier] = rr
 	}
@@ -43,7 +43,7 @@ func ResoureRecordsFromProtoBuf(p map[string]*proto.ResourceRecord) map[string]*
 	return rrs
 }
 
-func ResourceRecordsToProtoBuf(rrs map[string]*schema.ResourceRecord) map[string]*proto.ResourceRecord {
+func ResourceRecordsToProtoBuf(rrs map[string]*models.ResourceRecord) map[string]*proto.ResourceRecord {
 	protoRRS := make(map[string]*proto.ResourceRecord, len(rrs))
 	for identifier, rr := range rrs {
 		protoRRS[identifier] = ResourceRecordToProtoBuf(rr)

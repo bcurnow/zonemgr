@@ -23,23 +23,20 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
-	"github.com/bcurnow/zonemgr/plugins/manager"
-	"github.com/bcurnow/zonemgr/schema"
 	"github.com/hashicorp/go-hclog"
 )
 
 type Normalizer interface {
-	Normalize(zones map[string]*schema.Zone) error
+	Normalize(zones map[string]*models.Zone) error
 }
 
 type StandardNormalizer struct {
 	Normalizer
 }
 
-var pluginManager = manager.Default()
-
-func (n *StandardNormalizer) Normalize(zones map[string]*schema.Zone) error {
+func (n *StandardNormalizer) Normalize(zones map[string]*models.Zone) error {
 	hclog.L().Trace("Normalizing zones", "count", len(zones))
 	if len(zones) == 0 {
 		return fmt.Errorf("no zones found")
@@ -64,7 +61,7 @@ func (n *StandardNormalizer) Normalize(zones map[string]*schema.Zone) error {
 		for _, plugin := range registeredPlugins {
 			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", plugin.PluginName)
 			if nil == zone.Config {
-				// This shouldn't happen unless there's an accident in the code (like perhaps creating new Zone for a reverse lookup zone and forgetting to populate Config)
+				// This shouldn't happen unless there's an accident in the code (like perhaps creating new models.Zone for a reverse lookup zone and forgetting to populate Config)
 				return fmt.Errorf("zone is missing config, zoneName=%s", name)
 			}
 			plugin.Plugin.Configure(zone.Config)
@@ -76,7 +73,7 @@ func (n *StandardNormalizer) Normalize(zones map[string]*schema.Zone) error {
 
 		// Now perform any validations on the zone itself
 		for _, plugin := range registeredPlugins {
-			hclog.L().Debug("Calling ValidateZone", "zoneName", name, "pluginName", plugin.PluginName)
+			hclog.L().Debug("Calling Validatemodels.Zone", "zoneName", name, "pluginName", plugin.PluginName)
 			if err := plugin.Plugin.ValidateZone(name, zone); err != nil {
 				return err
 			}
@@ -86,7 +83,7 @@ func (n *StandardNormalizer) Normalize(zones map[string]*schema.Zone) error {
 	return nil
 }
 
-func (n *StandardNormalizer) normalizeZone(name string, zone *schema.Zone, registeredPlugins map[plugins.PluginType]*plugins.Plugin) error {
+func (n *StandardNormalizer) normalizeZone(name string, zone *models.Zone, registeredPlugins map[plugins.PluginType]*plugins.Plugin) error {
 	hclog.L().Debug("Normalizing zone", "name", name)
 	for _, identifier := range zone.SortedResourceRecordKeys() {
 		rr := zone.ResourceRecords[identifier]

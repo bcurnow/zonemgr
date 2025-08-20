@@ -21,9 +21,8 @@ import (
 	"strconv"
 
 	"github.com/bcurnow/zonemgr/dns"
-	"github.com/bcurnow/zonemgr/plugins/manager"
+	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
-	"github.com/bcurnow/zonemgr/zonefile"
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/spf13/cobra"
@@ -55,7 +54,7 @@ var (
 			}
 
 			// Make sure we load up all the plugins at the start
-			if _, err := manager.Default().Plugins(); err != nil {
+			if _, err := plugins.Default().Plugins(); err != nil {
 				return err
 			}
 			return nil
@@ -67,8 +66,8 @@ var (
 	generateReverseLookupZones bool
 	generateSerial             bool
 	serialChangeIndexDirectory string
-	zoneReverser                              = zonefile.Reverser()
-	zoneFileGenerator                         = zonefile.Generator()
+	zoneReverser                              = &dns.StandardZoneReverser{}
+	zoneFileGenerator                         = &dns.StandardZoneFileGenerator{}
 	zoneYamlParser             dns.ZoneParser = &dns.YamlZoneParser{}
 	normalizer                                = &dns.StandardNormalizer{}
 )

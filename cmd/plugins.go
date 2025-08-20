@@ -23,7 +23,6 @@ import (
 	"slices"
 
 	"github.com/bcurnow/zonemgr/plugins"
-	"github.com/bcurnow/zonemgr/plugins/manager"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +30,7 @@ var pluginsCmd = &cobra.Command{
 	Use:   "plugins",
 	Short: "Prints information about the current plugins",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		registeredPlugins, err := manager.Default().Plugins()
+		registeredPlugins, err := plugins.Default().Plugins()
 		if err != nil {
 			return err
 		}

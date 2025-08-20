@@ -27,10 +27,10 @@ run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
 	ZONEMGR_PLUGINS=examples/bin/ ./bin/zonemgr plugins
 
 mocks:
-	mkdir -p test
-	mockgen -source=plugins/interface.go -package test -self_package "github.com/bcurnow/zonemgr/test">test/plugins_zonemgrplugin.go
-	mockgen -source=plugins/manager/interface.go -package test -self_package "github.com/bcurnow/zonemgr/test" >test/manager_pluginmanager.go
-	mockgen -source=normalize/interface.go -package test -self_package "github.com/bcurnow/zonemgr/test" >test/normalize_normalizer.go
+	mockgen -source=plugins/zonemgr_plugin.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_zonemgr_plugin.go
+	mockgen -source=plugins/validator.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_validator.go
+	mockgen -source=plugins/plugin_manager.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins" >plugins/mock_plugin_manager.go
+	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns" >dns/mock_normalizer.go
 
 proto:
 	buf generate

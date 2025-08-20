@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bcurnow/zonemgr/schema"
+	"github.com/bcurnow/zonemgr/models"
 	"github.com/hashicorp/go-hclog"
 	"gopkg.in/yaml.v3"
 )
 
 type ZoneParser interface {
-	Parse(inputFile string) (map[string]*schema.Zone, error)
+	Parse(inputFile string) (map[string]*models.Zone, error)
 }
 
 type YamlZoneParser struct {
@@ -35,7 +35,7 @@ type YamlZoneParser struct {
 
 var normalizer Normalizer = &StandardNormalizer{}
 
-func (p *YamlZoneParser) Parse(inputFile string) (map[string]*schema.Zone, error) {
+func (p *YamlZoneParser) Parse(inputFile string) (map[string]*models.Zone, error) {
 	hclog.L().Debug("Opening input file", "inputFile", inputFile)
 	inputBytes, err := os.ReadFile(inputFile)
 	if err != nil {
@@ -55,7 +55,7 @@ func (p *YamlZoneParser) Parse(inputFile string) (map[string]*schema.Zone, error
 		}
 		// Make sure we always have a complete config
 		if nil == zone.Config {
-			zone.Config = &schema.Config{}
+			zone.Config = &models.Config{}
 		}
 		zone.Config.ConfigDefaults()
 	}
@@ -67,8 +67,8 @@ func (p *YamlZoneParser) Parse(inputFile string) (map[string]*schema.Zone, error
 	return zones, nil
 }
 
-func (p *YamlZoneParser) unmarshal(inputBytes []byte) (map[string]*schema.Zone, error) {
-	var zones map[string]*schema.Zone
+func (p *YamlZoneParser) unmarshal(inputBytes []byte) (map[string]*models.Zone, error) {
+	var zones map[string]*models.Zone
 	err := yaml.Unmarshal(inputBytes, &zones)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse input YAML: %w", err)

@@ -20,12 +20,12 @@
 package main
 
 import (
+	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
-	"github.com/bcurnow/zonemgr/schema"
 	goplugin "github.com/hashicorp/go-plugin"
 )
 
-var validations = plugins.Validations()
+var validations = &plugins.StandardValidator{}
 
 // Concrete implementation of the TypeHandler
 type Plugin struct {
@@ -39,12 +39,12 @@ func (th *Plugin) PluginTypes() ([]plugins.PluginType, error) {
 	return plugins.PluginTypes(plugins.A), nil
 }
 
-func (th *Plugin) Configure(config *schema.Config) error {
+func (th *Plugin) Configure(config *models.Config) error {
 	// no config
 	return nil
 }
 
-func (th *Plugin) Normalize(identifier string, rr *schema.ResourceRecord) error {
+func (th *Plugin) Normalize(identifier string, rr *models.ResourceRecord) error {
 	if err := validations.StandardValidations(identifier, rr, plugins.A); err != nil {
 		return err
 	}
@@ -60,12 +60,12 @@ func (th *Plugin) Normalize(identifier string, rr *schema.ResourceRecord) error 
 	return nil
 }
 
-func (th *Plugin) ValidateZone(name string, zone *schema.Zone) error {
+func (th *Plugin) ValidateZone(name string, zone *models.Zone) error {
 	// no-op
 	return nil
 }
 
-func (th *Plugin) Render(identifier string, rr *schema.ResourceRecord) (string, error) {
+func (th *Plugin) Render(identifier string, rr *models.ResourceRecord) (string, error) {
 	validations.IsSupportedPluginType(identifier, rr.Type, plugins.A)
 	// Leverage the standard rendering
 	return rr.RenderSingleValueResource(), nil

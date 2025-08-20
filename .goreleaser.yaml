@@ -11,7 +11,7 @@ builds:
       - amd64
       - arm64
     ldflags: 
-      - -s -w -X github.com/bcurnow/zonemgr/version.version={{.Version}}
+      - -s -w -X github.com/bcurnow/zonemgr/utils.version={{.Version}}
     mod_timestamp: "{{ .CommitTimestamp }}"
 env_files:
   github_token: ~/.config/goreleaser/zonemgr-github-token

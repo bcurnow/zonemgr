@@ -22,28 +22,28 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bcurnow/zonemgr/schema"
-	"github.com/bcurnow/zonemgr/test"
+	models "github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 )
 
 var (
-	mockNormalizer *test.MockNormalizer
-	defaultConfig  *schema.Config
+	mockNormalizer *MockNormalizer
+	defaultConfig  *models.Config
 )
 
 func testZoneYamlParserSetup(t *testing.T) {
-	test.Setup(t)
-	mockNormalizer = test.NewMockNormalizer(test.MockController)
+	utils.Setup(t)
+	mockNormalizer = NewMockNormalizer(utils.MockController)
 	normalizer = mockNormalizer
-	defaultConfig = &schema.Config{}
+	defaultConfig = &models.Config{}
 	defaultConfig.ConfigDefaults()
 }
 
 func TestParse(t *testing.T) {
 	testZoneYamlParserSetup(t)
-	defer test.Teardown(t)
+	defer utils.Teardown(t)
 
 	testCases := []struct {
 		count     int
@@ -95,7 +95,7 @@ func TestParse(t *testing.T) {
 
 func TestParse_NormalizerError(t *testing.T) {
 	testZoneYamlParserSetup(t)
-	defer test.Teardown(t)
+	defer utils.Teardown(t)
 
 	mockNormalizer.EXPECT().Normalize(gomock.Any()).Return(fmt.Errorf("testing normalizer error"))
 
