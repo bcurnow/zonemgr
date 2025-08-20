@@ -21,4 +21,4 @@ package dns
 
 import "github.com/bcurnow/zonemgr/plugins"
 
-var pluginManager = plugins.Default()
+var pluginManager = plugins.GetPluginManager()

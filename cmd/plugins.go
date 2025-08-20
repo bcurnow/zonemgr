@@ -26,40 +26,43 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var pluginsCmd = &cobra.Command{
-	Use:   "plugins",
-	Short: "Prints information about the current plugins",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		registeredPlugins, err := plugins.Default().Plugins()
-		if err != nil {
-			return err
-		}
-
-		// Get all the plugin types so we sort and print the plugins in order
-		pluginTypes := make([]plugins.PluginType, 0, len(registeredPlugins))
-		for pluginType := range registeredPlugins {
-			pluginTypes = append(pluginTypes, pluginType)
-		}
-		slices.Sort(pluginTypes)
-
-		formatString := "%-6s %-60s %-20s %s\n"
-		// Turn on underline mode
-		fmt.Println("\033[4m")
-		fmt.Printf(formatString, "Type", "Name", "Version", "Plugin Command")
-		// Turn off underline mode
-		fmt.Print("\033[24m")
-
-		for _, pluginType := range pluginTypes {
-			plugin := registeredPlugins[pluginType]
-			pluginVersion, err := plugin.Plugin.PluginVersion()
+var (
+	pluginsCmd = &cobra.Command{
+		Use:   "plugins",
+		Short: "Prints information about the current plugins",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			registeredPlugins, err := pluginManager.Plugins()
 			if err != nil {
 				return err
 			}
-			fmt.Printf(formatString, pluginType, plugin.PluginName, pluginVersion, plugin.PluginCmd)
-		}
-		return nil
-	},
-}
+
+			// Get all the plugin types so we sort and print the plugins in order
+			pluginTypes := make([]plugins.PluginType, 0, len(registeredPlugins))
+			for pluginType := range registeredPlugins {
+				pluginTypes = append(pluginTypes, pluginType)
+			}
+			slices.Sort(pluginTypes)
+
+			formatString := "%-6s %-60s %-20s %s\n"
+			// Turn on underline mode
+			fmt.Println("\033[4m")
+			fmt.Printf(formatString, "Type", "Name", "Version", "Plugin Command")
+			// Turn off underline mode
+			fmt.Print("\033[24m")
+
+			for _, pluginType := range pluginTypes {
+				plugin := registeredPlugins[pluginType]
+				pluginVersion, err := plugin.Plugin.PluginVersion()
+				if err != nil {
+					return err
+				}
+				fmt.Printf(formatString, pluginType, plugin.PluginName, pluginVersion, plugin.PluginCmd)
+			}
+			return nil
+		},
+	}
+	pluginManager = plugins.GetPluginManager()
+)
 
 func init() {
 	rootCmd.AddCommand(pluginsCmd)

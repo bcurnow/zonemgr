@@ -27,23 +27,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "zonemgr",
-	Short: "Converts YAML files to BIND zone files.",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		setupLogging()
-	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		cleanup()
-	},
-}
+var (
+	rootCmd = &cobra.Command{
+		Use:   "zonemgr",
+		Short: "Converts YAML files to BIND zone files.",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			setupLogging()
+		},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			cleanup()
+		},
+	}
 
-var logLevel string
-var logJsonFormat bool
-var logTime bool
-var logColor bool
-var pluginDebug bool
-var pluginsDir string
+	logLevel      string
+	logJsonFormat bool
+	logTime       bool
+	logColor      bool
+	pluginDebug   bool
+	pluginsDir    string
+)
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.

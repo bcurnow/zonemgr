@@ -34,19 +34,19 @@ type PluginManager interface {
 	Plugins() (map[PluginType]*Plugin, error)
 }
 
-type pluginManager struct {
+type DefaultPluginManager struct {
 	PluginManager
 	plugins    map[PluginType]*Plugin
 	initialzed bool
 }
 
-var defaultPluginManager = &pluginManager{}
+var instance = &DefaultPluginManager{}
 
-func Default() PluginManager {
-	return defaultPluginManager
+func GetPluginManager() PluginManager {
+	return instance
 }
 
-func (pm *pluginManager) Plugins() (map[PluginType]*Plugin, error) {
+func (pm *DefaultPluginManager) Plugins() (map[PluginType]*Plugin, error) {
 	if !pm.initialzed {
 		if err := pm.initializePlugins(); err != nil {
 			return nil, err
@@ -55,7 +55,7 @@ func (pm *pluginManager) Plugins() (map[PluginType]*Plugin, error) {
 	return pm.plugins, nil
 }
 
-func (pm *pluginManager) initializePlugins() error {
+func (pm *DefaultPluginManager) initializePlugins() error {
 	pm.plugins = make(map[PluginType]*Plugin)
 	maps.Copy(pm.plugins, BuiltinPlugins())
 
@@ -81,7 +81,7 @@ func (pm *pluginManager) initializePlugins() error {
 	return nil
 }
 
-func (pm *pluginManager) handleOverride(pluginType PluginType, pluginName string) {
+func (pm *DefaultPluginManager) handleOverride(pluginType PluginType, pluginName string) {
 	// Check to see if we already have a plugin for this ResourceRecord Type
 	plugin, ok := pm.plugins[pluginType]
 	if ok {
@@ -97,7 +97,7 @@ func (pm *pluginManager) handleOverride(pluginType PluginType, pluginName string
 
 // Walks the specified directory looking for plugins, returns an array of all the executables found
 // Until goplugin.Discover is updated to check for the executable bit, this is our own implementation
-func (pm *pluginManager) discoverPlugins(dir string) (map[string]string, error) {
+func (pm *DefaultPluginManager) discoverPlugins(dir string) (map[string]string, error) {
 	var executables = make(map[string]string)
 
 	hclog.L().Trace("Walking plugins dir", "dir", dir)
@@ -148,7 +148,7 @@ func (pm *pluginManager) discoverPlugins(dir string) (map[string]string, error) 
 	return executables, nil
 }
 
-func (pm *pluginManager) externalPlugins() (map[string]*Plugin, error) {
+func (pm *DefaultPluginManager) externalPlugins() (map[string]*Plugin, error) {
 	hclog.L().Debug("Loading plugins", "pluginDir", utils.PluginsDirectory.Value)
 	typeHandlers := make(map[string]*Plugin)
 	executables, err := pm.discoverPlugins(utils.PluginsDirectory.Value)
@@ -169,7 +169,7 @@ func (pm *pluginManager) externalPlugins() (map[string]*Plugin, error) {
 	return typeHandlers, nil
 }
 
-func (pm *pluginManager) buildClient(pluginName string, pluginCmd string) *goplugin.Client {
+func (pm *DefaultPluginManager) buildClient(pluginName string, pluginCmd string) *goplugin.Client {
 	hclog.L().Debug("Building a plugin client", "pluginName", pluginName, "pluginCmd", pluginCmd)
 
 	clientConfig := &goplugin.ClientConfig{
@@ -190,7 +190,7 @@ func (pm *pluginManager) buildClient(pluginName string, pluginCmd string) *goplu
 	return goplugin.NewClient(clientConfig)
 }
 
-func (pm *pluginManager) pluginInstance(pluginName string, client *goplugin.Client) (ZoneMgrPlugin, error) {
+func (pm *DefaultPluginManager) pluginInstance(pluginName string, client *goplugin.Client) (ZoneMgrPlugin, error) {
 	hclog.L().Trace("Getting the ClientProtocol from the client", "pluginName", pluginName)
 	// Get the RPC Client from the plugin definition
 	clientProtocol, err := client.Client()

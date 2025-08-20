@@ -24,6 +24,12 @@ import (
 	"github.com/hashicorp/go-hclog"
 )
 
+const (
+	ResourceRecordNameFormatString             = "%-40s"
+	ResourceRecordTypeFormatString             = "%-6s"
+	ResourceRecordMultivalueIndentFormatString = "%4s"
+)
+
 // A generic type that can represent a variety of records types as many follow this specific format (A, CNAME, etc.	)
 type ResourceRecord struct {
 	Name    string                 `yaml:"name"`

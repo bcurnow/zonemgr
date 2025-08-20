@@ -21,7 +21,6 @@ import (
 	"strconv"
 
 	"github.com/bcurnow/zonemgr/dns"
-	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 
@@ -54,7 +53,7 @@ var (
 			}
 
 			// Make sure we load up all the plugins at the start
-			if _, err := plugins.Default().Plugins(); err != nil {
+			if _, err := pluginManager.Plugins(); err != nil {
 				return err
 			}
 			return nil
@@ -66,10 +65,10 @@ var (
 	generateReverseLookupZones bool
 	generateSerial             bool
 	serialChangeIndexDirectory string
-	zoneReverser                              = &dns.StandardZoneReverser{}
-	zoneFileGenerator                         = &dns.StandardZoneFileGenerator{}
-	zoneYamlParser             dns.ZoneParser = &dns.YamlZoneParser{}
-	normalizer                                = &dns.StandardNormalizer{}
+	zoneReverser               dns.ZoneReverser      = &dns.StandardZoneReverser{}
+	zoneFileGenerator          dns.ZoneFileGenerator = &dns.StandardZoneFileGenerator{}
+	zoneYamlParser             dns.ZoneParser        = &dns.YamlZoneParser{}
+	normalizer                 dns.Normalizer        = &dns.StandardNormalizer{}
 )
 
 func generateZoneFile() error {
