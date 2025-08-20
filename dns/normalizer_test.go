@@ -24,8 +24,8 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/models/testingutils"
 	"github.com/bcurnow/zonemgr/plugins"
-	"github.com/bcurnow/zonemgr/utils"
 )
 
 var (
@@ -46,7 +46,7 @@ var (
 			"record2": {Type: models.CNAME},
 		},
 		TTL: &models.TTL{
-			Value:   utils.ToInt32Ptr(30),
+			Value:   testingutils.ToInt32Ptr(30),
 			Comment: "testZone-TTL",
 		},
 	}
@@ -54,14 +54,14 @@ var (
 )
 
 func testNormalizerSetup(t *testing.T) {
-	utils.Setup(t)
-	mockPluginManager = plugins.NewMockPluginManager(utils.MockController)
+	testingutils.Setup(t)
+	mockPluginManager = plugins.NewMockPluginManager(testingutils.MockController)
 
 	// Replace the package pluginManager with the mock
 	pluginManager = mockPluginManager
 
-	mockAPlugin = plugins.NewMockZoneMgrPlugin(utils.MockController)
-	mockCNAMEPlugin = plugins.NewMockZoneMgrPlugin(utils.MockController)
+	mockAPlugin = plugins.NewMockZoneMgrPlugin(testingutils.MockController)
+	mockCNAMEPlugin = plugins.NewMockZoneMgrPlugin(testingutils.MockController)
 	mockPlugins = make(map[plugins.PluginType]*plugins.Plugin)
 	mockPlugins[plugins.A] = &plugins.Plugin{PluginName: "Mock A Plugin", Plugin: mockAPlugin}
 	mockPlugins[plugins.CNAME] = &plugins.Plugin{PluginName: "Mock CNAME Plugin", Plugin: mockCNAMEPlugin}
@@ -73,7 +73,7 @@ func testNormalizerSetup(t *testing.T) {
 
 func TestNormalizeZones(t *testing.T) {
 	testNormalizerSetup(t)
-	defer utils.Teardown(t)
+	defer testingutils.Teardown(t)
 
 	mockPluginManager.EXPECT().Plugins().Return(mockPlugins, nil)
 
@@ -98,7 +98,7 @@ func TestNormalizeZones(t *testing.T) {
 
 func TestNormalizeZones_NoZones(t *testing.T) {
 	testNormalizerSetup(t)
-	defer utils.Teardown(t)
+	defer testingutils.Teardown(t)
 
 	if err := (&StandardNormalizer{}).Normalize(map[string]*models.Zone{}); err != nil {
 		if err.Error() != "no zones found" {
@@ -111,7 +111,7 @@ func TestNormalizeZones_NoZones(t *testing.T) {
 
 func TestNormalizeZones_PluginManagerError(t *testing.T) {
 	testNormalizerSetup(t)
-	defer utils.Teardown(t)
+	defer testingutils.Teardown(t)
 
 	mockPluginManager.EXPECT().Plugins().Return(nil, fmt.Errorf("Testing Plugin Manager Error"))
 
@@ -126,7 +126,7 @@ func TestNormalizeZones_PluginManagerError(t *testing.T) {
 
 func TestNormalizeZone_NilConfig(t *testing.T) {
 	testNormalizerSetup(t)
-	defer utils.Teardown(t)
+	defer testingutils.Teardown(t)
 
 	mockPluginManager.EXPECT().Plugins().Return(mockPlugins, nil)
 
@@ -141,7 +141,7 @@ func TestNormalizeZone_NilConfig(t *testing.T) {
 }
 func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
 	testNormalizerSetup(t)
-	defer utils.Teardown(t)
+	defer testingutils.Teardown(t)
 
 	mockPluginManager.EXPECT().Plugins().Return(mockPlugins, nil)
 
@@ -167,7 +167,7 @@ func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
 }
 func TestNormalizeZones_NormalizeError(t *testing.T) {
 	testNormalizerSetup(t)
-	defer utils.Teardown(t)
+	defer testingutils.Teardown(t)
 
 	mockPluginManager.EXPECT().Plugins().Return(mockPlugins, nil)
 
@@ -188,7 +188,7 @@ func TestNormalizeZones_NormalizeError(t *testing.T) {
 
 func TestNormalizeZones_ValidateError(t *testing.T) {
 	testNormalizerSetup(t)
-	defer utils.Teardown(t)
+	defer testingutils.Teardown(t)
 
 	mockPluginManager.EXPECT().Plugins().Return(mockPlugins, nil)
 
