@@ -26,7 +26,7 @@ import (
 
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/schema"
-	"github.com/bcurnow/zonemgr/test/mocks"
+	"github.com/bcurnow/zonemgr/test"
 	"github.com/bcurnow/zonemgr/version"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
@@ -41,12 +41,12 @@ type testNormalize struct {
 
 var (
 	mockController  *gomock.Controller
-	mockValidations *mocks.MockValidator
+	mockValidations *test.MockValidator
 )
 
 func setup(t *testing.T) {
 	mockController = gomock.NewController(t)
-	mockValidations = mocks.NewMockValidator(mockController)
+	mockValidations = test.NewMockValidator(mockController)
 	validations = mockValidations
 }
 

@@ -26,15 +26,14 @@ import (
 	plugins "github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/schema"
 	"github.com/bcurnow/zonemgr/test"
-	"github.com/bcurnow/zonemgr/test/mocks"
 	"github.com/golang/mock/gomock"
 )
 
 var (
 	mockController    *gomock.Controller
-	mockAPlugin       *mocks.MockZoneMgrPlugin
-	mockCNAMEPlugin   *mocks.MockZoneMgrPlugin
-	mockPluginManager *mocks.MockPluginManager
+	mockAPlugin       *test.MockZoneMgrPlugin
+	mockCNAMEPlugin   *test.MockZoneMgrPlugin
+	mockPluginManager *test.MockPluginManager
 	mockPlugins       map[plugins.PluginType]*plugins.Plugin
 
 	testZone = &schema.Zone{
@@ -58,13 +57,13 @@ var (
 
 func setup(t *testing.T) {
 	mockController = gomock.NewController(t)
-	mockPluginManager = mocks.NewMockPluginManager(mockController)
+	mockPluginManager = test.NewMockPluginManager(mockController)
 
 	// Replace the package pluginManager with the mock
 	pluginManager = mockPluginManager
 
-	mockAPlugin = mocks.NewMockZoneMgrPlugin(mockController)
-	mockCNAMEPlugin = mocks.NewMockZoneMgrPlugin(mockController)
+	mockAPlugin = test.NewMockZoneMgrPlugin(mockController)
+	mockCNAMEPlugin = test.NewMockZoneMgrPlugin(mockController)
 	mockPlugins = make(map[plugins.PluginType]*plugins.Plugin)
 	mockPlugins[plugins.A] = &plugins.Plugin{PluginName: "Mock A Plugin", Plugin: mockAPlugin}
 	mockPlugins[plugins.CNAME] = &plugins.Plugin{PluginName: "Mock CNAME Plugin", Plugin: mockCNAMEPlugin}

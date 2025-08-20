@@ -23,20 +23,20 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/schema"
-	"github.com/bcurnow/zonemgr/test/mocks"
+	"github.com/bcurnow/zonemgr/test"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 )
 
 var (
 	mockController *gomock.Controller
-	mockNormalizer *mocks.MockNormalizer
+	mockNormalizer *test.MockNormalizer
 	defaultConfig  *schema.Config
 )
 
 func setup(t *testing.T) {
 	mockController = gomock.NewController(t)
-	mockNormalizer = mocks.NewMockNormalizer(mockController)
+	mockNormalizer = test.NewMockNormalizer(mockController)
 	normalizer = mockNormalizer
 	defaultConfig = &schema.Config{}
 	defaultConfig.ConfigDefaults()
