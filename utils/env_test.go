@@ -38,14 +38,14 @@ func TestDefaultValue(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		testEnv := &Env{EnvName: "TestDefaultEnv"}
+		testEnv := &Env{Name: "TestDefaultEnv"}
 		if tc.setEnv {
-			if err := os.Setenv(testEnv.EnvName, tc.value); err != nil {
-				t.Errorf("Unable to set %s=%s", testEnv.EnvName, tc.value)
+			if err := os.Setenv(testEnv.Name, tc.value); err != nil {
+				t.Errorf("Unable to set %s=%s", testEnv.Name, tc.value)
 			}
 		} else {
-			if err := os.Unsetenv(testEnv.EnvName); err != nil {
-				t.Errorf("Unable to unset %s", testEnv.EnvName)
+			if err := os.Unsetenv(testEnv.Name); err != nil {
+				t.Errorf("Unable to unset %s", testEnv.Name)
 			}
 		}
 		result := defaultValue(testEnv, tc.defaultValue)
@@ -67,29 +67,29 @@ func TestInit(t *testing.T) {
 		setEnv bool
 	}{
 		{GenerateReverseLookupZones, "false", false},
-		{GenerateReverseLookupZones, "TestInit" + GenerateReverseLookupZones.EnvName, true},
+		{GenerateReverseLookupZones, "TestInit" + GenerateReverseLookupZones.Name, true},
 		{GenerateSerial, "false", false},
-		{GenerateSerial, "TestInit" + GenerateSerial.EnvName, true},
+		{GenerateSerial, "TestInit" + GenerateSerial.Name, true},
 		{PluginsDirectory, filepath.Join(user.HomeDir, ".local", "share", "zonemgr", "plugins"), false},
-		{PluginsDirectory, "TestInit" + PluginsDirectory.EnvName, true},
+		{PluginsDirectory, "TestInit" + PluginsDirectory.Name, true},
 		{SerialChangeIndexDirectory, filepath.Join(user.HomeDir, ".local", "share", "zonemgr", "serial"), false},
-		{SerialChangeIndexDirectory, "TestInit" + SerialChangeIndexDirectory.EnvName, true},
+		{SerialChangeIndexDirectory, "TestInit" + SerialChangeIndexDirectory.Name, true},
 	}
 
 	for _, tc := range testCases {
 		if tc.setEnv {
-			if err := os.Setenv(tc.e.EnvName, "TestInit"+tc.e.EnvName); err != nil {
-				t.Errorf("Unable to set %s=%s", tc.e.EnvName, "TestInit"+tc.e.EnvName)
+			if err := os.Setenv(tc.e.Name, "TestInit"+tc.e.Name); err != nil {
+				t.Errorf("Unable to set %s=%s", tc.e.Name, "TestInit"+tc.e.Name)
 			}
 		} else {
-			if err := os.Unsetenv(tc.e.EnvName); err != nil {
-				t.Errorf("Unable to unset %s", tc.e.EnvName)
+			if err := os.Unsetenv(tc.e.Name); err != nil {
+				t.Errorf("Unable to unset %s", tc.e.Name)
 			}
 		}
 		// Recall init to update the values
 		defaultValues()
 		if tc.want != tc.e.Value {
-			t.Errorf("%s=%s, want %s", tc.e.EnvName, tc.e.Value, tc.want)
+			t.Errorf("%s=%s, want %s", tc.e.Name, tc.e.Value, tc.want)
 		}
 	}
 }

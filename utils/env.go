@@ -30,15 +30,15 @@ const EnvPrefix = "ZONEMGR_"
 
 // Represents a value retrieve from the environment (or defaulted)
 type Env struct {
-	Value   string
-	EnvName string
+	Value string
+	Name  string
 }
 
 var (
-	GenerateReverseLookupZones = &Env{EnvName: EnvPrefix + "GENERATE_REVERSE_LOOKUP_ZONES"}
-	GenerateSerial             = &Env{EnvName: EnvPrefix + "GENERATE_SERIAL"}
-	PluginsDirectory           = &Env{EnvName: EnvPrefix + "PLUGINS_DIR"}
-	SerialChangeIndexDirectory = &Env{EnvName: EnvPrefix + "SERIAL_INDEX_DIR"}
+	GenerateReverseLookupZones = &Env{Name: EnvPrefix + "GENERATE_REVERSE_LOOKUP_ZONES"}
+	GenerateSerial             = &Env{Name: EnvPrefix + "GENERATE_SERIAL"}
+	PluginsDirectory           = &Env{Name: EnvPrefix + "PLUGINS_DIR"}
+	SerialChangeIndexDirectory = &Env{Name: EnvPrefix + "SERIAL_INDEX_DIR"}
 )
 
 func init() {
@@ -57,11 +57,10 @@ func defaultValues() {
 	GenerateSerial.Value = defaultValue(GenerateSerial, "false")
 	PluginsDirectory.Value = defaultValue(PluginsDirectory, filepath.Join(user.HomeDir, ".local", "share", "zonemgr", "plugins"))
 	SerialChangeIndexDirectory.Value = defaultValue(SerialChangeIndexDirectory, filepath.Join(user.HomeDir, ".local", "share", "zonemgr", "serial"))
-
 }
 
 func defaultValue(e *Env, defaultValue string) string {
-	value := os.Getenv(e.EnvName)
+	value := os.Getenv(e.Name)
 
 	if value == "" {
 		value = defaultValue
