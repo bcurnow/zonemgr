@@ -45,7 +45,7 @@ func (th *Plugin) Configure(config *models.Config) error {
 }
 
 func (th *Plugin) Normalize(identifier string, rr *models.ResourceRecord) error {
-	if err := validations.StandardValidations(identifier, rr, plugins.A); err != nil {
+	if err := validations.CommonValidations(identifier, rr, plugins.A); err != nil {
 		return err
 	}
 

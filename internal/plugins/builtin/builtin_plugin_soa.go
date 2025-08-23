@@ -53,7 +53,7 @@ func (p *BuiltinPluginSOA) Configure(config *models.Config) error {
 }
 
 func (p *BuiltinPluginSOA) Normalize(identifier string, rr *models.ResourceRecord) error {
-	if err := validations.StandardValidations(identifier, rr, plugins.SOA); err != nil {
+	if err := validations.CommonValidations(identifier, rr, plugins.SOA); err != nil {
 		return err
 	}
 

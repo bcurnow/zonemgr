@@ -34,6 +34,25 @@ func (m *MockValidator) EXPECT() *MockValidatorMockRecorder {
 	return m.recorder
 }
 
+// CommonValidations mocks base method.
+func (m *MockValidator) CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{identifier, rr}
+	for _, a := range supportedTypes {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CommonValidations", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CommonValidations indicates an expected call of CommonValidations.
+func (mr *MockValidatorMockRecorder) CommonValidations(identifier, rr interface{}, supportedTypes ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{identifier, rr}, supportedTypes...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommonValidations", reflect.TypeOf((*MockValidator)(nil).CommonValidations), varargs...)
+}
+
 // EnsureIP mocks base method.
 func (m *MockValidator) EnsureIP(identifier, s string, rrType models.ResourceRecordType) error {
 	m.ctrl.T.Helper()
@@ -164,23 +183,4 @@ func (m *MockValidator) IsValidRFC1035Name(identifier, name string, rrType model
 func (mr *MockValidatorMockRecorder) IsValidRFC1035Name(identifier, name, rrType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsValidRFC1035Name", reflect.TypeOf((*MockValidator)(nil).IsValidRFC1035Name), identifier, name, rrType)
-}
-
-// StandardValidations mocks base method.
-func (m *MockValidator) StandardValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{identifier, rr}
-	for _, a := range supportedTypes {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "StandardValidations", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// StandardValidations indicates an expected call of StandardValidations.
-func (mr *MockValidatorMockRecorder) StandardValidations(identifier, rr interface{}, supportedTypes ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{identifier, rr}, supportedTypes...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StandardValidations", reflect.TypeOf((*MockValidator)(nil).StandardValidations), varargs...)
 }

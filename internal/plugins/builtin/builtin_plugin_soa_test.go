@@ -87,7 +87,7 @@ func TestSOANormalize(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		mockValidator.EXPECT().StandardValidations(tc.identifier, tc.rr, plugins.SOA)
+		mockValidator.EXPECT().CommonValidations(tc.identifier, tc.rr, plugins.SOA)
 		mockValidator.EXPECT().IsFullyQualified(tc.identifier, tc.name, tc.rr.Type)
 		mockValidator.EXPECT().IsFullyQualified(tc.identifier, tc.rr.Values[0].Value, tc.rr.Type)
 		mockValidator.EXPECT().FormatEmail(tc.identifier, tc.rr.Values[1].Value, tc.rr.Type)

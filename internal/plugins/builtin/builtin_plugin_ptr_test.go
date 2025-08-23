@@ -48,7 +48,7 @@ func TestPTRNormalize(t *testing.T) {
 		pluginType: plugins.PTR,
 		rrType:     models.PTR,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.PTR)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.PTR)
 			if rr.Name == "" {
 				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, rr.Type)
 			} else {
@@ -63,7 +63,7 @@ func TestPTRNormalize(t *testing.T) {
 		pluginType: plugins.PTR,
 		rrType:     models.PTR,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.PTR)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.PTR)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.PTR).Return(fmt.Errorf("not a valid name"))
 
 		},
@@ -73,7 +73,7 @@ func TestPTRNormalize(t *testing.T) {
 		pluginType: plugins.PTR,
 		rrType:     models.PTR,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.PTR)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.PTR)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.PTR)
 			mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), models.PTR).Return(fmt.Errorf("not fully qualified"))
 		},

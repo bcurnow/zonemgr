@@ -51,7 +51,7 @@ var (
 	generateReverseLookupZones bool
 	generateSerial             bool
 	serialChangeIndexDirectory string
-	zoneReverser               dns.ZoneReverser = &dns.StandardZoneReverser{}
+	zoneReverser               dns.ZoneReverser = dns.Reverser()
 	zoneFileGenerator          dns.ZoneFileGenerator
 	zoneYamlParser             dns.ZoneParser
 	normalizer                 dns.Normalizer

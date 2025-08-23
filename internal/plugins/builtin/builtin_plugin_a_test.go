@@ -49,7 +49,7 @@ func TestANormalize(t *testing.T) {
 		pluginType: plugins.A,
 		rrType:     models.A,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.A)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.A)
 			if rr.Name == "" {
 				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, rr.Type)
 			} else {
@@ -64,7 +64,7 @@ func TestANormalize(t *testing.T) {
 		pluginType: plugins.A,
 		rrType:     models.A,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.A)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.A)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.A).Return(fmt.Errorf("not a valid name"))
 		},
 	})
@@ -73,7 +73,7 @@ func TestANormalize(t *testing.T) {
 		pluginType: plugins.A,
 		rrType:     models.A,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.A)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.A)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, models.A)
 			mockValidator.EXPECT().EnsureIP(identifier, rr.Value, models.A).Return(fmt.Errorf("is not IP"))
 		},

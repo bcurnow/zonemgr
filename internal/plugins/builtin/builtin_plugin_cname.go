@@ -47,7 +47,7 @@ func (p *BuiltinPluginCNAME) Configure(config *models.Config) error {
 }
 
 func (p *BuiltinPluginCNAME) Normalize(identifier string, rr *models.ResourceRecord) error {
-	if err := validations.StandardValidations(identifier, rr, plugins.CNAME); err != nil {
+	if err := validations.CommonValidations(identifier, rr, plugins.CNAME); err != nil {
 		return err
 	}
 

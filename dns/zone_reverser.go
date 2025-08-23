@@ -32,11 +32,15 @@ type ZoneReverser interface {
 	ReverseZone(sourceZoneName string, zone *models.Zone) map[string]*models.Zone
 }
 
-type StandardZoneReverser struct {
+type zoneReverser struct {
 	ZoneReverser
 }
 
-func (zr *StandardZoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) map[string]*models.Zone {
+func Reverser() ZoneReverser {
+	return &zoneReverser{}
+}
+
+func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) map[string]*models.Zone {
 	reverseLookupZones := make(map[string]*models.Zone)
 
 	for _, rr := range zone.ResourceRecords {
@@ -75,7 +79,7 @@ func (zr *StandardZoneReverser) ReverseZone(sourceZoneName string, zone *models.
 	return reverseLookupZones
 }
 
-func (zr *StandardZoneReverser) toPTR(sourceZoneName string, rr *models.ResourceRecord) *models.ResourceRecord {
+func (zr *zoneReverser) toPTR(sourceZoneName string, rr *models.ResourceRecord) *models.ResourceRecord {
 	ptrName := rr.Name
 	if err := validations.IsFullyQualified(rr.Value, ptrName, rr.Type); err != nil {
 		ptrName = validations.EnsureTrailingDot(ptrName + "." + sourceZoneName)
@@ -94,7 +98,7 @@ func (zr *StandardZoneReverser) toPTR(sourceZoneName string, rr *models.Resource
 	}
 }
 
-func (zr *StandardZoneReverser) reverseZoneName(ip string) string {
+func (zr *zoneReverser) reverseZoneName(ip string) string {
 	// Reverse zones are named based on the reverse of the first three octets of an IP
 	// For example, if the IP is 10.2.2.10 the reverse zone name would be 2.2.10-in-addr.arpa
 	// Get the last three octets
@@ -112,7 +116,7 @@ func (zr *StandardZoneReverser) reverseZoneName(ip string) string {
 
 // Retrieves the last octet of an IPv4 address
 // Given 10.2.2.76, this function would return 76
-func (zr *StandardZoneReverser) lastOctet(ip string) string {
+func (zr *zoneReverser) lastOctet(ip string) string {
 	octets := strings.Split(ip, ".")
 	return octets[len(octets)-1]
 }

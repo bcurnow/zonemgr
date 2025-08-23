@@ -48,7 +48,7 @@ func TestCNAMENormalize(t *testing.T) {
 		pluginType: plugins.CNAME,
 		rrType:     models.CNAME,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.CNAME)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.CNAME)
 			if rr.Name == "" {
 				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, rr.Type)
 			} else {
@@ -63,7 +63,7 @@ func TestCNAMENormalize(t *testing.T) {
 		pluginType: plugins.CNAME,
 		rrType:     models.CNAME,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.CNAME)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.CNAME)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.CNAME).Return(fmt.Errorf("not a valid name"))
 		},
 	})

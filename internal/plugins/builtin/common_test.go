@@ -161,7 +161,7 @@ func testNormalizeValueNotIP(t *testing.T, plugin plugins.ZoneMgrPlugin, pluginT
 	identifier := "name"
 	rr := &models.ResourceRecord{Type: rrType, Value: "not an IP", Name: identifier}
 
-	mockValidator.EXPECT().StandardValidations(identifier, rr, pluginType)
+	mockValidator.EXPECT().CommonValidations(identifier, rr, pluginType)
 	mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, rrType)
 	mockValidator.EXPECT().EnsureNotIP(identifier, rr.Value, rrType).Return(fmt.Errorf("is an IP"))
 

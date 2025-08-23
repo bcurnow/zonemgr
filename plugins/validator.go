@@ -42,7 +42,7 @@ type Validator interface {
 	//   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsiblity of the individual plugins
 	//   - Validation that only Value or Values is populated
 	//   - Validation that only Comment or Values is populated
-	StandardValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error
+	CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error
 	// Checks if the supplied resource record matches one of the support plugin types
 	IsSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error
 	// Validates that the name provided matches the RFC1035 regex for valid names according to RFC1035
@@ -79,7 +79,7 @@ func V() Validator {
 //   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsiblity of the individual plugins
 //   - Validation that only Value or Values is populated
 //   - Validation that only Comment or Values is populated
-func (v *validator) StandardValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error {
+func (v *validator) CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error {
 	// Validate that this resource record is of the supported type
 	if err := v.IsSupportedPluginType(identifier, rr.Type, supportedTypes...); err != nil {
 		return err

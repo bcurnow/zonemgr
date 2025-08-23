@@ -48,7 +48,7 @@ func TestNSNormalize(t *testing.T) {
 		pluginType: plugins.NS,
 		rrType:     models.NS,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.NS)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
 
 			if rr.Name == "" {
 				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, "@", rr.Type)
@@ -71,7 +71,7 @@ func TestNSNormalize(t *testing.T) {
 		pluginType: plugins.NS,
 		rrType:     models.NS,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.NS)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.NS).Return(fmt.Errorf("not a valid name"))
 		},
 	})
@@ -80,7 +80,7 @@ func TestNSNormalize(t *testing.T) {
 		pluginType: plugins.NS,
 		rrType:     models.NS,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.NS)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, models.NS)
 			mockValidator.EXPECT().EnsureIP(identifier, rr.Value, models.NS).Return(fmt.Errorf("is not IP"))
 
@@ -91,7 +91,7 @@ func TestNSNormalize(t *testing.T) {
 		pluginType: plugins.NS,
 		rrType:     models.NS,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.NS)
+			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.NS)
 			mockValidator.EXPECT().EnsureIP(identifier, rr.RetrieveSingleValue(), models.NS)
 			mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), models.NS).Return(fmt.Errorf("not fully qualified"))

@@ -29,7 +29,7 @@ import (
 
 var validations Validator = V()
 
-func TestStandardValidations(t *testing.T) {
+func TestCommonValidations(t *testing.T) {
 	testCases := []struct {
 		rr         *models.ResourceRecord
 		name       string
@@ -44,7 +44,7 @@ func TestStandardValidations(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := validations.StandardValidations(tc.identifier, tc.rr, A)
+		err := validations.CommonValidations(tc.identifier, tc.rr, A)
 		if err != nil {
 			if tc.err == "" {
 				t.Errorf("unexpected error: %s", err)

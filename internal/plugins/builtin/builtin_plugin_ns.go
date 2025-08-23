@@ -46,7 +46,7 @@ func (p *BuiltinPluginNS) Configure(config *models.Config) error {
 }
 
 func (p *BuiltinPluginNS) Normalize(identifier string, rr *models.ResourceRecord) error {
-	if err := validations.StandardValidations(identifier, rr, plugins.NS); err != nil {
+	if err := validations.CommonValidations(identifier, rr, plugins.NS); err != nil {
 		return err
 	}
 
