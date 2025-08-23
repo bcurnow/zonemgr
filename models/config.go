@@ -16,32 +16,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package models
 
-import (
-	"strconv"
-
-	"github.com/bcurnow/zonemgr/utils"
-)
-
 type Config struct {
 	PluginsDirectory           string `yaml:"plugins_directory"`
 	GenerateSerial             bool   `yaml:"generate_serial"`
 	SerialChangeIndexDirectory string `yaml:"serial_change_index_directory"`
 	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones"`
-}
-
-func (c *Config) ConfigDefaults() error {
-	c.PluginsDirectory = utils.PluginsDirectory.Value
-	val, err := strconv.ParseBool(utils.GenerateSerial.Value)
-	if err != nil {
-		return err
-	}
-	c.GenerateSerial = val
-
-	c.SerialChangeIndexDirectory = utils.SerialChangeIndexDirectory.Value
-	val, err = strconv.ParseBool(utils.GenerateReverseLookupZones.Value)
-	if err != nil {
-		return err
-	}
-	c.GenerateReverseLookupZones = val
-	return nil
 }

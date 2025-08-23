@@ -17,13 +17,14 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package builtin
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
 )
 
 func TestNSPluginVersion(t *testing.T) {
@@ -31,7 +32,7 @@ func TestNSPluginVersion(t *testing.T) {
 }
 
 func TestNSPluginTypes(t *testing.T) {
-	testPluginTypes(t, &BuiltinPluginNS{}, NS)
+	testPluginTypes(t, &BuiltinPluginNS{}, plugins.NS)
 }
 
 func TestNSConfigure(t *testing.T) {
@@ -44,10 +45,10 @@ func TestNSNormalize(t *testing.T) {
 	plugin := &BuiltinPluginNS{}
 	testNormalizeValidNameAndDefaulting(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: NS,
+		pluginType: plugins.NS,
 		rrType:     models.NS,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, NS)
+			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.NS)
 
 			if rr.Name == "" {
 				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, "@", rr.Type)
@@ -67,19 +68,19 @@ func TestNSNormalize(t *testing.T) {
 	})
 	testNormalizeInvalidName(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: NS,
+		pluginType: plugins.NS,
 		rrType:     models.NS,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, NS)
+			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.NS)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.NS).Return(fmt.Errorf("not a valid name"))
 		},
 	})
 	testNormalizeValueIsIP(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: NS,
+		pluginType: plugins.NS,
 		rrType:     models.NS,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, NS)
+			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.NS)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, models.NS)
 			mockValidator.EXPECT().EnsureIP(identifier, rr.Value, models.NS).Return(fmt.Errorf("is not IP"))
 
@@ -87,10 +88,10 @@ func TestNSNormalize(t *testing.T) {
 	})
 	testNormalizeValueNotFullyQualified(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: NS,
+		pluginType: plugins.NS,
 		rrType:     models.NS,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, NS)
+			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.NS)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.NS)
 			mockValidator.EXPECT().EnsureIP(identifier, rr.RetrieveSingleValue(), models.NS)
 			mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), models.NS).Return(fmt.Errorf("not fully qualified"))
@@ -106,7 +107,7 @@ func TestNSRender(t *testing.T) {
 	setup(t)
 	defer teardown(t)
 	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().IsSupportedPluginType("testing", models.NS, NS)
+	mockValidator.EXPECT().IsSupportedPluginType("testing", models.NS, plugins.NS)
 	plugin := &BuiltinPluginNS{}
 	_, err := plugin.Render("testing", &models.ResourceRecord{Type: models.NS})
 	if err != nil {

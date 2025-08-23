@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/bcurnow/zonemgr/ctx"
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/models/testingutils"
 	"github.com/golang/mock/gomock"
@@ -36,9 +37,11 @@ var (
 func testZoneYamlParserSetup(t *testing.T) {
 	testingutils.Setup(t)
 	mockNormalizer = NewMockNormalizer(testingutils.MockController)
-	normalizer = mockNormalizer
 	defaultConfig = &models.Config{}
-	defaultConfig.ConfigDefaults()
+	defaultConfig.GenerateReverseLookupZones = ctx.C().GenerateReverseLookupZones()
+	defaultConfig.GenerateSerial = ctx.C().GenerateSerial()
+	defaultConfig.PluginsDirectory = ctx.C().PluginsDirectory()
+	defaultConfig.SerialChangeIndexDirectory = ctx.C().SerialChangeIndexDirectory()
 }
 
 func TestParse(t *testing.T) {
@@ -61,7 +64,7 @@ func TestParse(t *testing.T) {
 	mockNormalizer.EXPECT().Normalize(gomock.Any()).MaxTimes(len(testCases))
 
 	for _, tc := range testCases {
-		zones, err := (&YamlZoneParser{}).Parse(tc.inputFile)
+		zones, err := YamlZoneParser(mockNormalizer).Parse(tc.inputFile)
 
 		if err != nil {
 			if tc.err == "" {
@@ -99,7 +102,7 @@ func TestParse_NormalizerError(t *testing.T) {
 
 	mockNormalizer.EXPECT().Normalize(gomock.Any()).Return(fmt.Errorf("testing normalizer error"))
 
-	_, err := (&YamlZoneParser{}).Parse("minimal.zones.yaml")
+	_, err := YamlZoneParser(mockNormalizer).Parse("minimal.zones.yaml")
 	if err == nil {
 		t.Errorf("expected error")
 	} else {

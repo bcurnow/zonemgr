@@ -18,10 +18,11 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
+	"os"
+	"path/filepath"
 
+	"github.com/bcurnow/zonemgr/ctx"
 	"github.com/bcurnow/zonemgr/dns"
-	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/spf13/cobra"
@@ -37,25 +38,10 @@ var (
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			outputDir = toAbsoluteFilePath(outputDir, "output directory")
 			inputFile = toAbsoluteFilePath(inputFile, "input file")
-			serialChangeIndexDirectory = toAbsoluteFilePath(serialChangeIndexDirectory, "serial change index directory")
 
-			//Override the environment variables with any command line variables
-			if cmd.Flags().Changed("generate-reverse-lookup-zones") {
-				utils.GenerateReverseLookupZones.Value = strconv.FormatBool(generateReverseLookupZones)
-			}
-
-			if cmd.Flags().Changed("generate-serial") {
-				utils.GenerateSerial.Value = strconv.FormatBool(generateSerial)
-			}
-
-			if cmd.Flags().Changed("serial-change-index-directory") {
-				utils.SerialChangeIndexDirectory.Value = serialChangeIndexDirectory
-			}
-
-			// Make sure we load up all the plugins at the start
-			if _, err := pluginManager.Plugins(); err != nil {
-				return err
-			}
+			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins(), pluginManager.Metadata())
+			normalizer = dns.PluginNormalizer(pluginManager)
+			zoneYamlParser = dns.YamlZoneParser(normalizer)
 			return nil
 		},
 	}
@@ -65,10 +51,10 @@ var (
 	generateReverseLookupZones bool
 	generateSerial             bool
 	serialChangeIndexDirectory string
-	zoneReverser               dns.ZoneReverser      = &dns.StandardZoneReverser{}
-	zoneFileGenerator          dns.ZoneFileGenerator = &dns.StandardZoneFileGenerator{}
-	zoneYamlParser             dns.ZoneParser        = &dns.YamlZoneParser{}
-	normalizer                 dns.Normalizer        = &dns.StandardNormalizer{}
+	zoneReverser               dns.ZoneReverser = &dns.StandardZoneReverser{}
+	zoneFileGenerator          dns.ZoneFileGenerator
+	zoneYamlParser             dns.ZoneParser
+	normalizer                 dns.Normalizer
 )
 
 func generateZoneFile() error {
@@ -105,19 +91,19 @@ func init() {
 	generateCmd.Flags().StringVarP(&inputFile, "input-file`", "i", "zones.yaml", "Input YAML file")
 	generateCmd.MarkFlagRequired("input")
 	generateCmd.Flags().StringVarP(&outputDir, "output-dir", "o", ".", "Directory to output the BIND zone file(s) to")
-
-	generateReverseLookupZonesEnvValue, err := strconv.ParseBool(utils.GenerateReverseLookupZones.Value)
-	if err != nil {
-		generateReverseLookupZonesEnvValue = false
-	}
-	generateCmd.Flags().BoolVarP(&generateReverseLookupZones, "generate-reverse-lookup-zones", "r", generateReverseLookupZonesEnvValue, "If true, reverse lookup zones will be generated as well")
-	generateSerialEnvValue, err := strconv.ParseBool(utils.GenerateSerial.Value)
-	if err != nil {
-		generateSerialEnvValue = false
-	}
-	generateCmd.Flags().BoolVarP(&generateSerial, "generate-serial", "s", generateSerialEnvValue, "If true, the serial number on the SOA record will be automatically generated")
-	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, "serial-change-index-directory", "", utils.SerialChangeIndexDirectory.Value, "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
+	generateCmd.Flags().BoolVarP(&generateReverseLookupZones, ctx.FlagGenerateReverseLookupZone, "r", false, "If true, reverse lookup zones will be generated as well")
+	generateCmd.Flags().BoolVarP(&generateSerial, ctx.FlagGenerateSerial, "s", false, "If true, the serial number on the SOA record will be automatically generated")
+	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, ctx.FlagSerialChangeIndexDirectory, "", "~/.local/share/zonemgr/serial", "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
 
 	rootCmd.AddCommand(generateCmd)
 
+}
+
+func toAbsoluteFilePath(path string, name string) string {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		hclog.L().Error("Could not convert %s value '%s' into an absolute path", name, path)
+		os.Exit(1)
+	}
+	return absPath
 }

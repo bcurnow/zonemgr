@@ -24,6 +24,7 @@ import (
 	"sort"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugin_manager"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/hashicorp/go-hclog"
 )
@@ -32,11 +33,17 @@ type Normalizer interface {
 	Normalize(zones map[string]*models.Zone) error
 }
 
-type StandardNormalizer struct {
+type pluginNormalizer struct {
 	Normalizer
+	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
+	metadata map[plugins.PluginType]*plugins.PluginMetadata
 }
 
-func (n *StandardNormalizer) Normalize(zones map[string]*models.Zone) error {
+func PluginNormalizer(pluginManager plugin_manager.PluginManager) Normalizer {
+	return &pluginNormalizer{plugins: pluginManager.Plugins(), metadata: pluginManager.Metadata()}
+}
+
+func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 	hclog.L().Trace("Normalizing zones", "count", len(zones))
 	if len(zones) == 0 {
 		return fmt.Errorf("no zones found")
@@ -49,32 +56,30 @@ func (n *StandardNormalizer) Normalize(zones map[string]*models.Zone) error {
 	}
 	sort.Strings(zoneNames)
 
-	registeredPlugins, err := pluginManager.Plugins()
-	if err != nil {
-		return err
-	}
-
+	registeredPlugins := n.plugins
 	for _, name := range zoneNames {
 		zone := zones[name]
 
 		// Configure each of the plugins for this specific zone
-		for _, plugin := range registeredPlugins {
-			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", plugin.PluginName)
+		for pluginType, plugin := range registeredPlugins {
+			pluginMetadata := n.metadata[pluginType]
+			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", pluginMetadata.Name)
 			if nil == zone.Config {
 				// This shouldn't happen unless there's an accident in the code (like perhaps creating new models.Zone for a reverse lookup zone and forgetting to populate Config)
 				return fmt.Errorf("zone is missing config, zoneName=%s", name)
 			}
-			plugin.Plugin.Configure(zone.Config)
+			plugin.Configure(zone.Config)
 		}
 
-		if err := n.normalizeZone(name, zone, registeredPlugins); err != nil {
+		if err := n.normalizeZone(name, zone); err != nil {
 			return err
 		}
 
 		// Now perform any validations on the zone itself
-		for _, plugin := range registeredPlugins {
-			hclog.L().Debug("Calling Validatemodels.Zone", "zoneName", name, "pluginName", plugin.PluginName)
-			if err := plugin.Plugin.ValidateZone(name, zone); err != nil {
+		for pluginType, plugin := range registeredPlugins {
+			pluginMetadata := n.metadata[pluginType]
+			hclog.L().Debug("Calling Validatemodels.Zone", "zoneName", name, "pluginName", pluginMetadata.Name)
+			if err := plugin.ValidateZone(name, zone); err != nil {
 				return err
 			}
 		}
@@ -83,17 +88,17 @@ func (n *StandardNormalizer) Normalize(zones map[string]*models.Zone) error {
 	return nil
 }
 
-func (n *StandardNormalizer) normalizeZone(name string, zone *models.Zone, registeredPlugins map[plugins.PluginType]*plugins.Plugin) error {
+func (n *pluginNormalizer) normalizeZone(name string, zone *models.Zone) error {
 	hclog.L().Debug("Normalizing zone", "name", name)
 	for _, identifier := range zone.SortedResourceRecordKeys() {
 		rr := zone.ResourceRecords[identifier]
 		hclog.L().Trace("Normalizing record", "identifier", identifier, "zoneName", name)
-		plugin := registeredPlugins[plugins.PluginType(rr.Type)]
+		plugin := n.plugins[plugins.PluginType(rr.Type)]
 		if nil == plugin {
 			return fmt.Errorf("unable to normalize zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}
 		hclog.L().Trace("Calling Normalize on plugin", "identifier", identifier, "resourceRecordType", rr.Type, "zoneName", name, "plugin", plugin)
-		err := plugin.Plugin.Normalize(identifier, rr)
+		err := plugin.Normalize(identifier, rr)
 		if err != nil {
 			return err
 		}

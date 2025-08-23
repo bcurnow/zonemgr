@@ -53,10 +53,15 @@ type SerialIndexManager interface {
 	GetNext(zoneName string) (string, error)
 }
 
-type FileSerialIndexManager struct {
+type fileSerialIndexManager struct {
+	serialChangeIndexDirectory string
 }
 
-func (m *FileSerialIndexManager) GetNext(zoneName string) (string, error) {
+func FileSerialIndexManager(serialChangeIndexDirectory string) SerialIndexManager {
+	return &fileSerialIndexManager{serialChangeIndexDirectory: serialChangeIndexDirectory}
+}
+
+func (m *fileSerialIndexManager) GetNext(zoneName string) (string, error) {
 	if err := m.createSerialChangeIndexDirectory(); err != nil {
 		return "", err
 	}
@@ -82,7 +87,7 @@ func (m *FileSerialIndexManager) GetNext(zoneName string) (string, error) {
 	return serialIndex.toSerial(), nil
 }
 
-func (m *FileSerialIndexManager) parseFile(serialFile string) (*SerialIndex, error) {
+func (m *fileSerialIndexManager) parseFile(serialFile string) (*SerialIndex, error) {
 	hclog.L().Trace("Opening serial change index file", "file", serialFile)
 	inputBytes, err := os.ReadFile(serialFile)
 	if err != nil {
@@ -98,7 +103,7 @@ func (m *FileSerialIndexManager) parseFile(serialFile string) (*SerialIndex, err
 	return serialIndex, nil
 }
 
-func (m *FileSerialIndexManager) initFile(serialFile string) (*SerialIndex, error) {
+func (m *fileSerialIndexManager) initFile(serialFile string) (*SerialIndex, error) {
 	hclog.L().Debug("Creating new serial file", "file", serialFile)
 	//Lock the file so no other process modifies it while we're updating
 	fileLock, err := m.getLock(serialFile)
@@ -127,7 +132,7 @@ func (m *FileSerialIndexManager) initFile(serialFile string) (*SerialIndex, erro
 	return serialIndex, nil
 }
 
-func (m *FileSerialIndexManager) incrementAndUpdate(serialFile string) (string, error) {
+func (m *fileSerialIndexManager) incrementAndUpdate(serialFile string) (string, error) {
 	//Lock the file so no other process modifies it while we're updating
 	fileLock, err := m.getLock(serialFile)
 	if err != nil {
@@ -171,7 +176,7 @@ func (m *FileSerialIndexManager) incrementAndUpdate(serialFile string) (string, 
 
 }
 
-func (m *FileSerialIndexManager) unmarshal(inputBytes []byte) (*SerialIndex, error) {
+func (m *fileSerialIndexManager) unmarshal(inputBytes []byte) (*SerialIndex, error) {
 	var serialIndex SerialIndex
 	err := yaml.Unmarshal(inputBytes, &serialIndex)
 	if err != nil {
@@ -180,7 +185,7 @@ func (m *FileSerialIndexManager) unmarshal(inputBytes []byte) (*SerialIndex, err
 	return &serialIndex, nil
 }
 
-func (m *FileSerialIndexManager) marshal(file *os.File, serialIndex *SerialIndex) error {
+func (m *fileSerialIndexManager) marshal(file *os.File, serialIndex *SerialIndex) error {
 	yamlBytes, err := yaml.Marshal(serialIndex)
 	if err != nil {
 		return err
@@ -192,19 +197,19 @@ func (m *FileSerialIndexManager) marshal(file *os.File, serialIndex *SerialIndex
 	return nil
 }
 
-func (m *FileSerialIndexManager) fileName(zoneName string) string {
-	return filepath.Join(SerialChangeIndexDirectory.Value, zoneName+serialChangeIndexFileExtension)
+func (m *fileSerialIndexManager) fileName(zoneName string) string {
+	return filepath.Join(m.serialChangeIndexDirectory, zoneName+serialChangeIndexFileExtension)
 }
 
-func (m *FileSerialIndexManager) exists(serialFile string) bool {
+func (m *fileSerialIndexManager) exists(serialFile string) bool {
 	// now check if the file exists
 	_, err := os.Stat(serialFile)
 	return !errors.Is(err, os.ErrNotExist)
 }
 
-func (m *FileSerialIndexManager) createSerialChangeIndexDirectory() error {
-	if _, err := os.Stat(SerialChangeIndexDirectory.Value); os.IsNotExist(err) {
-		if err := os.MkdirAll(SerialChangeIndexDirectory.Value, os.FileMode(0750)); err != nil {
+func (m *fileSerialIndexManager) createSerialChangeIndexDirectory() error {
+	if _, err := os.Stat(m.serialChangeIndexDirectory); os.IsNotExist(err) {
+		if err := os.MkdirAll(m.serialChangeIndexDirectory, os.FileMode(0750)); err != nil {
 			return err
 		}
 	}
@@ -212,7 +217,7 @@ func (m *FileSerialIndexManager) createSerialChangeIndexDirectory() error {
 }
 
 // Will try and get the lock for 10 seconds, returns an error if it can't get the lock
-func (m *FileSerialIndexManager) getLock(serialFile string) (*flock.Flock, error) {
+func (m *fileSerialIndexManager) getLock(serialFile string) (*flock.Flock, error) {
 	// Create a file lock, this doesn't lock the file...yet
 	fileLock := flock.New(serialFile)
 

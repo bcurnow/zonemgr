@@ -17,14 +17,35 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package plugin_manager
 
-var builtins map[PluginType]*Plugin = make(map[PluginType]*Plugin)
+import (
+	"io"
+	"os"
 
-func BuiltinPlugins() map[PluginType]*Plugin {
-	return builtins
+	"github.com/hashicorp/go-hclog"
+)
+
+func PluginLogger() hclog.Logger {
+	if pluginDebug {
+		return hclog.L().Named("plugin")
+	}
+	return hclog.New(&hclog.LoggerOptions{
+		Name:  "plugin",
+		Level: hclog.Off,
+	})
 }
 
-func registerBuiltIn(pluginType PluginType, plugin ZoneMgrPlugin) {
-	builtins[pluginType] = &Plugin{IsBuiltIn: true, PluginName: string(pluginType), Plugin: plugin, PluginCmd: "Built In"}
+func PluginStdout() io.Writer {
+	if pluginDebug {
+		return os.Stdout
+	}
+	return io.Discard
+}
+
+func PluginStderr() io.Writer {
+	if pluginDebug {
+		return os.Stderr
+	}
+	return io.Discard
 }

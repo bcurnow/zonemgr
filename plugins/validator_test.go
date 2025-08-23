@@ -27,6 +27,8 @@ import (
 	"github.com/bcurnow/zonemgr/models"
 )
 
+var validations Validator = &StandardValidator{}
+
 func TestStandardValidations(t *testing.T) {
 	testCases := []struct {
 		rr         *models.ResourceRecord

@@ -17,79 +17,80 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package builtin
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
 )
 
-func TestAPluginVersion(t *testing.T) {
-	// Make sure test helpers (like testPluginVersion) are not in plugins or schema packages.
-	testPluginVersion(t, &APlugin{})
+func TestPTRPluginVersion(t *testing.T) {
+	testPluginVersion(t, &BuiltinPluginPTR{})
 }
 
-func TestAPluginTypes(t *testing.T) {
-	testPluginTypes(t, &APlugin{}, A)
+func TestPTRPluginTypes(t *testing.T) {
+	testPluginTypes(t, &BuiltinPluginPTR{}, plugins.PTR)
 }
 
-func TestAConfigure(t *testing.T) {
-	testConfigure(t, &APlugin{})
+func TestPTRConfigure(t *testing.T) {
+	testConfigure(t, &BuiltinPluginPTR{})
 }
 
-func TestANormalize(t *testing.T) {
+func TestPTRNormalize(t *testing.T) {
 	setup(t)
 	defer teardown(t)
-	plugin := &APlugin{}
+	plugin := &BuiltinPluginPTR{}
 	testNormalizeValidNameAndDefaulting(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: A,
-		rrType:     models.A,
+		pluginType: plugins.PTR,
+		rrType:     models.PTR,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, A)
+			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.PTR)
 			if rr.Name == "" {
 				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, rr.Type)
 			} else {
 				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, rr.Type)
 			}
 
-			mockValidator.EXPECT().EnsureIP(identifier, rr.RetrieveSingleValue(), rr.Type)
+			mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type)
 		},
 	})
 	testNormalizeInvalidName(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: A,
-		rrType:     models.A,
+		pluginType: plugins.PTR,
+		rrType:     models.PTR,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, A)
-			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.A).Return(fmt.Errorf("not a valid name"))
+			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.PTR)
+			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.PTR).Return(fmt.Errorf("not a valid name"))
+
 		},
 	})
-	testNormalizeValueIsIP(t, &testNormalize{
+	testNormalizeValueNotFullyQualified(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: A,
-		rrType:     models.A,
+		pluginType: plugins.PTR,
+		rrType:     models.PTR,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, A)
-			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, models.A)
-			mockValidator.EXPECT().EnsureIP(identifier, rr.Value, models.A).Return(fmt.Errorf("is not IP"))
+			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.PTR)
+			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.PTR)
+			mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), models.PTR).Return(fmt.Errorf("not fully qualified"))
 		},
 	})
 }
 
-func TestAValidateZone(t *testing.T) {
-	testValidateZone(t, &APlugin{})
+func TestPTRValidateZone(t *testing.T) {
+	testValidateZone(t, &BuiltinPluginPTR{})
 }
 
-func TestARender(t *testing.T) {
+func TestPTRRender(t *testing.T) {
 	setup(t)
 	defer teardown(t)
 	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().IsSupportedPluginType("testing", models.A, A)
-	plugin := &APlugin{}
-	_, err := plugin.Render("testing", &models.ResourceRecord{Type: models.A})
+	mockValidator.EXPECT().IsSupportedPluginType("testing", models.PTR, plugins.PTR)
+	plugin := &BuiltinPluginPTR{}
+	_, err := plugin.Render("testing", &models.ResourceRecord{Type: models.PTR})
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}

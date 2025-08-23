@@ -32,11 +32,17 @@ import (
 type ZoneFileGenerator interface {
 	GenerateZone(name string, zone *models.Zone, outputDir string) error
 }
-type StandardZoneFileGenerator struct {
+type pluginZoneFileGenerator struct {
 	ZoneFileGenerator
+	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
+	metadata map[plugins.PluginType]*plugins.PluginMetadata
 }
 
-func (zfg *StandardZoneFileGenerator) GenerateZone(name string, zone *models.Zone, outputDir string) error {
+func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.PluginMetadata) ZoneFileGenerator {
+	return &pluginZoneFileGenerator{plugins: plugins, metadata: metadata}
+}
+
+func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone, outputDir string) error {
 	outputFile, err := os.Create(filepath.Join(outputDir, name))
 	if err != nil {
 		return fmt.Errorf("failed to create output file for zone %s: %w", name, err)
@@ -52,14 +58,11 @@ func (zfg *StandardZoneFileGenerator) GenerateZone(name string, zone *models.Zon
 		fmt.Fprintln(outputFile, zone.TTL.Render())
 	}
 
-	registeredPlugins, err := pluginManager.Plugins()
-	if err != nil {
-		return err
-	}
+	registeredPlugins := zfg.plugins
 
 	// Configure each of the plugins for this specific zone
 	for _, plugin := range registeredPlugins {
-		plugin.Plugin.Configure(zone.Config)
+		plugin.Configure(zone.Config)
 	}
 
 	for identifier, rr := range zone.ResourceRecords {
@@ -69,7 +72,7 @@ func (zfg *StandardZoneFileGenerator) GenerateZone(name string, zone *models.Zon
 		if nil == plugin {
 			return fmt.Errorf("unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}
-		renderedRecord, err := plugin.Plugin.Render(identifier, rr)
+		renderedRecord, err := plugin.Render(identifier, rr)
 		if err != nil {
 			return err
 		}

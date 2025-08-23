@@ -27,10 +27,12 @@ run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
 	ZONEMGR_PLUGINS=examples/bin/ ./bin/zonemgr plugins
 
 mocks:
-	mockgen -source=plugins/zonemgr_plugin.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_zonemgr_plugin.go
-	mockgen -source=plugins/validator.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_validator.go
-	mockgen -source=plugins/plugin_manager.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins" >plugins/mock_plugin_manager.go
+	mockgen -source=ctx/context.go -package ctx -self_package "github.com/bcurnow/zonemgr/ctx" >ctx/mock_context.go
+	mockgen -source=ctx/env.go -package ctx -self_package "github.com/bcurnow/zonemgr/ctx" >ctx/mock_environment.go
 	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns" >dns/mock_normalizer.go
+	mockgen -source=plugin_manager/plugin_manager.go -package plugin_manager -self_package "github.com/bcurnow/zonemgr/plugin_manager" >plugin_manager/mock_plugin_manager.go
+	mockgen -source=plugins/validator.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_validator.go
+	mockgen -source=plugins/zonemgr_plugin.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_zonemgr_plugin.go
 
 proto:
 	buf generate

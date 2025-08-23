@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
-package plugins
+package builtin
 
-var validations Validator = &StandardValidator{}
+import "github.com/bcurnow/zonemgr/plugins"
+
+var validations plugins.Validator = &plugins.StandardValidator{}

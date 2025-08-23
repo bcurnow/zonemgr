@@ -33,6 +33,8 @@ var (
 			}
 
 			input = toAbsoluteFilePath(input, "input")
+
+			parser = dns.YamlZoneParser(dns.PluginNormalizer(pluginManager))
 		},
 	}
 
@@ -51,7 +53,7 @@ var (
 	}
 
 	input  string
-	parser dns.ZoneParser = &dns.YamlZoneParser{}
+	parser dns.ZoneParser
 )
 
 func init() {

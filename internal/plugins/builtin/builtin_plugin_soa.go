@@ -17,12 +17,13 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package builtin
 
 import (
 	"fmt"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 )
@@ -30,13 +31,11 @@ import (
 const generatedSerialNumberComment = "Zonemgr generated serial number"
 
 var (
-	_                  ZoneMgrPlugin            = &BuiltinPluginSOA{}
-	serialIndexManager utils.SerialIndexManager = &utils.FileSerialIndexManager{}
+	_ plugins.ZoneMgrPlugin = &BuiltinPluginSOA{}
 )
 
 type BuiltinPluginSOA struct {
-	ZoneMgrPlugin
-
+	plugins.ZoneMgrPlugin
 	config *models.Config
 }
 
@@ -44,8 +43,8 @@ func (p *BuiltinPluginSOA) PluginVersion() (string, error) {
 	return utils.Version(), nil
 }
 
-func (p *BuiltinPluginSOA) PluginTypes() ([]PluginType, error) {
-	return PluginTypes(SOA), nil
+func (p *BuiltinPluginSOA) PluginTypes() ([]plugins.PluginType, error) {
+	return plugins.PluginTypes(plugins.SOA), nil
 }
 
 func (p *BuiltinPluginSOA) Configure(config *models.Config) error {
@@ -54,7 +53,7 @@ func (p *BuiltinPluginSOA) Configure(config *models.Config) error {
 }
 
 func (p *BuiltinPluginSOA) Normalize(identifier string, rr *models.ResourceRecord) error {
-	if err := validations.StandardValidations(identifier, rr, SOA); err != nil {
+	if err := validations.StandardValidations(identifier, rr, plugins.SOA); err != nil {
 		return err
 	}
 
@@ -79,7 +78,7 @@ func (p *BuiltinPluginSOA) Normalize(identifier string, rr *models.ResourceRecor
 	generatedSerial := ""
 	if p.config.GenerateSerial {
 		// The name of the SOA record is also the name of the zone
-		nextSerial, err := serialIndexManager.GetNext(rr.Name)
+		nextSerial, err := utils.FileSerialIndexManager(pluginContext.SerialChangeIndexDirectory()).GetNext(rr.Name)
 		if err != nil {
 			return err
 		}
@@ -113,7 +112,7 @@ func (p *BuiltinPluginSOA) ValidateZone(name string, zone *models.Zone) error {
 }
 
 func (p *BuiltinPluginSOA) Render(identifier string, rr *models.ResourceRecord) (string, error) {
-	if err := validations.IsSupportedPluginType(identifier, rr.Type, SOA); err != nil {
+	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.SOA); err != nil {
 		return "", err
 	}
 
@@ -198,5 +197,5 @@ func insertSerial(rr *models.ResourceRecord, serial string) {
 }
 
 func init() {
-	registerBuiltIn(SOA, &BuiltinPluginSOA{})
+	registerBuiltIn(plugins.SOA, &BuiltinPluginSOA{})
 }

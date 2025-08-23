@@ -17,11 +17,8 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package builtin
 
-type Plugin struct {
-	IsBuiltIn  bool
-	PluginName string
-	PluginCmd  string
-	Plugin     ZoneMgrPlugin
-}
+import "github.com/bcurnow/zonemgr/ctx"
+
+var pluginContext = ctx.C()

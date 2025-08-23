@@ -20,66 +20,12 @@
 package utils
 
 import (
-	"io"
 	"os"
-	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-hclog"
 )
-
-func TestEnablePluginDebug(t *testing.T) {
-	testCases := []struct {
-		initialValue bool
-		want         bool
-	}{
-		{true, true},
-		{false, true},
-	}
-
-	for _, tc := range testCases {
-		pluginDebug = tc.initialValue
-		EnablePluginDebug()
-		if pluginDebug != tc.want {
-			t.Errorf("pluginDebug=%s, want %s", strconv.FormatBool(pluginDebug), strconv.FormatBool(tc.want))
-		}
-	}
-}
-
-func TestPluginStdout(t *testing.T) {
-	testCases := []struct {
-		want        io.Writer
-		pluginDebug bool
-	}{
-		{os.Stdout, true},
-		{io.Discard, false},
-	}
-	for _, tc := range testCases {
-		pluginDebug = tc.pluginDebug
-		result := PluginStdout()
-		if result != tc.want {
-			t.Errorf("pluginStdout=%s, want %s", result, tc.want)
-		}
-	}
-}
-
-func TestPluginStderr(t *testing.T) {
-	testCases := []struct {
-		want        io.Writer
-		pluginDebug bool
-	}{
-		{os.Stderr, true},
-		{io.Discard, false},
-	}
-	for _, tc := range testCases {
-		pluginDebug = tc.pluginDebug
-		result := PluginStderr()
-		if result != tc.want {
-			t.Errorf("pluginStderr=%s, want %s", result, tc.want)
-		}
-	}
-}
 
 func TestConfigureLogging(t *testing.T) {
 	testCases := []struct {

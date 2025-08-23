@@ -17,7 +17,7 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package builtin
 
 import (
 	"fmt"
@@ -25,35 +25,36 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 )
 
 type testNormalize struct {
-	plugin     ZoneMgrPlugin
-	pluginType PluginType
+	plugin     plugins.ZoneMgrPlugin
+	pluginType plugins.PluginType
 	rrType     models.ResourceRecordType
 	expects    func(identifier string, rr *models.ResourceRecord)
 }
 
 var (
 	mockController *gomock.Controller
-	mockValidator  *MockValidator
+	mockValidator  *plugins.MockValidator
 )
 
 func setup(t *testing.T) {
 	mockController = gomock.NewController(t)
-	mockValidator = NewMockValidator(mockController)
+	mockValidator = plugins.NewMockValidator(mockController)
 	validations = mockValidator
 }
 
 func teardown(_ *testing.T) {
 	mockController.Finish()
-	validations = &StandardValidator{}
+	validations = &plugins.StandardValidator{}
 }
 
-func testPluginVersion(t *testing.T, p ZoneMgrPlugin) {
+func testPluginVersion(t *testing.T, p plugins.ZoneMgrPlugin) {
 	ver, err := p.PluginVersion()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
@@ -64,7 +65,7 @@ func testPluginVersion(t *testing.T, p ZoneMgrPlugin) {
 	}
 }
 
-func testPluginTypes(t *testing.T, p ZoneMgrPlugin, want ...PluginType) {
+func testPluginTypes(t *testing.T, p plugins.ZoneMgrPlugin, want ...plugins.PluginType) {
 	pluginTypes, err := p.PluginTypes()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
@@ -75,13 +76,13 @@ func testPluginTypes(t *testing.T, p ZoneMgrPlugin, want ...PluginType) {
 	}
 }
 
-func testConfigure(t *testing.T, p ZoneMgrPlugin) {
+func testConfigure(t *testing.T, p plugins.ZoneMgrPlugin) {
 	if err := p.Configure(nil); err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
 }
 
-func testValidateZone(t *testing.T, p ZoneMgrPlugin) {
+func testValidateZone(t *testing.T, p plugins.ZoneMgrPlugin) {
 	if err := p.ValidateZone("noop", &models.Zone{}); err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
@@ -156,7 +157,7 @@ func testNormalizeValueIsIP(t *testing.T, tn *testNormalize) {
 
 // Runs the testinng necessary for any resouurce type where the Value needs to NOT be an IP address
 // NOTE: setup needs to be called before calling this method!
-func testNormalizeValueNotIP(t *testing.T, plugin ZoneMgrPlugin, pluginType PluginType, rrType models.ResourceRecordType) {
+func testNormalizeValueNotIP(t *testing.T, plugin plugins.ZoneMgrPlugin, pluginType plugins.PluginType, rrType models.ResourceRecordType) {
 	identifier := "name"
 	rr := &models.ResourceRecord{Type: rrType, Value: "not an IP", Name: identifier}
 

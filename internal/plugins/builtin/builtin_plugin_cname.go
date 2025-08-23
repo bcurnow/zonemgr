@@ -17,27 +17,28 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package builtin
 
 import (
 	"fmt"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
 )
 
-var _ ZoneMgrPlugin = &BuiltinPluginCNAME{}
+var _ plugins.ZoneMgrPlugin = &BuiltinPluginCNAME{}
 
 type BuiltinPluginCNAME struct {
-	ZoneMgrPlugin
+	plugins.ZoneMgrPlugin
 }
 
 func (p *BuiltinPluginCNAME) PluginVersion() (string, error) {
 	return utils.Version(), nil
 }
 
-func (p *BuiltinPluginCNAME) PluginTypes() ([]PluginType, error) {
-	return PluginTypes(CNAME), nil
+func (p *BuiltinPluginCNAME) PluginTypes() ([]plugins.PluginType, error) {
+	return plugins.PluginTypes(plugins.CNAME), nil
 }
 
 func (p *BuiltinPluginCNAME) Configure(config *models.Config) error {
@@ -46,7 +47,7 @@ func (p *BuiltinPluginCNAME) Configure(config *models.Config) error {
 }
 
 func (p *BuiltinPluginCNAME) Normalize(identifier string, rr *models.ResourceRecord) error {
-	if err := validations.StandardValidations(identifier, rr, CNAME); err != nil {
+	if err := validations.StandardValidations(identifier, rr, plugins.CNAME); err != nil {
 		return err
 	}
 
@@ -86,12 +87,12 @@ func (p *BuiltinPluginCNAME) ValidateZone(name string, zone *models.Zone) error 
 }
 
 func (p *BuiltinPluginCNAME) Render(identifier string, rr *models.ResourceRecord) (string, error) {
-	if err := validations.IsSupportedPluginType(identifier, rr.Type, CNAME); err != nil {
+	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.CNAME); err != nil {
 		return "", err
 	}
 	return rr.RenderSingleValueResource(), nil
 }
 
 func init() {
-	registerBuiltIn(CNAME, &BuiltinPluginCNAME{})
+	registerBuiltIn(plugins.CNAME, &BuiltinPluginCNAME{})
 }

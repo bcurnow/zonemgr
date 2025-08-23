@@ -17,13 +17,14 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package builtin
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
 )
 
 func TestCNAMEPluginVersion(t *testing.T) {
@@ -31,7 +32,7 @@ func TestCNAMEPluginVersion(t *testing.T) {
 }
 
 func TestCNAMEPluginTypes(t *testing.T) {
-	testPluginTypes(t, &BuiltinPluginCNAME{}, CNAME)
+	testPluginTypes(t, &BuiltinPluginCNAME{}, plugins.CNAME)
 }
 
 func TestCNAMEConfigure(t *testing.T) {
@@ -44,10 +45,10 @@ func TestCNAMENormalize(t *testing.T) {
 	plugin := &BuiltinPluginCNAME{}
 	testNormalizeValidNameAndDefaulting(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: CNAME,
+		pluginType: plugins.CNAME,
 		rrType:     models.CNAME,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, CNAME)
+			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.CNAME)
 			if rr.Name == "" {
 				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, rr.Type)
 			} else {
@@ -59,14 +60,14 @@ func TestCNAMENormalize(t *testing.T) {
 	})
 	testNormalizeInvalidName(t, &testNormalize{
 		plugin:     plugin,
-		pluginType: CNAME,
+		pluginType: plugins.CNAME,
 		rrType:     models.CNAME,
 		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().StandardValidations(identifier, rr, CNAME)
+			mockValidator.EXPECT().StandardValidations(identifier, rr, plugins.CNAME)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.CNAME).Return(fmt.Errorf("not a valid name"))
 		},
 	})
-	testNormalizeValueNotIP(t, plugin, CNAME, models.CNAME)
+	testNormalizeValueNotIP(t, plugin, plugins.CNAME, models.CNAME)
 }
 
 func TestCNAMEValidateZone(t *testing.T) {
@@ -77,7 +78,7 @@ func TestCNAMERender(t *testing.T) {
 	setup(t)
 	defer teardown(t)
 	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().IsSupportedPluginType("testing", models.CNAME, CNAME)
+	mockValidator.EXPECT().IsSupportedPluginType("testing", models.CNAME, plugins.CNAME)
 	plugin := &BuiltinPluginCNAME{}
 	_, err := plugin.Render("testing", &models.ResourceRecord{Type: models.CNAME})
 	if err != nil {

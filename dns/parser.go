@@ -29,13 +29,16 @@ type ZoneParser interface {
 	Parse(inputFile string) (map[string]*models.Zone, error)
 }
 
-type YamlZoneParser struct {
+type yamlZoneParser struct {
 	ZoneParser
+	normalizer Normalizer
 }
 
-var normalizer Normalizer = &StandardNormalizer{}
+func YamlZoneParser(normalizer Normalizer) ZoneParser {
+	return &yamlZoneParser{normalizer: normalizer}
+}
 
-func (p *YamlZoneParser) Parse(inputFile string) (map[string]*models.Zone, error) {
+func (p *yamlZoneParser) Parse(inputFile string) (map[string]*models.Zone, error) {
 	hclog.L().Debug("Opening input file", "inputFile", inputFile)
 	inputBytes, err := os.ReadFile(inputFile)
 	if err != nil {
@@ -57,17 +60,16 @@ func (p *YamlZoneParser) Parse(inputFile string) (map[string]*models.Zone, error
 		if nil == zone.Config {
 			zone.Config = &models.Config{}
 		}
-		zone.Config.ConfigDefaults()
 	}
 
 	// Normalize the zones
-	if err = normalizer.Normalize(zones); err != nil {
+	if err = p.normalizer.Normalize(zones); err != nil {
 		return nil, fmt.Errorf("failed to normalize zones: %w", err)
 	}
 	return zones, nil
 }
 
-func (p *YamlZoneParser) unmarshal(inputBytes []byte) (map[string]*models.Zone, error) {
+func (p *yamlZoneParser) unmarshal(inputBytes []byte) (map[string]*models.Zone, error) {
 	var zones map[string]*models.Zone
 	err := yaml.Unmarshal(inputBytes, &zones)
 	if err != nil {

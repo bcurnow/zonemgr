@@ -31,10 +31,7 @@ var (
 		Use:   "plugins",
 		Short: "Prints information about the current plugins",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			registeredPlugins, err := pluginManager.Plugins()
-			if err != nil {
-				return err
-			}
+			registeredPlugins := pluginManager.Plugins()
 
 			// Get all the plugin types so we sort and print the plugins in order
 			pluginTypes := make([]plugins.PluginType, 0, len(registeredPlugins))
@@ -52,16 +49,17 @@ var (
 
 			for _, pluginType := range pluginTypes {
 				plugin := registeredPlugins[pluginType]
-				pluginVersion, err := plugin.Plugin.PluginVersion()
+				pluginMetadata := pluginManager.Metadata()[pluginType]
+
+				pluginVersion, err := plugin.PluginVersion()
 				if err != nil {
 					return err
 				}
-				fmt.Printf(formatString, pluginType, plugin.PluginName, pluginVersion, plugin.PluginCmd)
+				fmt.Printf(formatString, pluginType, pluginMetadata.Name, pluginVersion, pluginMetadata.Command)
 			}
 			return nil
 		},
 	}
-	pluginManager = plugins.GetPluginManager()
 )
 
 func init() {

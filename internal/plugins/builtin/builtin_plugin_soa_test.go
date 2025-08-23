@@ -17,12 +17,13 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package builtin
 
 import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
 )
 
 func TestSOAPluginVersion(t *testing.T) {
@@ -30,7 +31,7 @@ func TestSOAPluginVersion(t *testing.T) {
 }
 
 func TestSOAPluginTypes(t *testing.T) {
-	testPluginTypes(t, &BuiltinPluginSOA{}, SOA)
+	testPluginTypes(t, &BuiltinPluginSOA{}, plugins.SOA)
 }
 
 func TestSOAConfigure(t *testing.T) {
@@ -86,7 +87,7 @@ func TestSOANormalize(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		mockValidator.EXPECT().StandardValidations(tc.identifier, tc.rr, SOA)
+		mockValidator.EXPECT().StandardValidations(tc.identifier, tc.rr, plugins.SOA)
 		mockValidator.EXPECT().IsFullyQualified(tc.identifier, tc.name, tc.rr.Type)
 		mockValidator.EXPECT().IsFullyQualified(tc.identifier, tc.rr.Values[0].Value, tc.rr.Type)
 		mockValidator.EXPECT().FormatEmail(tc.identifier, tc.rr.Values[1].Value, tc.rr.Type)
@@ -141,7 +142,7 @@ func TestSOARender(t *testing.T) {
 	setup(t)
 	defer teardown(t)
 	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().IsSupportedPluginType("testing", models.SOA, SOA)
+	mockValidator.EXPECT().IsSupportedPluginType("testing", models.SOA, plugins.SOA)
 	plugin := &BuiltinPluginSOA{}
 	_, err := plugin.Render("testing", &models.ResourceRecord{Type: models.SOA})
 	if err != nil {

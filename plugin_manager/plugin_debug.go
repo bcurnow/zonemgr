@@ -17,8 +17,10 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dns
+package plugin_manager
 
-import "github.com/bcurnow/zonemgr/plugins"
+var pluginDebug = false
 
-var pluginManager = plugins.GetPluginManager()
+func EnablePluginDebug() {
+	pluginDebug = true
+}

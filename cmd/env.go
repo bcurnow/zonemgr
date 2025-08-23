@@ -21,7 +21,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/bcurnow/zonemgr/utils"
+	"github.com/bcurnow/zonemgr/ctx"
 	"github.com/spf13/cobra"
 )
 
@@ -29,10 +29,10 @@ var envCmd = &cobra.Command{
 	Use:   "env",
 	Short: "Prints the environment variables used (or defaulted)",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("%s=\"%s\"\n", utils.GenerateReverseLookupZones.Name, utils.GenerateReverseLookupZones.Value)
-		fmt.Printf("%s=\"%s\"\n", utils.GenerateSerial.Name, utils.GenerateSerial.Value)
-		fmt.Printf("%s=\"%s\"\n", utils.PluginsDirectory.Name, utils.PluginsDirectory.Value)
-		fmt.Printf("%s=\"%s\"\n", utils.SerialChangeIndexDirectory.Name, utils.SerialChangeIndexDirectory.Value)
+		fmt.Printf("%s=\"%t\"\n", ctx.GenerateReverseLookupZonesEnvName, ctx.C().GenerateReverseLookupZones())
+		fmt.Printf("%s=\"%t\"\n", ctx.GenerateSerialEnvName, ctx.C().GenerateSerial())
+		fmt.Printf("%s=\"%s\"\n", ctx.PluginsDirectoryEnvName, ctx.C().PluginsDirectory())
+		fmt.Printf("%s=\"%s\"\n", ctx.SerialChangeIndexDirectoryEnvName, ctx.C().SerialChangeIndexDirectory())
 	},
 }
 

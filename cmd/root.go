@@ -17,10 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"fmt"
 	"os"
-	"path/filepath"
 
+	"github.com/bcurnow/zonemgr/ctx"
+	"github.com/bcurnow/zonemgr/plugin_manager"
 	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
@@ -31,8 +31,19 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "zonemgr",
 		Short: "Converts YAML files to BIND zone files.",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			setupLogging()
+			// Always load the plugin context at the start of every command
+			if err := ctx.InitPluginContext(cmd.Flags()); err != nil {
+				return err
+			}
+
+			// Always load the plugins as the start of every command
+			if err := pluginManager.LoadPlugins(ctx.C().PluginsDirectory()); err != nil {
+				return err
+			}
+
+			return nil
 		},
 		PersistentPostRun: func(cmd *cobra.Command, args []string) {
 			cleanup()
@@ -45,6 +56,7 @@ var (
 	logColor      bool
 	pluginDebug   bool
 	pluginsDir    string
+	pluginManager = plugin_manager.Manager()
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -62,12 +74,12 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&logTime, "log-time", "", false, "If set, prints the time on all the log messages")
 	rootCmd.PersistentFlags().BoolVarP(&logColor, "log-color", "", true, "If set, prints the log messages in color where possible")
 	rootCmd.PersistentFlags().BoolVarP(&pluginDebug, "plugin-debug", "", false, "If set, will including plugin stdout/stderr in the log messages")
-	rootCmd.PersistentFlags().StringVarP(&pluginsDir, "plugins-dir", "p", utils.PluginsDirectory.Value, "The directory to find Zonemgr plugins")
+	rootCmd.PersistentFlags().StringVarP(&pluginsDir, ctx.FlagPluginsDirectory, "p", "~/.local/share/zonemgr/plugins", "The directory to find Zonemgr plugins")
 }
 
 func setupLogging() {
 	if pluginDebug {
-		utils.EnablePluginDebug()
+		plugin_manager.EnablePluginDebug()
 	}
 
 	level := hclog.LevelFromString(logLevel)
@@ -80,15 +92,6 @@ func setupLogging() {
 	utils.ConfigureLogging(level, logJsonFormat, !logTime, logColor)
 	hclog.L().Trace("Log level set", "level", logLevel)
 
-}
-
-func toAbsoluteFilePath(path string, name string) string {
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		fmt.Printf("Failed to resolve %s %s: %v\n", name, path, err)
-		os.Exit(1)
-	}
-	return absPath
 }
 
 // Ensures that any created plugin clients are properly cleaned up
