@@ -65,8 +65,12 @@ type Validator interface {
 	IsPositive(identifier string, s string, fieldName string, rrType models.ResourceRecordType) error
 }
 
-type StandardValidator struct {
+type validator struct {
 	Validator
+}
+
+func V() Validator {
+	return &validator{}
 }
 
 // Performs the standard validations for resource records
@@ -75,7 +79,7 @@ type StandardValidator struct {
 //   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsiblity of the individual plugins
 //   - Validation that only Value or Values is populated
 //   - Validation that only Comment or Values is populated
-func (v *StandardValidator) StandardValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error {
+func (v *validator) StandardValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error {
 	// Validate that this resource record is of the supported type
 	if err := v.IsSupportedPluginType(identifier, rr.Type, supportedTypes...); err != nil {
 		return err
@@ -100,7 +104,7 @@ func (v *StandardValidator) StandardValidations(identifier string, rr *models.Re
 }
 
 // Checks if the supplied resource record matches one of the support plugin types
-func (v *StandardValidator) IsSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error {
+func (v *validator) IsSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error {
 	if !slices.Contains(supportedTypes, PluginType(rrType)) {
 		return fmt.Errorf("this plugin does not handle resource records of type '%s' only '%s', identifier: '%s'", rrType, supportedTypes, identifier)
 	}
@@ -109,7 +113,7 @@ func (v *StandardValidator) IsSupportedPluginType(identifier string, rrType mode
 
 // Validates that the name provided matches the RFC1035 regex for valid names according to RFC1035
 // and is less then or equal to 255 total characters
-func (v *StandardValidator) IsValidRFC1035Name(identifier string, name string, rrType models.ResourceRecordType) error {
+func (v *validator) IsValidRFC1035Name(identifier string, name string, rrType models.ResourceRecordType) error {
 	if len(name) > 255 {
 		return fmt.Errorf("invalid %s record, must be less than 255 characters: '%s', identifier:'%s'", rrType, name, identifier)
 	}
@@ -129,7 +133,7 @@ func (v *StandardValidator) IsValidRFC1035Name(identifier string, name string, r
 }
 
 // Checks if the name provide is either the wildcard ('@') or is a valid name
-func (v *StandardValidator) IsValidNameOrWildcard(identifier string, name string, rrType models.ResourceRecordType) error {
+func (v *validator) IsValidNameOrWildcard(identifier string, name string, rrType models.ResourceRecordType) error {
 	// Check if the name matches the regex or is a wildcard
 	if name == "@" {
 		return nil
@@ -138,7 +142,7 @@ func (v *StandardValidator) IsValidNameOrWildcard(identifier string, name string
 }
 
 // Formats and email address according to RFC1035
-func (v *StandardValidator) FormatEmail(identifier string, email string, rrType models.ResourceRecordType) (string, error) {
+func (v *validator) FormatEmail(identifier string, email string, rrType models.ResourceRecordType) (string, error) {
 	if strings.Contains(email, "@") {
 		// Assume this is a standard email address that will be parseable
 		address, err := mail.ParseAddress(email)
@@ -165,7 +169,7 @@ func (v *StandardValidator) FormatEmail(identifier string, email string, rrType 
 
 // Most DNS names in a zone file need to be fully qualified domain names, while we can't validate if the entire name itself is valid,
 // we can ensure that it is a valid name and ends with a trailing dot
-func (v *StandardValidator) IsFullyQualified(identifier string, name string, rrType models.ResourceRecordType) error {
+func (v *validator) IsFullyQualified(identifier string, name string, rrType models.ResourceRecordType) error {
 	if err := v.IsValidRFC1035Name(identifier, name, rrType); err != nil {
 		return err
 	}
@@ -182,7 +186,7 @@ func (v *StandardValidator) IsFullyQualified(identifier string, name string, rrT
 }
 
 // Ensure that the string passed in ends with a trailing dot
-func (v *StandardValidator) EnsureTrailingDot(name string) string {
+func (v *validator) EnsureTrailingDot(name string) string {
 	if !v.hasTrailingDot(name) {
 		return name + "."
 	}
@@ -190,7 +194,7 @@ func (v *StandardValidator) EnsureTrailingDot(name string) string {
 }
 
 // Ensure that the string is a valid IP
-func (v *StandardValidator) EnsureIP(identifier string, s string, rrType models.ResourceRecordType) error {
+func (v *validator) EnsureIP(identifier string, s string, rrType models.ResourceRecordType) error {
 	if net.ParseIP(s) == nil {
 		return fmt.Errorf("invalid %s record, '%s' must be a valid IP address, identifier: '%s'", rrType, s, identifier)
 	}
@@ -198,7 +202,7 @@ func (v *StandardValidator) EnsureIP(identifier string, s string, rrType models.
 }
 
 // Ensure that the string is NOT a valid  IP
-func (v *StandardValidator) EnsureNotIP(identifier string, s string, rrType models.ResourceRecordType) error {
+func (v *validator) EnsureNotIP(identifier string, s string, rrType models.ResourceRecordType) error {
 	if net.ParseIP(s) != nil {
 		return fmt.Errorf("invalid %s record, '%s' must not be an IP address, identifier: '%s'", rrType, s, identifier)
 	}
@@ -206,7 +210,7 @@ func (v *StandardValidator) EnsureNotIP(identifier string, s string, rrType mode
 }
 
 // Ensure that the string is a 32-bit integer which is a positive number greater than zero
-func (v *StandardValidator) IsPositive(identifier string, s string, fieldName string, rrType models.ResourceRecordType) error {
+func (v *validator) IsPositive(identifier string, s string, fieldName string, rrType models.ResourceRecordType) error {
 	value, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
 		return err
@@ -219,6 +223,6 @@ func (v *StandardValidator) IsPositive(identifier string, s string, fieldName st
 	return nil
 }
 
-func (v *StandardValidator) hasTrailingDot(name string) bool {
+func (v *validator) hasTrailingDot(name string) bool {
 	return len(name) > 0 && name[len(name)-1] == '.'
 }

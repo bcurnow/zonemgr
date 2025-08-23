@@ -51,7 +51,7 @@ func setup(t *testing.T) {
 
 func teardown(_ *testing.T) {
 	mockController.Finish()
-	validations = &plugins.StandardValidator{}
+	validations = plugins.V()
 }
 
 func testPluginVersion(t *testing.T, p plugins.ZoneMgrPlugin) {

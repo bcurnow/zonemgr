@@ -26,7 +26,7 @@ import (
 	"github.com/bcurnow/zonemgr/plugins"
 )
 
-var validations = &plugins.StandardValidator{}
+var validations = plugins.V()
 
 type ZoneReverser interface {
 	ReverseZone(sourceZoneName string, zone *models.Zone) map[string]*models.Zone

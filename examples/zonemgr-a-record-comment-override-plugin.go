@@ -25,7 +25,7 @@ import (
 	goplugin "github.com/hashicorp/go-plugin"
 )
 
-var validations = &plugins.StandardValidator{}
+var validations = plugins.V()
 
 // Concrete implementation of the TypeHandler
 type Plugin struct {

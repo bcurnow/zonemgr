@@ -20,4 +20,4 @@ package builtin
 
 import "github.com/bcurnow/zonemgr/plugins"
 
-var validations plugins.Validator = &plugins.StandardValidator{}
+var validations plugins.Validator = plugins.V()
