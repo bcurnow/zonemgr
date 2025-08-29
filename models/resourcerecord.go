@@ -153,7 +153,6 @@ func (rr *ResourceRecord) RenderMultivalueResource() string {
 	record.WriteString(rr.RenderResourceWithoutValue())
 	record.WriteString("(\n")
 	indentFormatString := "%" + strconv.Itoa(record.Len()-2) + "s"
-	fmt.Println(indentFormatString)
 	for _, value := range rr.Values {
 		record.WriteString(fmt.Sprintf(indentFormatString, ""))                         // This will ensure that all the values are indented
 		record.WriteString(fmt.Sprintf(ResourceRecordMultivalueIndentFormatString, "")) // This will add an indent inside the parens
