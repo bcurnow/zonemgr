@@ -21,6 +21,7 @@ package dns
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -63,6 +64,59 @@ func TestNormalizeZones(t *testing.T) {
 	outputSerialChangeIndexDirectory := testZones["zone 1"].Config.SerialChangeIndexDirectory
 	if outputSerialChangeIndexDirectory != want {
 		t.Errorf("Incorrect serial change index directory: '%s', want '%s'", outputSerialChangeIndexDirectory, want)
+	}
+}
+
+func TestNormalizeZones_BadAbsPath(t *testing.T) {
+	dnsSetup(t)
+	defer testingutils.Teardown(t)
+
+	// We need to ensure that filepath.Abs generates an error
+	// To do this, we're going to create a new directory, set the working directory to that director
+	// then delete that directory leaving us with an unusable working directory, this is one of the cases that causes filepath.Abs to error
+
+	oldWd, err := os.Getwd()
+	// Don't forget to put the working directory back in order
+	defer os.Chdir(oldWd)
+
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+
+	}
+	newWd := filepath.Join(oldWd, "TestNormalizeZones_BadAbsPath")
+
+	// Cleanup any previous runs
+	if err := os.RemoveAll(newWd); err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	if err := os.Mkdir(newWd, 0755); err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	// Make sure we clean up if we exit unexpectedly
+	defer os.RemoveAll(newWd)
+
+	if err := os.Chdir(newWd); err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	if err := os.Chmod(newWd, 0000); err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	if err := os.RemoveAll(newWd); err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(testZones); err != nil {
+		fmt.Println(testZones)
+		// Make sure we got the right error
+		want := "stat .: permission denied"
+		if err.Error() != want {
+			t.Errorf("unexpected error: %s, want %s", err, want)
+		}
+	} else {
+		t.Error("expected an error and got none")
 	}
 }
 
