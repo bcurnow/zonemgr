@@ -81,9 +81,8 @@ func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) ma
 
 func (zr *zoneReverser) toPTR(sourceZoneName string, rr *models.ResourceRecord) *models.ResourceRecord {
 	ptrName := rr.Name
-	if err := validations.IsFullyQualified(rr.Value, ptrName, rr.Type); err != nil {
+	if err := validations.IsFullyQualified("generated record", ptrName, rr.Type); err != nil {
 		ptrName = validations.EnsureTrailingDot(ptrName + "." + sourceZoneName)
-
 	}
 
 	return &models.ResourceRecord{
