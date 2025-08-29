@@ -34,12 +34,11 @@ type ZoneFileGenerator interface {
 }
 type pluginZoneFileGenerator struct {
 	ZoneFileGenerator
-	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
-	metadata map[plugins.PluginType]*plugins.PluginMetadata
+	plugins map[plugins.PluginType]plugins.ZoneMgrPlugin
 }
 
-func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.PluginMetadata) ZoneFileGenerator {
-	return &pluginZoneFileGenerator{plugins: plugins, metadata: metadata}
+func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin) ZoneFileGenerator {
+	return &pluginZoneFileGenerator{plugins: plugins}
 }
 
 func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone, outputDir string) error {

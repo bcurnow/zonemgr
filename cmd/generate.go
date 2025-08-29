@@ -39,7 +39,7 @@ var (
 			outputDir = toAbsoluteFilePath(outputDir, "output directory")
 			inputFile = toAbsoluteFilePath(inputFile, "input file")
 
-			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins(), pluginManager.Metadata())
+			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins())
 			normalizer = dns.PluginNormalizer(pluginManager.Plugins(), pluginManager.Metadata())
 			zoneYamlParser = dns.YamlZoneParser(normalizer)
 
