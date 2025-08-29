@@ -16,7 +16,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package main
 
-import "github.com/bcurnow/zonemgr/cmd"
+import (
+	"github.com/bcurnow/zonemgr/cmd"
+)
 
 func main() {
 	cmd.Execute()
