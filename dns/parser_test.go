@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bcurnow/zonemgr/ctx"
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/models/testingutils"
 	"github.com/golang/mock/gomock"
@@ -38,10 +37,6 @@ func testZoneYamlParserSetup(t *testing.T) {
 	testingutils.Setup(t)
 	mockNormalizer = NewMockNormalizer(testingutils.MockController)
 	defaultConfig = &models.Config{}
-	defaultConfig.GenerateReverseLookupZones = ctx.C().GenerateReverseLookupZones()
-	defaultConfig.GenerateSerial = ctx.C().GenerateSerial()
-	defaultConfig.PluginsDirectory = ctx.C().PluginsDirectory()
-	defaultConfig.SerialChangeIndexDirectory = ctx.C().SerialChangeIndexDirectory()
 }
 
 func TestParse(t *testing.T) {
