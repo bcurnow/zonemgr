@@ -57,7 +57,7 @@ func TestGenerateZone_NoPlugin(t *testing.T) {
 
 	// Insert an unknown resource record type
 	// Replace the resourceRecords
-	testZone.ResourceRecords = map[string]*models.ResourceRecord{"bogus": &models.ResourceRecord{Type: models.AAAA}}
+	testZone.ResourceRecords = map[string]*models.ResourceRecord{"bogus": {Type: models.AAAA}}
 
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
