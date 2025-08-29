@@ -20,6 +20,7 @@
 package utils
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -34,7 +35,7 @@ func ToAbsoluteFilePath(path string, name string) (string, error) {
 
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		hclog.L().Error("Could not convert %s value '%s' into an absolute path", name, path)
+		hclog.L().Error(fmt.Sprintf("Could not convert %s value '%s' into an absolute path", name, path))
 		return "", err
 	}
 	return absPath, nil
