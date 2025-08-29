@@ -17,7 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package models
 
 type Config struct {
-	PluginsDirectory           string `yaml:"plugins_directory"`
 	GenerateSerial             bool   `yaml:"generate_serial"`
 	SerialChangeIndexDirectory string `yaml:"serial_change_index_directory"`
 	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones"`

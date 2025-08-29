@@ -38,7 +38,6 @@ var (
 
 	testZone = &models.Zone{
 		Config: &models.Config{
-			PluginsDirectory:           "testZone-plugins",
 			GenerateSerial:             true,
 			SerialChangeIndexDirectory: "testZone-scid",
 			GenerateReverseLookupZones: true,
