@@ -118,7 +118,7 @@ func TestIsValidRFC1035Name(t *testing.T) {
 func TestIValidNameOrWildcard(t *testing.T) {
 	// We just need to valid the @ case, the others are already tested
 	if err := validations.IsValidNameOrWildcard("testing", "@", models.A); err != nil {
-		t.Errorf("unexpected exception")
+		t.Errorf("unexpected error")
 	}
 }
 
