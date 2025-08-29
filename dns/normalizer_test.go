@@ -25,53 +25,10 @@ import (
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/models/testingutils"
-	"github.com/bcurnow/zonemgr/plugins"
 )
-
-var (
-	mockAPlugin     *plugins.MockZoneMgrPlugin
-	mockCNAMEPlugin *plugins.MockZoneMgrPlugin
-	mockPlugins     map[plugins.PluginType]plugins.ZoneMgrPlugin
-	mockMetadata    map[plugins.PluginType]*plugins.PluginMetadata
-
-	testZone = &models.Zone{
-		Config: &models.Config{
-			GenerateSerial:             true,
-			SerialChangeIndexDirectory: "testZone-scid",
-			GenerateReverseLookupZones: true,
-		},
-		ResourceRecords: map[string]*models.ResourceRecord{
-			"record1": {Type: models.A},
-			"record2": {Type: models.CNAME},
-		},
-		TTL: &models.TTL{
-			Value:   testingutils.ToInt32Ptr(30),
-			Comment: "testZone-TTL",
-		},
-	}
-	testZones map[string]*models.Zone
-)
-
-func testNormalizerSetup(t *testing.T) {
-	testingutils.Setup(t)
-	mockAPlugin = plugins.NewMockZoneMgrPlugin(testingutils.MockController)
-	mockCNAMEPlugin = plugins.NewMockZoneMgrPlugin(testingutils.MockController)
-
-	mockPlugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
-	mockPlugins[plugins.A] = mockAPlugin
-	mockPlugins[plugins.CNAME] = mockCNAMEPlugin
-
-	mockMetadata = make(map[plugins.PluginType]*plugins.PluginMetadata)
-	mockMetadata[plugins.A] = &plugins.PluginMetadata{Name: string(plugins.A), Command: "none", BuiltIn: true}
-	mockMetadata[plugins.CNAME] = &plugins.PluginMetadata{Name: string(plugins.CNAME), Command: "none", BuiltIn: true}
-
-	testZones = make(map[string]*models.Zone)
-	testZones["zone 1"] = testZone
-	testZones["zone 2"] = testZone
-}
 
 func TestNormalizeZones(t *testing.T) {
-	testNormalizerSetup(t)
+	dnsSetup(t)
 	defer testingutils.Teardown(t)
 
 	// Each plugin should be configured once for each zone
@@ -94,7 +51,7 @@ func TestNormalizeZones(t *testing.T) {
 }
 
 func TestNormalizeZones_NoZones(t *testing.T) {
-	testNormalizerSetup(t)
+	dnsSetup(t)
 	defer testingutils.Teardown(t)
 
 	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{}); err != nil {
@@ -107,7 +64,7 @@ func TestNormalizeZones_NoZones(t *testing.T) {
 }
 
 func TestNormalizeZone_NilConfig(t *testing.T) {
-	testNormalizerSetup(t)
+	dnsSetup(t)
 	defer testingutils.Teardown(t)
 
 	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{"nil config zone": {Config: nil}}); err != nil {
@@ -120,7 +77,7 @@ func TestNormalizeZone_NilConfig(t *testing.T) {
 	}
 }
 func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
-	testNormalizerSetup(t)
+	dnsSetup(t)
 	defer testingutils.Teardown(t)
 
 	invalidZone := &models.Zone{
@@ -144,7 +101,7 @@ func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
 	}
 }
 func TestNormalizeZones_NormalizeError(t *testing.T) {
-	testNormalizerSetup(t)
+	dnsSetup(t)
 	defer testingutils.Teardown(t)
 
 	// Each plugin should be configured once for each zone
@@ -163,7 +120,7 @@ func TestNormalizeZones_NormalizeError(t *testing.T) {
 }
 
 func TestNormalizeZones_ValidateError(t *testing.T) {
-	testNormalizerSetup(t)
+	dnsSetup(t)
 	defer testingutils.Teardown(t)
 
 	// Each plugin should be configured once for each zone
