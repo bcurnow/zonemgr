@@ -43,7 +43,7 @@ type pluginManager struct {
 	metadata map[plugins.PluginType]*plugins.PluginMetadata
 }
 
-var instance = &pluginManager{}
+var instance = &pluginManager{plugins: make(map[plugins.PluginType]plugins.ZoneMgrPlugin), metadata: make(map[plugins.PluginType]*plugins.PluginMetadata)}
 
 func Manager() PluginManager {
 	return instance
@@ -58,8 +58,6 @@ func (pm *pluginManager) Metadata() map[plugins.PluginType]*plugins.PluginMetada
 }
 
 func (pm *pluginManager) LoadPlugins(pluginDir string) error {
-	pm.plugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
-	pm.metadata = make(map[plugins.PluginType]*plugins.PluginMetadata)
 	maps.Copy(pm.plugins, builtin.BuiltinPlugins())
 	maps.Copy(pm.metadata, builtin.BuiltinMetadata())
 
