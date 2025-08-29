@@ -42,9 +42,8 @@ const (
 type Config struct {
 	state                      protoimpl.MessageState `protogen:"open.v1"`
 	GenerateSerial             bool                   `protobuf:"varint,1,opt,name=generate_serial,json=generateSerial,proto3" json:"generate_serial,omitempty"`
-	GenerateReverseLookupZones bool                   `protobuf:"varint,3,opt,name=generate_reverse_lookup_zones,json=generateReverseLookupZones,proto3" json:"generate_reverse_lookup_zones,omitempty"`
-	PluginsDirectory           string                 `protobuf:"bytes,4,opt,name=plugins_directory,json=pluginsDirectory,proto3" json:"plugins_directory,omitempty"`
-	SerialChangeIndexDirectory string                 `protobuf:"bytes,5,opt,name=serial_change_index_directory,json=serialChangeIndexDirectory,proto3" json:"serial_change_index_directory,omitempty"`
+	GenerateReverseLookupZones bool                   `protobuf:"varint,2,opt,name=generate_reverse_lookup_zones,json=generateReverseLookupZones,proto3" json:"generate_reverse_lookup_zones,omitempty"`
+	SerialChangeIndexDirectory string                 `protobuf:"bytes,3,opt,name=serial_change_index_directory,json=serialChangeIndexDirectory,proto3" json:"serial_change_index_directory,omitempty"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -91,13 +90,6 @@ func (x *Config) GetGenerateReverseLookupZones() bool {
 		return x.GenerateReverseLookupZones
 	}
 	return false
-}
-
-func (x *Config) GetPluginsDirectory() string {
-	if x != nil {
-		return x.PluginsDirectory
-	}
-	return ""
 }
 
 func (x *Config) GetSerialChangeIndexDirectory() string {
@@ -780,12 +772,11 @@ var File_plugins_proto_zonemgrplugin_proto protoreflect.FileDescriptor
 
 const file_plugins_proto_zonemgrplugin_proto_rawDesc = "" +
 	"\n" +
-	"!plugins/proto/zonemgrplugin.proto\"\xea\x01\n" +
+	"!plugins/proto/zonemgrplugin.proto\"\xb7\x01\n" +
 	"\x06Config\x12'\n" +
 	"\x0fgenerate_serial\x18\x01 \x01(\bR\x0egenerateSerial\x12A\n" +
-	"\x1dgenerate_reverse_lookup_zones\x18\x03 \x01(\bR\x1agenerateReverseLookupZones\x12+\n" +
-	"\x11plugins_directory\x18\x04 \x01(\tR\x10pluginsDirectory\x12A\n" +
-	"\x1dserial_change_index_directory\x18\x05 \x01(\tR\x1aserialChangeIndexDirectoryJ\x04\b\x02\x10\x03\"E\n" +
+	"\x1dgenerate_reverse_lookup_zones\x18\x02 \x01(\bR\x1agenerateReverseLookupZones\x12A\n" +
+	"\x1dserial_change_index_directory\x18\x03 \x01(\tR\x1aserialChangeIndexDirectory\"E\n" +
 	"\x13ResourceRecordValue\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x18\n" +
 	"\acomment\x18\x02 \x01(\tR\acomment\"\xcb\x01\n" +

@@ -20,11 +20,8 @@ option go_package = "./plugins/proto";
 // Define the various schema objects
 message Config {
   bool generate_serial = 1;
-  // This used to be SerialChangeindex
-  reserved 2;
-  bool generate_reverse_lookup_zones = 3;
-  string plugins_directory = 4;
-  string serial_change_index_directory = 5;
+  bool generate_reverse_lookup_zones = 2;
+  string serial_change_index_directory = 3;
 }
 
 message ResourceRecordValue {

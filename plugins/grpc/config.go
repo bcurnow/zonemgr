@@ -9,8 +9,7 @@ import (
 func UpdateConfigFromProtoBuf(p *proto.Config, c *models.Config) {
 	c.GenerateSerial = p.GenerateSerial
 	c.GenerateReverseLookupZones = p.GenerateReverseLookupZones
-	c.PluginsDirectory = p.PluginsDirectory
-	c.SerialChangeIndexDirectory = p.PluginsDirectory
+	c.SerialChangeIndexDirectory = p.SerialChangeIndexDirectory
 }
 
 func ConfigFromProtoBuf(p *proto.Config) *models.Config {
@@ -23,7 +22,6 @@ func ConfigToProtoBufTo(c *models.Config) *proto.Config {
 	return &proto.Config{
 		GenerateSerial:             c.GenerateSerial,
 		GenerateReverseLookupZones: c.GenerateReverseLookupZones,
-		PluginsDirectory:           c.PluginsDirectory,
 		SerialChangeIndexDirectory: c.SerialChangeIndexDirectory,
 	}
 }
