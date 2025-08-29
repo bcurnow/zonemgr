@@ -34,3 +34,11 @@ mocks:
 
 proto:
 	buf generate
+
+test:
+	go test -cover -coverprofile=coverage.out ./...
+
+html-coverage:
+	go tool cover -html=coverage.out
+
+coverage: test html-coverage
