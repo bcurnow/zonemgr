@@ -25,6 +25,7 @@ import (
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 )
 
@@ -59,14 +60,23 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 	for _, name := range zoneNames {
 		zone := zones[name]
 
+		// Normalize the config if necessary
+		if nil == zone.Config {
+			// This shouldn't happen unless there's an accident in the code (like perhaps creating new models.Zone for a reverse lookup zone and forgetting to populate Config)
+			return fmt.Errorf("zone is missing config, zoneName=%s", name)
+		} else {
+			// Ensure that the serial change index directory is an absolute path
+			absSerialChangeIndexDirectory, err := utils.ToAbsoluteFilePath(zone.Config.SerialChangeIndexDirectory, "serial_change_index_directory")
+			if err != nil {
+				return err
+			}
+			zone.Config.SerialChangeIndexDirectory = absSerialChangeIndexDirectory
+		}
+
 		// Configure each of the plugins for this specific zone
 		for pluginType, plugin := range registeredPlugins {
 			pluginMetadata := n.metadata[pluginType]
 			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", pluginMetadata.Name)
-			if nil == zone.Config {
-				// This shouldn't happen unless there's an accident in the code (like perhaps creating new models.Zone for a reverse lookup zone and forgetting to populate Config)
-				return fmt.Errorf("zone is missing config, zoneName=%s", name)
-			}
 			plugin.Configure(zone.Config)
 		}
 

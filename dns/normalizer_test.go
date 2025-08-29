@@ -21,10 +21,12 @@ package dns
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/models/testingutils"
+	"github.com/bcurnow/zonemgr/utils"
 )
 
 func TestNormalizeZones(t *testing.T) {
@@ -45,8 +47,22 @@ func TestNormalizeZones(t *testing.T) {
 	mockAPlugin.EXPECT().ValidateZone("zone 2", testZone)
 	mockCNAMEPlugin.EXPECT().ValidateZone("zone 2", testZone)
 
+	inputSerialChangeIndexDirectory := testZones["zone 1"].Config.SerialChangeIndexDirectory
+
 	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(testZones); err != nil {
 		t.Errorf("Error NormalizingZones: %s", err)
+	}
+
+	// Validate that the serial change index directory is an absolute path
+	absWorkingDir, err := utils.ToAbsoluteFilePath(".", "working dir")
+	if err != nil {
+		t.Errorf("Error getting working dir: %s", err)
+	}
+
+	want := filepath.Join(absWorkingDir, inputSerialChangeIndexDirectory)
+	outputSerialChangeIndexDirectory := testZones["zone 1"].Config.SerialChangeIndexDirectory
+	if outputSerialChangeIndexDirectory != want {
+		t.Errorf("Incorrect serial change index directory: '%s', want '%s'", outputSerialChangeIndexDirectory, want)
 	}
 }
 
@@ -62,7 +78,19 @@ func TestNormalizeZones_NoZones(t *testing.T) {
 		t.Errorf("Error NormalizingZones: %s", err)
 	}
 }
+func TestNormalizeZone_NilConfig(t *testing.T) {
+	dnsSetup(t)
+	defer testingutils.Teardown(t)
 
+	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{"nil config zone": {Config: nil}}); err != nil {
+		if err.Error() != "zone is missing config, zoneName=nil config zone" {
+			t.Errorf("Error NormalizingZones: %s", err)
+		}
+	} else {
+		t.Errorf("Error NormalizingZones: %s", err)
+
+	}
+}
 func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
 	dnsSetup(t)
 	defer testingutils.Teardown(t)
