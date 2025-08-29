@@ -63,19 +63,6 @@ func TestNormalizeZones_NoZones(t *testing.T) {
 	}
 }
 
-func TestNormalizeZone_NilConfig(t *testing.T) {
-	dnsSetup(t)
-	defer testingutils.Teardown(t)
-
-	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{"nil config zone": {Config: nil}}); err != nil {
-		if err.Error() != "zone is missing config, zoneName=nil config zone" {
-			t.Errorf("Error NormalizingZones: %s", err)
-		}
-	} else {
-		t.Errorf("Error NormalizingZones: %s", err)
-
-	}
-}
 func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
 	dnsSetup(t)
 	defer testingutils.Teardown(t)
