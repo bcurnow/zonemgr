@@ -24,7 +24,6 @@ import (
 	"sort"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/plugin_manager"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/hashicorp/go-hclog"
 )
@@ -39,8 +38,8 @@ type pluginNormalizer struct {
 	metadata map[plugins.PluginType]*plugins.PluginMetadata
 }
 
-func PluginNormalizer(pluginManager plugin_manager.PluginManager) Normalizer {
-	return &pluginNormalizer{plugins: pluginManager.Plugins(), metadata: pluginManager.Metadata()}
+func PluginNormalizer(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.PluginMetadata) Normalizer {
+	return &pluginNormalizer{plugins: plugins, metadata: metadata}
 }
 
 func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {

@@ -25,16 +25,14 @@ import (
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/models/testingutils"
-	"github.com/bcurnow/zonemgr/plugin_manager"
 	"github.com/bcurnow/zonemgr/plugins"
 )
 
 var (
-	mockAPlugin       *plugins.MockZoneMgrPlugin
-	mockCNAMEPlugin   *plugins.MockZoneMgrPlugin
-	mockPluginManager *plugin_manager.MockPluginManager
-	mockPlugins       map[plugins.PluginType]plugins.ZoneMgrPlugin
-	mockMetaData      map[plugins.PluginType]*plugins.PluginMetadata
+	mockAPlugin     *plugins.MockZoneMgrPlugin
+	mockCNAMEPlugin *plugins.MockZoneMgrPlugin
+	mockPlugins     map[plugins.PluginType]plugins.ZoneMgrPlugin
+	mockMetadata    map[plugins.PluginType]*plugins.PluginMetadata
 
 	testZone = &models.Zone{
 		Config: &models.Config{
@@ -56,7 +54,6 @@ var (
 
 func testNormalizerSetup(t *testing.T) {
 	testingutils.Setup(t)
-	mockPluginManager = plugin_manager.NewMockPluginManager(testingutils.MockController)
 	mockAPlugin = plugins.NewMockZoneMgrPlugin(testingutils.MockController)
 	mockCNAMEPlugin = plugins.NewMockZoneMgrPlugin(testingutils.MockController)
 
@@ -64,9 +61,9 @@ func testNormalizerSetup(t *testing.T) {
 	mockPlugins[plugins.A] = mockAPlugin
 	mockPlugins[plugins.CNAME] = mockCNAMEPlugin
 
-	mockMetaData = make(map[plugins.PluginType]*plugins.PluginMetadata)
-	mockMetaData[plugins.A] = &plugins.PluginMetadata{Name: string(plugins.A), Command: "none", BuiltIn: true}
-	mockMetaData[plugins.CNAME] = &plugins.PluginMetadata{Name: string(plugins.CNAME), Command: "none", BuiltIn: true}
+	mockMetadata = make(map[plugins.PluginType]*plugins.PluginMetadata)
+	mockMetadata[plugins.A] = &plugins.PluginMetadata{Name: string(plugins.A), Command: "none", BuiltIn: true}
+	mockMetadata[plugins.CNAME] = &plugins.PluginMetadata{Name: string(plugins.CNAME), Command: "none", BuiltIn: true}
 
 	testZones = make(map[string]*models.Zone)
 	testZones["zone 1"] = testZone
@@ -76,9 +73,6 @@ func testNormalizerSetup(t *testing.T) {
 func TestNormalizeZones(t *testing.T) {
 	testNormalizerSetup(t)
 	defer testingutils.Teardown(t)
-
-	mockPluginManager.EXPECT().Plugins().Return(mockPlugins)
-	mockPluginManager.EXPECT().Metadata().Return(mockMetaData)
 
 	// Each plugin should be configured once for each zone
 	mockAPlugin.EXPECT().Configure(testZone.Config).Times(2)
@@ -94,7 +88,7 @@ func TestNormalizeZones(t *testing.T) {
 	mockAPlugin.EXPECT().ValidateZone("zone 2", testZone)
 	mockCNAMEPlugin.EXPECT().ValidateZone("zone 2", testZone)
 
-	if err := PluginNormalizer(mockPluginManager).Normalize(testZones); err != nil {
+	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(testZones); err != nil {
 		t.Errorf("Error NormalizingZones: %s", err)
 	}
 }
@@ -102,10 +96,8 @@ func TestNormalizeZones(t *testing.T) {
 func TestNormalizeZones_NoZones(t *testing.T) {
 	testNormalizerSetup(t)
 	defer testingutils.Teardown(t)
-	mockPluginManager.EXPECT().Plugins().Return(mockPlugins)
-	mockPluginManager.EXPECT().Metadata().Return(mockMetaData)
 
-	if err := PluginNormalizer(mockPluginManager).Normalize(map[string]*models.Zone{}); err != nil {
+	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{}); err != nil {
 		if err.Error() != "no zones found" {
 			t.Errorf("Error NormalizingZones: %s", err)
 		}
@@ -118,10 +110,7 @@ func TestNormalizeZone_NilConfig(t *testing.T) {
 	testNormalizerSetup(t)
 	defer testingutils.Teardown(t)
 
-	mockPluginManager.EXPECT().Plugins().Return(mockPlugins)
-	mockPluginManager.EXPECT().Metadata().Return(mockMetaData)
-
-	if err := PluginNormalizer(mockPluginManager).Normalize(map[string]*models.Zone{"nil config zone": {Config: nil}}); err != nil {
+	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{"nil config zone": {Config: nil}}); err != nil {
 		if err.Error() != "zone is missing config, zoneName=nil config zone" {
 			t.Errorf("Error NormalizingZones: %s", err)
 		}
@@ -133,9 +122,6 @@ func TestNormalizeZone_NilConfig(t *testing.T) {
 func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
 	testNormalizerSetup(t)
 	defer testingutils.Teardown(t)
-
-	mockPluginManager.EXPECT().Plugins().Return(mockPlugins)
-	mockPluginManager.EXPECT().Metadata().Return(mockMetaData)
 
 	invalidZone := &models.Zone{
 		Config: testZone.Config,
@@ -149,7 +135,7 @@ func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
 	mockAPlugin.EXPECT().Configure(invalidZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(invalidZone.Config)
 
-	if err := PluginNormalizer(mockPluginManager).Normalize(map[string]*models.Zone{"invalid zone": invalidZone}); err != nil {
+	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{"invalid zone": invalidZone}); err != nil {
 		if err.Error() != "unable to normalize zone 'invalid zone', no plugin for resource record type 'bogus', identifier: 'bad type'" {
 			t.Errorf("Error NormalizingZones: %s", err)
 		}
@@ -161,16 +147,13 @@ func TestNormalizeZones_NormalizeError(t *testing.T) {
 	testNormalizerSetup(t)
 	defer testingutils.Teardown(t)
 
-	mockPluginManager.EXPECT().Plugins().Return(mockPlugins)
-	mockPluginManager.EXPECT().Metadata().Return(mockMetaData)
-
 	// Each plugin should be configured once for each zone
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
 
 	mockAPlugin.EXPECT().Normalize("record1", testZone.ResourceRecords["record1"]).Return(fmt.Errorf("test normalize error"))
 
-	if err := PluginNormalizer(mockPluginManager).Normalize(testZones); err != nil {
+	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(testZones); err != nil {
 		if err.Error() != "test normalize error" {
 			t.Errorf("Error NormalizingZones: %s", err)
 		}
@@ -182,9 +165,6 @@ func TestNormalizeZones_NormalizeError(t *testing.T) {
 func TestNormalizeZones_ValidateError(t *testing.T) {
 	testNormalizerSetup(t)
 	defer testingutils.Teardown(t)
-
-	mockPluginManager.EXPECT().Plugins().Return(mockPlugins)
-	mockPluginManager.EXPECT().Metadata().Return(mockMetaData)
 
 	// Each plugin should be configured once for each zone
 	mockAPlugin.EXPECT().Configure(testZone.Config)
@@ -198,7 +178,7 @@ func TestNormalizeZones_ValidateError(t *testing.T) {
 	mockAPlugin.EXPECT().ValidateZone("zone 1", testZone).Return(fmt.Errorf("test validate error")).MaxTimes(1)
 	mockCNAMEPlugin.EXPECT().ValidateZone("zone 1", testZone).Return(fmt.Errorf("test validate error")).MaxTimes(1)
 
-	if err := PluginNormalizer(mockPluginManager).Normalize(testZones); err != nil {
+	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(testZones); err != nil {
 		if err.Error() != "test validate error" {
 			t.Errorf("Error NormalizingZones: %s", err)
 		}

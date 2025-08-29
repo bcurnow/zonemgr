@@ -34,7 +34,7 @@ var (
 
 			input = toAbsoluteFilePath(input, "input")
 
-			parser = dns.YamlZoneParser(dns.PluginNormalizer(pluginManager))
+			parser = dns.YamlZoneParser(dns.PluginNormalizer(pluginManager.Plugins(), pluginManager.Metadata()))
 		},
 	}
 

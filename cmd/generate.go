@@ -40,7 +40,7 @@ var (
 			inputFile = toAbsoluteFilePath(inputFile, "input file")
 
 			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins(), pluginManager.Metadata())
-			normalizer = dns.PluginNormalizer(pluginManager)
+			normalizer = dns.PluginNormalizer(pluginManager.Plugins(), pluginManager.Metadata())
 			zoneYamlParser = dns.YamlZoneParser(normalizer)
 
 			globalConfig = &models.Config{}
