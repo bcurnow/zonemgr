@@ -78,7 +78,7 @@ func (p *BuiltinPluginSOA) Normalize(identifier string, rr *models.ResourceRecor
 	generatedSerial := ""
 	if p.config.GenerateSerial {
 		// The name of the SOA record is also the name of the zone
-		nextSerial, err := utils.FileSerialIndexManager(pluginContext.SerialChangeIndexDirectory()).GetNext(rr.Name)
+		nextSerial, err := utils.FileSerialIndexManager(p.config.SerialChangeIndexDirectory).GetNext(rr.Name)
 		if err != nil {
 			return err
 		}
