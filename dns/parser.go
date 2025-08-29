@@ -26,7 +26,7 @@ import (
 )
 
 type ZoneParser interface {
-	Parse(inputFile string) (map[string]*models.Zone, error)
+	Parse(inputFile string, globalConfig *models.Config) (map[string]*models.Zone, error)
 }
 
 type yamlZoneParser struct {
@@ -38,7 +38,7 @@ func YamlZoneParser(normalizer Normalizer) ZoneParser {
 	return &yamlZoneParser{normalizer: normalizer}
 }
 
-func (p *yamlZoneParser) Parse(inputFile string) (map[string]*models.Zone, error) {
+func (p *yamlZoneParser) Parse(inputFile string, globalConfig *models.Config) (map[string]*models.Zone, error) {
 	hclog.L().Debug("Opening input file", "inputFile", inputFile)
 	inputBytes, err := os.ReadFile(inputFile)
 	if err != nil {
@@ -58,8 +58,9 @@ func (p *yamlZoneParser) Parse(inputFile string) (map[string]*models.Zone, error
 		}
 		// Make sure we always have a complete config
 		if nil == zone.Config {
-			zone.Config = &models.Config{}
+			zone.Config = globalConfig
 		}
+
 	}
 
 	// Normalize the zones

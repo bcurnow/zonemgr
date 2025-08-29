@@ -59,7 +59,7 @@ func TestParse(t *testing.T) {
 	mockNormalizer.EXPECT().Normalize(gomock.Any()).MaxTimes(len(testCases))
 
 	for _, tc := range testCases {
-		zones, err := YamlZoneParser(mockNormalizer).Parse(tc.inputFile)
+		zones, err := YamlZoneParser(mockNormalizer).Parse(tc.inputFile, &models.Config{})
 
 		if err != nil {
 			if tc.err == "" {
@@ -97,7 +97,7 @@ func TestParse_NormalizerError(t *testing.T) {
 
 	mockNormalizer.EXPECT().Normalize(gomock.Any()).Return(fmt.Errorf("testing normalizer error"))
 
-	_, err := YamlZoneParser(mockNormalizer).Parse("minimal.zones.yaml")
+	_, err := YamlZoneParser(mockNormalizer).Parse("minimal.zones.yaml", &models.Config{})
 	if err == nil {
 		t.Errorf("expected error")
 	} else {
