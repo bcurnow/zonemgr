@@ -65,7 +65,7 @@ func (p *BuiltinPluginNS) Normalize(identifier string, rr *models.ResourceRecord
 	}
 
 	// Check if the value is a valid name (not an IP address)
-	if err := validations.EnsureIP(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
+	if err := validations.EnsureNotIP(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
 		return err
 	}
 

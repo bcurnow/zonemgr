@@ -57,10 +57,10 @@ func TestNSNormalize(t *testing.T) {
 			}
 
 			if rr.RetrieveSingleValue() == "" {
-				mockValidator.EXPECT().EnsureIP(identifier, identifier, rr.Type)
+				mockValidator.EXPECT().EnsureNotIP(identifier, identifier, rr.Type)
 				mockValidator.EXPECT().IsFullyQualified(identifier, identifier, rr.Type)
 			} else {
-				mockValidator.EXPECT().EnsureIP(identifier, rr.RetrieveSingleValue(), rr.Type)
+				mockValidator.EXPECT().EnsureNotIP(identifier, rr.RetrieveSingleValue(), rr.Type)
 				mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type)
 			}
 
@@ -82,7 +82,7 @@ func TestNSNormalize(t *testing.T) {
 		expects: func(identifier string, rr *models.ResourceRecord) {
 			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, models.NS)
-			mockValidator.EXPECT().EnsureIP(identifier, rr.Value, models.NS).Return(fmt.Errorf("is not IP"))
+			mockValidator.EXPECT().EnsureNotIP(identifier, rr.Value, models.NS).Return(fmt.Errorf("is not IP"))
 
 		},
 	})
@@ -93,7 +93,7 @@ func TestNSNormalize(t *testing.T) {
 		expects: func(identifier string, rr *models.ResourceRecord) {
 			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
 			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.NS)
-			mockValidator.EXPECT().EnsureIP(identifier, rr.RetrieveSingleValue(), models.NS)
+			mockValidator.EXPECT().EnsureNotIP(identifier, rr.RetrieveSingleValue(), models.NS)
 			mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), models.NS).Return(fmt.Errorf("not fully qualified"))
 		},
 	})
