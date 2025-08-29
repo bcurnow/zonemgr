@@ -17,7 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -68,17 +67,12 @@ func Execute() {
 }
 
 func init() {
-	var err error
-	homeDir, err = os.UserHomeDir()
-	// Only panic if we can't get the home directory.
-	cobra.CheckErr(err)
-
 	rootCmd.PersistentFlags().String("log-level", "info", "The log level (trace, debug, info, warn, error, fatal), not case sensitive")
 	rootCmd.PersistentFlags().Bool("log-json", false, "If set, enables JSON loggiing output")
 	rootCmd.PersistentFlags().Bool("log-time", false, "If set, prints the time on all the log messages")
 	rootCmd.PersistentFlags().Bool("log-color", false, "If set, prints the log messages in color where possible")
 	rootCmd.PersistentFlags().Bool("plugin-debug", false, "If set, will including plugin stdout/stderr in the log messages")
-	rootCmd.PersistentFlags().String("plugin-dir", filepath.Join(homeDir, ".local", "share", "zonemgr", "plugins"), "The directory to find Zonemgr plugins")
+	rootCmd.PersistentFlags().String("plugin-dir", filepath.Join(utils.HomeDir, ".local", "share", "zonemgr", "plugins"), "The directory to find Zonemgr plugins")
 
 }
 

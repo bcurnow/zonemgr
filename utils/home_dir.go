@@ -20,22 +20,19 @@
 package utils
 
 import (
-	"path/filepath"
-	"strings"
-
-	"github.com/hashicorp/go-hclog"
+	"fmt"
+	"os"
 )
 
-func ToAbsoluteFilePath(path string, name string) (string, error) {
-	//go doesn't automatically handle the ~ expansion, do this manually
-	if strings.HasPrefix(path, "~") {
-		path = filepath.Join(HomeDir, path[1:])
-	}
+var HomeDir string
 
-	absPath, err := filepath.Abs(path)
+// This will exit the entire program if we can't get this but this generaly shouldn't happen
+// unless we're being run in a very strange way
+func init() {
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		hclog.L().Error("Could not convert %s value '%s' into an absolute path", name, path)
-		return "", err
+		fmt.Fprintf(os.Stderr, "Unable to retrieve current user's home directory: %s", err)
+		os.Exit(1)
 	}
-	return absPath, nil
+	HomeDir = homeDir
 }
