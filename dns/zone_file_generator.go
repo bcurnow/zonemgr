@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
@@ -44,7 +45,7 @@ func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugi
 func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone, outputDir string) error {
 	outputFile, err := os.Create(filepath.Join(outputDir, name))
 	if err != nil {
-		return fmt.Errorf("failed to create output file for zone %s: %w", name, err)
+		return fmt.Errorf("failed to create output file for zone '%s': %w", name, err)
 	}
 	defer outputFile.Close()
 
@@ -64,9 +65,17 @@ func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone,
 		plugin.Configure(zone.Config)
 	}
 
-	for identifier, rr := range zone.ResourceRecords {
+	// We're going to sort the record by identifier to make the output deterministic
+	identifiers := make([]string, 0, len(zone.ResourceRecords))
+	for k := range zone.ResourceRecords {
+		identifiers = append(identifiers, k)
+	}
+	sort.Strings(identifiers)
+
+	for _, identifier := range identifiers {
 		// We're takiing advantage of the fact that we have plugin types that match standard resource record types
 		// so we can cast directly
+		rr := zone.ResourceRecords[identifier]
 		plugin := registeredPlugins[plugins.PluginType(rr.Type)]
 		if nil == plugin {
 			return fmt.Errorf("unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
