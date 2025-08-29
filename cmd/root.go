@@ -18,13 +18,15 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/bcurnow/zonemgr/ctx"
 	"github.com/bcurnow/zonemgr/plugin_manager"
 	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -32,14 +34,18 @@ var (
 		Use:   "zonemgr",
 		Short: "Converts YAML files to BIND zone files.",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			setupLogging()
-			// Always load the plugin context at the start of every command
-			if err := ctx.InitPluginContext(cmd.Flags()); err != nil {
+			if err := initConfig(cmd); err != nil {
 				return err
 			}
 
+			if v.GetBool("plugin-debug") {
+				plugin_manager.EnablePluginDebug()
+			}
+
+			setupLogging()
+
 			// Always load the plugins as the start of every command
-			if err := pluginManager.LoadPlugins(ctx.C().PluginsDirectory()); err != nil {
+			if err := pluginManager.LoadPlugins(v.GetString("plugins-dir")); err != nil {
 				return err
 			}
 
@@ -50,48 +56,58 @@ var (
 		},
 	}
 
-	logLevel      string
-	logJsonFormat bool
-	logTime       bool
-	logColor      bool
-	pluginDebug   bool
-	pluginsDir    string
 	pluginManager = plugin_manager.Manager()
+	v             *viper.Viper
+	homeDir       string
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
+	cobra.CheckErr(rootCmd.Execute())
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info", "The log level (trace, debug, info, warn, error, fatal), not case sensitive")
-	rootCmd.PersistentFlags().BoolVarP(&logJsonFormat, "log-json", "", false, "If set, enables JSON loggiing output")
-	rootCmd.PersistentFlags().BoolVarP(&logTime, "log-time", "", false, "If set, prints the time on all the log messages")
-	rootCmd.PersistentFlags().BoolVarP(&logColor, "log-color", "", true, "If set, prints the log messages in color where possible")
-	rootCmd.PersistentFlags().BoolVarP(&pluginDebug, "plugin-debug", "", false, "If set, will including plugin stdout/stderr in the log messages")
-	rootCmd.PersistentFlags().StringVarP(&pluginsDir, ctx.FlagPluginsDirectory, "p", "~/.local/share/zonemgr/plugins", "The directory to find Zonemgr plugins")
+	var err error
+	homeDir, err = os.UserHomeDir()
+	// Only panic if we can't get the home directory.
+	cobra.CheckErr(err)
+
+	rootCmd.PersistentFlags().String("log-level", "info", "The log level (trace, debug, info, warn, error, fatal), not case sensitive")
+	rootCmd.PersistentFlags().Bool("log-json", false, "If set, enables JSON loggiing output")
+	rootCmd.PersistentFlags().Bool("log-time", false, "If set, prints the time on all the log messages")
+	rootCmd.PersistentFlags().Bool("log-color", false, "If set, prints the log messages in color where possible")
+	rootCmd.PersistentFlags().Bool("plugin-debug", false, "If set, will including plugin stdout/stderr in the log messages")
+	rootCmd.PersistentFlags().String("plugin-dir", filepath.Join(homeDir, ".local", "share", "zonemgr", "plugins"), "The directory to find Zonemgr plugins")
+
+}
+
+func initConfig(cmd *cobra.Command) error {
+	v = viper.New()
+	v.SetEnvPrefix("zonemgr")
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.AutomaticEnv()
+
+	// Bind all the cobra flags to viper
+	if err := v.BindPFlags(cmd.Flags()); err != nil {
+		return err
+	}
+
+	// Normalize the plugin-dir to an absolute path
+	v.Set("plugin-dir", toAbsoluteFilePath(v.GetString("plugin-dir"), "plugin-dir"))
+
+	return nil
 }
 
 func setupLogging() {
-	if pluginDebug {
-		plugin_manager.EnablePluginDebug()
-	}
-
-	level := hclog.LevelFromString(logLevel)
+	level := hclog.LevelFromString(v.GetString("log-level"))
 
 	if level == hclog.NoLevel {
-		// Default to Warn
 		level = hclog.Info
-		hclog.L().Error("Invalid log level specified, defaulting to Info", "level", logLevel)
+		hclog.L().Error("Invalid log level specified, defaulting to Info", "level", v.GetString("log-level"))
 	}
-	utils.ConfigureLogging(level, logJsonFormat, !logTime, logColor)
-	hclog.L().Trace("Log level set", "level", logLevel)
-
+	utils.ConfigureLogging(level, v.GetBool("log-json"), !v.GetBool("log-time"), v.GetBool("log-color"))
+	hclog.L().Trace("Log level set", "level", hclog.L().GetLevel())
 }
 
 // Ensures that any created plugin clients are properly cleaned up

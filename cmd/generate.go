@@ -21,8 +21,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bcurnow/zonemgr/ctx"
 	"github.com/bcurnow/zonemgr/dns"
+	"github.com/bcurnow/zonemgr/models"
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/spf13/cobra"
@@ -42,6 +42,11 @@ var (
 			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins(), pluginManager.Metadata())
 			normalizer = dns.PluginNormalizer(pluginManager)
 			zoneYamlParser = dns.YamlZoneParser(normalizer)
+
+			globalConfig = &models.Config{}
+			globalConfig.GenerateReverseLookupZones = v.GetBool("generate-reverse-lookup-zones")
+			globalConfig.GenerateSerial = v.GetBool("generate-serial")
+			globalConfig.SerialChangeIndexDirectory = v.GetString("serial-change-index-directory")
 			return nil
 		},
 	}
@@ -55,6 +60,7 @@ var (
 	zoneFileGenerator          dns.ZoneFileGenerator
 	zoneYamlParser             dns.ZoneParser
 	normalizer                 dns.Normalizer
+	globalConfig               *models.Config
 )
 
 func generateZoneFile() error {
@@ -88,12 +94,12 @@ func generateZoneFile() error {
 }
 
 func init() {
-	generateCmd.Flags().StringVarP(&inputFile, "input-file`", "i", "zones.yaml", "Input YAML file")
+	generateCmd.Flags().StringVarP(&inputFile, "input-file", "", "zones.yaml", "Input YAML file")
 	generateCmd.MarkFlagRequired("input")
-	generateCmd.Flags().StringVarP(&outputDir, "output-dir", "o", ".", "Directory to output the BIND zone file(s) to")
-	generateCmd.Flags().BoolVarP(&generateReverseLookupZones, ctx.FlagGenerateReverseLookupZone, "r", false, "If true, reverse lookup zones will be generated as well")
-	generateCmd.Flags().BoolVarP(&generateSerial, ctx.FlagGenerateSerial, "s", false, "If true, the serial number on the SOA record will be automatically generated")
-	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, ctx.FlagSerialChangeIndexDirectory, "", "~/.local/share/zonemgr/serial", "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
+	generateCmd.Flags().StringVarP(&outputDir, "output-dir", "", ".", "Directory to output the BIND zone file(s) to")
+	generateCmd.Flags().BoolVarP(&generateReverseLookupZones, "generate-reverse-lookup-zones", "", false, "If true, reverse lookup zones will be generated as well")
+	generateCmd.Flags().BoolVarP(&generateSerial, "generate-serial", "", false, "If true, the serial number on the SOA record will be automatically generated")
+	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, "serial-change-index-directory", "", "~/.local/share/zonemgr/serial", "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
 
 	rootCmd.AddCommand(generateCmd)
 

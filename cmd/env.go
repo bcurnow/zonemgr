@@ -20,8 +20,8 @@ package cmd
 
 import (
 	"fmt"
+	"sort"
 
-	"github.com/bcurnow/zonemgr/ctx"
 	"github.com/spf13/cobra"
 )
 
@@ -29,10 +29,12 @@ var envCmd = &cobra.Command{
 	Use:   "env",
 	Short: "Prints the environment variables used (or defaulted)",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("%s=\"%t\"\n", ctx.GenerateReverseLookupZonesEnvName, ctx.C().GenerateReverseLookupZones())
-		fmt.Printf("%s=\"%t\"\n", ctx.GenerateSerialEnvName, ctx.C().GenerateSerial())
-		fmt.Printf("%s=\"%s\"\n", ctx.PluginsDirectoryEnvName, ctx.C().PluginsDirectory())
-		fmt.Printf("%s=\"%s\"\n", ctx.SerialChangeIndexDirectoryEnvName, ctx.C().SerialChangeIndexDirectory())
+		keys := v.AllKeys()
+		sort.Strings(keys)
+		allSettings := v.AllSettings()
+		for _, key := range keys {
+			fmt.Printf("%s=\"%v\"\n", key, allSettings[key])
+		}
 	},
 }
 
