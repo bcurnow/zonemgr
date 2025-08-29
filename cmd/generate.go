@@ -18,11 +18,11 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/bcurnow/zonemgr/dns"
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/spf13/cobra"
@@ -36,12 +36,28 @@ var (
 			return generateZoneFile()
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			outputDir = toAbsoluteFilePath(outputDir, "output directory")
-			inputFile = toAbsoluteFilePath(inputFile, "input file")
+			absOutputDir, err := utils.ToAbsoluteFilePath(outputDir, "output directory")
+			if err != nil {
+				return err
+			}
+			outputDir = absOutputDir
+
+			absInputFile, err := utils.ToAbsoluteFilePath(inputFile, "input file")
+			if err != nil {
+				return err
+			}
+			inputFile = absInputFile
 
 			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins())
 			normalizer = dns.PluginNormalizer(pluginManager.Plugins(), pluginManager.Metadata())
 			zoneYamlParser = dns.YamlZoneParser(normalizer)
+
+			// ensure that the serial-change-index-directory is an absolute file path
+			absSerialChangeIndexDirectory, err := utils.ToAbsoluteFilePath(v.GetString("serial-change-index-directory"), "serial-change-index-directory")
+			if err != nil {
+				return err
+			}
+			v.Set("serial-change-index-directory", absSerialChangeIndexDirectory)
 
 			globalConfig = &models.Config{}
 			globalConfig.GenerateReverseLookupZones = v.GetBool("generate-reverse-lookup-zones")
@@ -65,7 +81,7 @@ var (
 
 func generateZoneFile() error {
 	hclog.L().Info("Generating BIND zone file(s)", "outputDir", outputDir, "inputFile", inputFile)
-	zones, err := zoneYamlParser.Parse(inputFile)
+	zones, err := zoneYamlParser.Parse(inputFile, globalConfig)
 	if err != nil {
 		return fmt.Errorf("failed to parse input file %s: %w", inputFile, err)
 
@@ -99,17 +115,8 @@ func init() {
 	generateCmd.Flags().StringVarP(&outputDir, "output-dir", "", ".", "Directory to output the BIND zone file(s) to")
 	generateCmd.Flags().BoolVarP(&generateReverseLookupZones, "generate-reverse-lookup-zones", "", false, "If true, reverse lookup zones will be generated as well")
 	generateCmd.Flags().BoolVarP(&generateSerial, "generate-serial", "", false, "If true, the serial number on the SOA record will be automatically generated")
-	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, "serial-change-index-directory", "", "~/.local/share/zonemgr/serial", "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
+	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, "serial-change-index-directory", "", filepath.Join(homeDir, ".local", "share", "zonemgr", "serial"), "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
 
 	rootCmd.AddCommand(generateCmd)
 
-}
-
-func toAbsoluteFilePath(path string, name string) string {
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		hclog.L().Error("Could not convert %s value '%s' into an absolute path", name, path)
-		os.Exit(1)
-	}
-	return absPath
 }

@@ -20,6 +20,8 @@ import (
 	"fmt"
 
 	"github.com/bcurnow/zonemgr/dns"
+	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -27,14 +29,20 @@ var (
 	validateCmd = &cobra.Command{
 		Use:   "validate",
 		Short: "Validates the various files used by zonemgr",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if rootCmd.PersistentPreRun != nil {
 				rootCmd.PersistentPreRun(cmd, args)
 			}
 
-			input = toAbsoluteFilePath(input, "input")
+			absInput, err := utils.ToAbsoluteFilePath(input, "input")
+			if err != nil {
+				return err
+			}
+			input = absInput
 
 			parser = dns.YamlZoneParser(dns.PluginNormalizer(pluginManager.Plugins(), pluginManager.Metadata()))
+
+			return nil
 		},
 	}
 
@@ -42,7 +50,7 @@ var (
 		Use:   "yaml",
 		Short: "Validates the YAML input file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := parser.Parse(input)
+			_, err := parser.Parse(input, &models.Config{})
 			if err != nil {
 				return fmt.Errorf("failed to parse input file %s: %w", input, err)
 

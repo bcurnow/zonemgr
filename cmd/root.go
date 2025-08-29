@@ -94,7 +94,11 @@ func initConfig(cmd *cobra.Command) error {
 	}
 
 	// Normalize the plugin-dir to an absolute path
-	v.Set("plugin-dir", toAbsoluteFilePath(v.GetString("plugin-dir"), "plugin-dir"))
+	absPluginDir, err := utils.ToAbsoluteFilePath(v.GetString("plugin-dir"), "plugin-dir")
+	if err != nil {
+		return err
+	}
+	v.Set("plugin-dir", absPluginDir)
 
 	return nil
 }
