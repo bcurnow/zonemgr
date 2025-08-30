@@ -26,6 +26,10 @@ type TTL struct {
 	Comment string `yaml:"comment"`
 }
 
+func (ttl *TTL) String() string {
+	return fmt.Sprintf("TTL{Value: %d, Comment: %s}", ttl.Value, ttl.Comment)
+}
+
 func (t *TTL) Render() string {
 	if t.Value != nil {
 		comment := t.Comment

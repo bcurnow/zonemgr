@@ -16,8 +16,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package models
 
+import "fmt"
+
 type Config struct {
 	GenerateSerial             bool   `yaml:"generate_serial"`
 	SerialChangeIndexDirectory string `yaml:"serial_change_index_directory"`
 	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones"`
+}
+
+func (c *Config) String() string {
+	return fmt.Sprintf("Config{ GenerateSerial: %t, SerialChangeIndexDirectory: %s, GenerateReverseLookupZones: %t}", c.GenerateSerial, c.SerialChangeIndexDirectory, c.GenerateReverseLookupZones)
 }

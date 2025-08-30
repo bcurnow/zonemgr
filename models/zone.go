@@ -16,7 +16,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package models
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+)
 
 // Represents the overall Zone file structure, the YAML file is an array of these
 type Zone struct {
@@ -24,6 +27,10 @@ type Zone struct {
 	ResourceRecords       map[string]*ResourceRecord `yaml:"resource_records"`
 	TTL                   *TTL                       `yaml:"ttl"`
 	resourceRecordsByType map[ResourceRecordType]map[string]*ResourceRecord
+}
+
+func (z *Zone) String() string {
+	return fmt.Sprintf("Zone{Config: %s, ResourceRecords: %s, TTL: %s}", z.Config, z.ResourceRecords, z.TTL)
 }
 
 func (z *Zone) SOARecord() *ResourceRecord {
