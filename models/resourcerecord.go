@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 )
 
@@ -39,6 +40,18 @@ type ResourceRecord struct {
 	Values  []*ResourceRecordValue `yaml:"values"`
 	Value   string                 `yaml:"value"`
 	Comment string                 `yaml:"comment"`
+}
+
+func (rr *ResourceRecord) String() string {
+	return fmt.Sprintf(`ResourceRecord{
+	Name: %s,
+	Type: %s,
+	Class: %s,
+	TTL: %s,
+	Values: %s,
+	Value: %s,
+	Comment: %s
+	}`, rr.Name, rr.Type, rr.Class, utils.NilSafeString(rr.TTL), rr.Values, rr.Value, rr.Comment)
 }
 
 // There are two possible places to get a value from: Value or Values[0].Value
@@ -167,44 +180,4 @@ func (rr *ResourceRecord) RenderMultivalueResource() string {
 	record.WriteString(")")
 
 	return record.String()
-}
-
-type ResourceRecordValue struct {
-	Value   string `yaml:"value"`
-	Comment string `yaml:"comment"`
-}
-
-// Defines the types of classes available in a zone file
-type ResourceRecordClass string
-
-const (
-	INTERNET ResourceRecordClass = "IN"
-	CSNET    ResourceRecordClass = "CS"
-	CHAOS    ResourceRecordClass = "CH"
-	HESIOD   ResourceRecordClass = "HS"
-)
-
-func (rrc ResourceRecordClass) IsValid() bool {
-	switch rrc {
-
-	case INTERNET, CSNET, CHAOS, HESIOD, "": //It's always valid for the class to be empty
-		return true
-	default:
-		return false
-	}
-}
-
-func ResourceRecordClassFromString(str string) (*ResourceRecordClass, error) {
-	class, ok := resourceRecordClassToString[str]
-	if !ok {
-		return nil, fmt.Errorf("invalid resource record class '%s'", str)
-	}
-	return &class, nil
-}
-
-var resourceRecordClassToString = map[string]ResourceRecordClass{
-	string(INTERNET): INTERNET,
-	string(CSNET):    CSNET,
-	string(CHAOS):    CHAOS,
-	string(HESIOD):   HESIOD,
 }
