@@ -20,97 +20,116 @@
 package builtin
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
 )
 
-func TestNSPluginVersion(t *testing.T) {
-	testPluginVersion(t, &BuiltinPluginNS{})
-}
-
-func TestNSPluginTypes(t *testing.T) {
-	testPluginTypes(t, &BuiltinPluginNS{}, plugins.NS)
-}
-
-func TestNSConfigure(t *testing.T) {
-	testConfigure(t, &BuiltinPluginNS{})
-}
-
 func TestNSNormalize(t *testing.T) {
 	setup(t)
 	defer teardown(t)
-	plugin := &BuiltinPluginNS{}
-	testNormalizeValidNameAndDefaulting(t, &testNormalize{
-		plugin:     plugin,
+	tc := &testConfig{
+		plugin:     &BuiltinPluginNS{},
 		pluginType: plugins.NS,
 		rrType:     models.NS,
-		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
+	}
+	rr := &models.ResourceRecord{
+		Type:  tc.rrType,
+		Name:  "nsrecord",
+		Value: "ns1.example.com.",
+	}
+	tc.expects = normalizeExpects_NSPlugin(true, false, false, false)
+	testCommonValidations(t, tc, rr)
+	tc.expects = normalizeExpects_NSPlugin(false, true, false, false)
+	testIsValidNameOrWildcard(t, tc, rr)
+	tc.expects = normalizeExpects_NSPlugin(false, false, true, false)
+	testEnsureNotIP(t, tc, rr)
+	tc.expects = normalizeExpects_NSPlugin(false, false, false, true)
+	testIsFullyQualified(t, tc, rr)
 
-			if rr.Name == "" {
-				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, "@", rr.Type)
-			} else {
-				mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, rr.Type)
-			}
+	// Test value defaulting
+	identifier := "testing-value-defaulting"
+	noValue := &models.ResourceRecord{
+		Name: "valuedefaulting",
+		Type: tc.rrType,
+	}
+	mockValidator.EXPECT().CommonValidations(identifier, noValue, plugins.NS)
+	mockValidator.EXPECT().IsValidNameOrWildcard(identifier, noValue.Name, noValue.Type)
+	// Make sure the name defaulted
+	mockValidator.EXPECT().EnsureNotIP(identifier, identifier, noValue.Type)
+	mockValidator.EXPECT().IsFullyQualified(identifier, identifier, noValue.Type)
 
-			if rr.RetrieveSingleValue() == "" {
-				mockValidator.EXPECT().EnsureNotIP(identifier, identifier, rr.Type)
-				mockValidator.EXPECT().IsFullyQualified(identifier, identifier, rr.Type)
-			} else {
-				mockValidator.EXPECT().EnsureNotIP(identifier, rr.RetrieveSingleValue(), rr.Type)
-				mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type)
-			}
+	if err := tc.plugin.Normalize(identifier, noValue); err != nil {
+		t.Errorf("unexpected error:\n'%s'", err)
+	}
 
-		},
-	})
-	testNormalizeInvalidName(t, &testNormalize{
-		plugin:     plugin,
-		pluginType: plugins.NS,
-		rrType:     models.NS,
-		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
-			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.NS).Return(fmt.Errorf("not a valid name"))
-		},
-	})
-	testNormalizeValueIsIP(t, &testNormalize{
-		plugin:     plugin,
-		pluginType: plugins.NS,
-		rrType:     models.NS,
-		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
-			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, models.NS)
-			mockValidator.EXPECT().EnsureNotIP(identifier, rr.Value, models.NS).Return(fmt.Errorf("is not IP"))
+	// Test name defaulting
+	identifier = "testing-name-defaulting"
+	noName := &models.ResourceRecord{
+		Type:  tc.rrType,
+		Value: "ns1.example.com.",
+	}
+	mockValidator.EXPECT().CommonValidations(identifier, noName, plugins.NS)
+	// Make sure the name defaulted
+	mockValidator.EXPECT().IsValidNameOrWildcard(identifier, "@", noName.Type)
+	mockValidator.EXPECT().EnsureNotIP(identifier, noName.RetrieveSingleValue(), noName.Type)
+	mockValidator.EXPECT().IsFullyQualified(identifier, noName.RetrieveSingleValue(), noName.Type)
 
-		},
-	})
-	testNormalizeValueNotFullyQualified(t, &testNormalize{
-		plugin:     plugin,
-		pluginType: plugins.NS,
-		rrType:     models.NS,
-		expects: func(identifier string, rr *models.ResourceRecord) {
-			mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
-			mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, models.NS)
-			mockValidator.EXPECT().EnsureNotIP(identifier, rr.RetrieveSingleValue(), models.NS)
-			mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), models.NS).Return(fmt.Errorf("not fully qualified"))
-		},
-	})
-}
-
-func TestNSValidateZone(t *testing.T) {
-	testValidateZone(t, &BuiltinPluginNS{})
+	if err := tc.plugin.Normalize(identifier, noName); err != nil {
+		t.Errorf("unexpected error:\n'%s'", err)
+	}
 }
 
 func TestNSRender(t *testing.T) {
 	setup(t)
 	defer teardown(t)
-	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().IsSupportedPluginType("testing", models.NS, plugins.NS)
+	rr := &models.ResourceRecord{
+		Type: models.NS,
+		Name: "render",
+	}
 	plugin := &BuiltinPluginNS{}
-	_, err := plugin.Render("testing", &models.ResourceRecord{Type: models.NS})
+	pluginType := plugins.NS
+	testRender(t, testConfig{
+		plugin:     plugin,
+		pluginType: pluginType,
+		rrType:     rr.Type,
+		expects: func(identifier string, rr *models.ResourceRecord, err bool) {
+			call := mockValidator.EXPECT().IsSupportedPluginType(identifier, rr.Type, pluginType)
+			if err {
+				call.Return(testingError)
+			}
+		},
+	}, rr)
+	//Render uses the standard method so we're going to cheat
+	mockValidator.EXPECT().IsSupportedPluginType("testing", rr.Type, pluginType)
+	_, err := plugin.Render("testing", rr)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
+	}
+}
+
+func normalizeExpects_NSPlugin(commonValidationsErr bool, isValidNameOrWildcardErr bool, ensureIPErr bool, isFullyQualifiedErr bool) func(identifier string, rr *models.ResourceRecord, err bool) {
+	return func(identifier string, rr *models.ResourceRecord, err bool) {
+		call := mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
+		if commonValidationsErr && err {
+			call.Return(testingError)
+			return
+		}
+		call = mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, rr.Type)
+		if isValidNameOrWildcardErr && err {
+			call.Return(testingError)
+			return
+		}
+		call = mockValidator.EXPECT().EnsureNotIP(identifier, rr.RetrieveSingleValue(), rr.Type)
+		if ensureIPErr && err {
+			call.Return(testingError)
+			return
+		}
+		call = mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type)
+		if isFullyQualifiedErr && err {
+			call.Return(testingError)
+			return
+		}
 	}
 }

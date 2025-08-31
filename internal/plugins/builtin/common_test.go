@@ -20,171 +20,176 @@
 package builtin
 
 import (
-	"fmt"
-	"strings"
+	"errors"
 	"testing"
 
-	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
-	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
+
+	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/models/testingutils"
+	"github.com/bcurnow/zonemgr/plugins"
 )
 
-type testNormalize struct {
+type testConfig struct {
 	plugin     plugins.ZoneMgrPlugin
 	pluginType plugins.PluginType
 	rrType     models.ResourceRecordType
-	expects    func(identifier string, rr *models.ResourceRecord)
+	expects    func(identifier string, rr *models.ResourceRecord, err bool)
+}
+
+type testCase struct {
+	identifier string
+	err        bool
 }
 
 var (
-	mockController *gomock.Controller
-	mockValidator  *plugins.MockValidator
+	mockValidator           *plugins.MockValidator
+	mockSerialIndexManager  *utils.MockSerialIndexManager
+	mockSoaValuesNormalizer *plugins.MockSOAValuesNormalizer
+	testingError            error
 )
 
 func setup(t *testing.T) {
-	mockController = gomock.NewController(t)
-	mockValidator = plugins.NewMockValidator(mockController)
+	testingutils.Setup(t)
+	mockValidator = plugins.NewMockValidator(testingutils.MockController)
 	validations = mockValidator
+	mockSerialIndexManager = utils.NewMockSerialIndexManager(testingutils.MockController)
+	serialIndexManager = mockSerialIndexManager
+	mockSoaValuesNormalizer = plugins.NewMockSOAValuesNormalizer(testingutils.MockController)
+	soaValuesNormalizer = mockSoaValuesNormalizer
+	testingError = errors.New("testing error")
 }
 
-func teardown(_ *testing.T) {
-	mockController.Finish()
+func teardown(t *testing.T) {
+	testingutils.Teardown(t)
 	validations = plugins.V()
+	serialIndexManager = nil
 }
 
-func testPluginVersion(t *testing.T, p plugins.ZoneMgrPlugin) {
-	ver, err := p.PluginVersion()
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-
-	if ver != utils.Version() {
-		t.Errorf("incorrect version %s, want %s", ver, utils.Version())
-	}
-}
-
-func testPluginTypes(t *testing.T, p plugins.ZoneMgrPlugin, want ...plugins.PluginType) {
-	pluginTypes, err := p.PluginTypes()
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-
-	if !cmp.Equal(pluginTypes, want) {
-		t.Errorf("unexpected plugin types %s, want %s", pluginTypes, want)
-	}
-}
-
-func testConfigure(t *testing.T, p plugins.ZoneMgrPlugin) {
-	if err := p.Configure(nil); err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-}
-
-func testValidateZone(t *testing.T, p plugins.ZoneMgrPlugin) {
-	if err := p.ValidateZone("noop", &models.Zone{}); err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-}
-
-// Runs the testinng necessary for any resouurce type where the name needs to be a valid name or wildcard
+// Runs the testing necessary for any resource type where the name needs to be a valid name or wildcard
 // NOTE: setup needs to be called before calling this method!
-func testNormalizeValidNameAndDefaulting(t *testing.T, tn *testNormalize) {
-	testCases := []struct {
-		rr         *models.ResourceRecord
-		identifier string
-	}{
+func testCommonValidations(t *testing.T, testConf *testConfig, rr *models.ResourceRecord) {
+	testCases := []testCase{
 		{
-			identifier: "ValidRecordWithOutName",
-			rr: &models.ResourceRecord{
-				Type:  tn.rrType,
-				Value: "value.example.com.",
-			},
+			identifier: "CommonValidations-Valid",
 		},
 		{
-			identifier: "Valid record with a name",
-			rr: &models.ResourceRecord{
-				Type:  tn.rrType,
-				Value: "value.example.com.",
-				Name:  "name",
-			},
+			identifier: "CommonValidations-Error",
+			err:        true,
 		},
 	}
 
 	for _, tc := range testCases {
-		tn.expects(tc.identifier, tc.rr)
-		err := tn.plugin.Normalize(tc.identifier, tc.rr)
-		if err != nil {
-			t.Errorf("unexpected error: %s", err)
-		}
+		testConf.expects(tc.identifier, rr, tc.err)
+		err := testConf.plugin.Normalize(tc.identifier, rr)
+		handleError(t, err, tc.err)
 	}
 }
 
-// Runs the testinng necessary for any resouurce type where the name needs to be a valid name or wildcard
-// NOTE: setup needs to be called before calling this method!
-func testNormalizeInvalidName(t *testing.T, tn *testNormalize) {
-	identifier := "Invalid name"
-	// Make a name that has more than 63 characters to voilate the spec
-	rr := &models.ResourceRecord{Type: tn.rrType, Name: "invalidname" + strings.Repeat("e", 63)}
-	tn.expects(identifier, rr)
-	err := tn.plugin.Normalize(identifier, rr)
-	if err == nil {
-		t.Errorf("expected error")
-	} else {
-		if err.Error() != "not a valid name" {
-			t.Errorf("unexpected error: %s, want not a valid name", err)
-		}
+func testIsValidNameOrWildcard(t *testing.T, testConf *testConfig, rr *models.ResourceRecord) {
+	testCases := []testCase{
+		{
+			identifier: "IsValidNameOrWildcard-Valid",
+		},
+		{
+			identifier: "IsValidNameOrWildcard-Error",
+			err:        true,
+		},
+	}
+
+	for _, tc := range testCases {
+		testConf.expects(tc.identifier, rr, tc.err)
+		err := testConf.plugin.Normalize(tc.identifier, rr)
+		handleError(t, err, tc.err)
 	}
 }
 
-// Runs the testinng necessary for any resouurce type where the Value needs to be an IP address
-// NOTE: setup needs to be called before calling this method!
-func testNormalizeValueIsIP(t *testing.T, tn *testNormalize) {
-	identifier := "name"
-	rr := &models.ResourceRecord{Type: tn.rrType, Value: "not an IP", Name: identifier}
+func testEnsureIP(t *testing.T, testConf *testConfig, rr *models.ResourceRecord) {
+	testCases := []testCase{
+		{
+			identifier: "EnsureIP-Valid",
+		},
+		{
+			identifier: "EnsureIP-Error",
+			err:        true,
+		},
+	}
 
-	tn.expects(identifier, rr)
-	err := tn.plugin.Normalize(identifier, rr)
-	if err == nil {
-		t.Errorf("expected error")
-	} else {
-		if err.Error() != "is not IP" {
-			t.Errorf("unexpected error: '%s', want is not IP", err.Error())
-		}
+	for _, tc := range testCases {
+		testConf.expects(tc.identifier, rr, tc.err)
+		err := testConf.plugin.Normalize(tc.identifier, rr)
+		handleError(t, err, tc.err)
 	}
 }
 
-// Runs the testinng necessary for any resouurce type where the Value needs to NOT be an IP address
-// NOTE: setup needs to be called before calling this method!
-func testNormalizeValueNotIP(t *testing.T, plugin plugins.ZoneMgrPlugin, pluginType plugins.PluginType, rrType models.ResourceRecordType) {
-	identifier := "name"
-	rr := &models.ResourceRecord{Type: rrType, Value: "not an IP", Name: identifier}
+func testEnsureNotIP(t *testing.T, testConf *testConfig, rr *models.ResourceRecord) {
+	testCases := []testCase{
+		{
+			identifier: "EnsureNotIP-Valid",
+		},
+		{
+			identifier: "EnsureNotIP-Error",
+			err:        true,
+		},
+	}
 
-	mockValidator.EXPECT().CommonValidations(identifier, rr, pluginType)
-	mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, rrType)
-	mockValidator.EXPECT().EnsureNotIP(identifier, rr.Value, rrType).Return(fmt.Errorf("is an IP"))
-
-	err := plugin.Normalize(identifier, rr)
-	if err == nil {
-		t.Errorf("expected error")
-	} else {
-		if err.Error() != "is an IP" {
-			t.Errorf("unexpected error: %s, want is an IP", err)
-		}
+	for _, tc := range testCases {
+		testConf.expects(tc.identifier, rr, tc.err)
+		err := testConf.plugin.Normalize(tc.identifier, rr)
+		handleError(t, err, tc.err)
 	}
 }
 
-func testNormalizeValueNotFullyQualified(t *testing.T, tn *testNormalize) {
-	identifier := "name"
-	rr := &models.ResourceRecord{Type: tn.rrType, Name: "name", Value: "value.example.com."}
-	tn.expects(identifier, rr)
-	err := tn.plugin.Normalize(identifier, rr)
-	if err == nil {
-		t.Errorf("expected error")
+func testRender(t *testing.T, testConf testConfig, rr *models.ResourceRecord) {
+	testCases := []testCase{
+		{
+			identifier: "Render-Valid",
+		},
+		{
+			identifier: "Render-WrongPluginType",
+			err:        true,
+		},
+	}
+	for _, tc := range testCases {
+		testConf.expects(tc.identifier, rr, tc.err)
+		_, err := testConf.plugin.Render(tc.identifier, rr)
+		handleError(t, err, tc.err)
+	}
+}
+
+func testIsFullyQualified(t *testing.T, testConf *testConfig, rr *models.ResourceRecord) {
+	testCases := []testCase{
+		{
+			identifier: "IsFullyQualified-Valid",
+		},
+		{
+			identifier: "IsFullyQualified-Error",
+			err:        true,
+		},
+	}
+	for _, tc := range testCases {
+		testConf.expects(tc.identifier, rr, tc.err)
+		err := testConf.plugin.Normalize(tc.identifier, rr)
+		handleError(t, err, tc.err)
+	}
+}
+
+func handleError(t *testing.T, err error, wantError bool) {
+	if wantError {
+		handleCustomError(t, err, testingError)
 	} else {
-		if err.Error() != "not fully qualified" {
-			t.Errorf("unexpected error: %s, want not fully qualified", err)
+		handleCustomError(t, err, nil)
+	}
+}
+
+func handleCustomError(t *testing.T, err error, wanted error) {
+	if wanted != nil && err == nil {
+		t.Errorf("expected error")
+	} else if wanted != nil && err != nil {
+		if err.Error() != wanted.Error() {
+			t.Errorf("Unexpected error:\n'%s'\nwant\n'%s'", err, wanted)
 		}
+	} else if wanted == nil && err != nil {
+		t.Errorf("unexpected error:\n'%s'", err)
 	}
 }

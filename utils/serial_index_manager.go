@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/gofrs/flock"
@@ -35,23 +34,14 @@ import (
 
 const serialChangeIndexFileExtension = ".serial"
 
+type SerialIndexManager interface {
+	GetNext(zoneName string) (string, error)
+}
+
 var (
 	initialChangeIndex    uint32                = 1
 	serialNumberGenerator SerialNumberGenerator = &TimeBasedSerialGenerator{}
 )
-
-type SerialIndex struct {
-	BaseSerialNumber *uint32 `yaml:"base_serial_number"`
-	ChangeIndex      *uint32 `yaml:"change_index"`
-}
-
-func (si *SerialIndex) toSerial() string {
-	return strconv.Itoa(int(*si.BaseSerialNumber)) + strconv.Itoa(int(*si.ChangeIndex))
-}
-
-type SerialIndexManager interface {
-	GetNext(zoneName string) (string, error)
-}
 
 type fileSerialIndexManager struct {
 	serialChangeIndexDirectory string

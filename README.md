@@ -12,7 +12,7 @@
 	* [Classes](#Classes)
 	* [Special Values and Escapes](#SpecialValuesandEscapes)
 * [YAML Format](#YAMLFormat)
-	* [Examples](#Examples)
+	* [YAML Examples](#YAMLExamples)
 		* [NS record](#NSrecord)
 		* [A record](#Arecord)
 		* [CNAME Record](#CNAMERecord)
@@ -22,7 +22,7 @@
 	* [Plugin Behavior](#PluginBehavior)
 		* [NS](#NS)
 		* [SOA](#SOA)
-* [Examples](#Examples-1)
+* [Examples Files](#ExamplesFiles)
 	* [zones.yaml](#zones.yaml)
 	* [zonemgr-a-record-comment-override-plugin](#zonemgr-a-record-comment-override-plugin)
 * [Building](#Building)
@@ -31,6 +31,7 @@
 	* [build](#build)
 	* [build-all](#build-all)
 	* [run-with-plugins](#run-with-plugins)
+* [Releasing](#Releasing)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -152,7 +153,7 @@ Zonemgr parses a YAML with the following format:
          comment: <string> # Optional comment for the value
 ```
 
-### <a name='Examples'></a>Examples
+### <a name='YAMLExamples'></a>YAML Examples
 
 The following examples leverage the builtin plugins for the resource record types, please see the plugin documentation if using an alternative plugin.
 
@@ -334,7 +335,7 @@ The following describe the behaviors of the built-in plugins.
 * The primary name server (MNAME) is a DNS name and therefore must be fully qualified (see above)
 * The administrator (RNAME) can either be specified as a valid email address (e.g. <admin@example.com>) or as the zone file specific format where the '@' is replaced by a dot ('.') (e.g. admin.example.com.). If using the latter, that's a specific name and needs to be fully qualified (see above)
 
-## <a name='Examples-1'></a>Examples
+## <a name='ExamplesFiles'></a>Examples Files
 
 ### <a name='zones.yaml'></a>zones.yaml
 
@@ -368,7 +369,7 @@ Runs the `build` target and then compiles examples/zonemgr-a-record-comment-over
 
 Executes zonemgr `plugins` sub-command with the plugin directory set to examples/bin to show how plugins work
 
-## Releasing
+## <a name='Releasing'></a>Releasing
 
 To release a new version:
 

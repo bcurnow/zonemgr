@@ -76,10 +76,10 @@ func (p *BuiltinPluginCNAME) ValidateZone(name string, zone *models.Zone) error 
 		return fmt.Errorf("found CNAME records but there are no A records present, all CNAMES must reference an A record name, zone: '%s'", name)
 	}
 
-	for _, cnameRecord := range cnameRecords {
+	for identifier, cnameRecord := range cnameRecords {
 		_, ok := aRecords[cnameRecord.Value]
 		if !ok {
-			return fmt.Errorf("invalid CNAME record, '%s' has a value of '%s' which does not match any defined A record name, zone: '%s'", cnameRecord.Name, cnameRecord.Value, name)
+			return fmt.Errorf("invalid CNAME record, '%s' has a value of '%s' which does not match any defined A record name, zone: '%s'", identifier, cnameRecord.Value, name)
 		}
 	}
 

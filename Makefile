@@ -29,8 +29,10 @@ run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
 mocks:
 	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns" >dns/mock_normalizer.go
 	mockgen -source=plugin_manager/plugin_manager.go -package plugin_manager -self_package "github.com/bcurnow/zonemgr/plugin_manager" >plugin_manager/mock_plugin_manager.go
+	mockgen -source=plugins/soa_values_normalizer.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_soa_values_normalizer.go
 	mockgen -source=plugins/validator.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_validator.go
 	mockgen -source=plugins/zonemgr_plugin.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_zonemgr_plugin.go
+	mockgen -source=utils/serial_index_manager.go -package utils -self_package "github.com/bcurnow/zonemgr/utils">utils/mock_serial_index_manager.go
 
 proto:
 	buf generate

@@ -20,132 +20,219 @@
 package builtin
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
 )
 
-func TestSOAPluginVersion(t *testing.T) {
-	testPluginVersion(t, &BuiltinPluginSOA{})
+const testingSerial = "testserial"
+
+type soaNormalization struct {
+	identifierAsName        bool
+	hasSerialInValues       bool
+	commonValidationsErr    bool
+	isFullyQualifiedNameErr bool
+	valueUsedErr            bool
+	commentUsedErr          bool
+	generateSerial          bool
+	generateSerialErr       bool
+	soaValuesNormalizerErr  bool
 }
 
-func TestSOAPluginTypes(t *testing.T) {
-	testPluginTypes(t, &BuiltinPluginSOA{}, plugins.SOA)
-}
-
-func TestSOAConfigure(t *testing.T) {
-	testConfigure(t, &BuiltinPluginSOA{})
-}
-
-func TestSOANormalize(t *testing.T) {
+func TestSOANoramlize2(t *testing.T) {
 	setup(t)
 	defer teardown(t)
 	plugin := &BuiltinPluginSOA{}
+
 	testCases := []struct {
-		rr         *models.ResourceRecord
 		identifier string
-		name       string
-		err        string
-		config     *models.Config
+		testConfig *soaNormalization
+		err        error
 	}{
-		{
-			identifier: "ValidRecordWithOutName",
-			rr: &models.ResourceRecord{
-				Type: models.SOA,
-				Values: []*models.ResourceRecordValue{
-					{Value: "ns.example.com."},
-					{Value: "admin@example.com"},
-					{Value: "99"},
-					{Value: "1"},
-					{Value: "2"},
-					{Value: "3"},
-					{Value: "4"},
-				},
-			},
-			name:   "ValidRecordWithOutName",
-			config: &models.Config{GenerateSerial: false},
-		},
-		{
-			identifier: "Valid record with a name",
-			rr: &models.ResourceRecord{
-				Type: models.SOA,
-				Values: []*models.ResourceRecordValue{
-					{Value: "ns.example.com."},
-					{Value: "admin@example.com"},
-					{Value: "99"},
-					{Value: "1"},
-					{Value: "2"},
-					{Value: "3"},
-					{Value: "4"},
-				},
-				Name: "name",
-			},
-			name:   "name",
-			config: &models.Config{GenerateSerial: false},
-		},
+		{identifier: "valid-dont-generate-serial", testConfig: &soaNormalization{}},
+		{identifier: "valid-generate-serial", testConfig: &soaNormalization{generateSerial: true}},
+		{identifier: "common-validations-error", testConfig: &soaNormalization{commonValidationsErr: true}, err: testingError},
+		{identifier: "identifier-as-name", testConfig: &soaNormalization{identifierAsName: true}},
+		{identifier: "is-fully-qualified-name-error", testConfig: &soaNormalization{isFullyQualifiedNameErr: true}, err: testingError},
+		{identifier: "value-used-error", testConfig: &soaNormalization{valueUsedErr: true}, err: errors.New("value field cannot be used on SOA records, please use the values field, identifier: 'value-used-error'")},
+		{identifier: "comment-used-error", testConfig: &soaNormalization{commentUsedErr: true}, err: errors.New("comment field cannot be used on SOA records, please use the values field, identifier: 'comment-used-error'")},
+		{identifier: "generate-serial-error", testConfig: &soaNormalization{generateSerial: true, generateSerialErr: true}, err: testingError},
+		{identifier: "normalizer-error", testConfig: &soaNormalization{soaValuesNormalizerErr: true}, err: testingError},
 	}
 
 	for _, tc := range testCases {
-		mockValidator.EXPECT().CommonValidations(tc.identifier, tc.rr, plugins.SOA)
-		mockValidator.EXPECT().IsFullyQualified(tc.identifier, tc.name, tc.rr.Type)
-		mockValidator.EXPECT().IsFullyQualified(tc.identifier, tc.rr.Values[0].Value, tc.rr.Type)
-		mockValidator.EXPECT().FormatEmail(tc.identifier, tc.rr.Values[1].Value, tc.rr.Type)
-		mockValidator.EXPECT().IsPositive(tc.identifier, tc.rr.Values[3].Value, "REFRESH", tc.rr.Type)
-		mockValidator.EXPECT().IsPositive(tc.identifier, tc.rr.Values[4].Value, "RETRY", tc.rr.Type)
-		mockValidator.EXPECT().IsPositive(tc.identifier, tc.rr.Values[5].Value, "EXPIRE", tc.rr.Type)
-		mockValidator.EXPECT().IsPositive(tc.identifier, tc.rr.Values[6].Value, "NCACHE", tc.rr.Type)
-		plugin.Configure(tc.config)
-
-		err := plugin.Normalize(tc.identifier, tc.rr)
-		if err != nil {
-			if tc.err == "" {
-				t.Errorf("unexpected error: %s", err)
-			} else {
-				if err.Error() != tc.err {
-					t.Errorf("unexpected error: '%s', want '%s'", err, tc.err)
-				}
-			}
+		rr := testSOA(*tc.testConfig)
+		expects := normalizeExpects_SOAPlugin(tc.testConfig)
+		expects(tc.identifier, rr, tc.err != nil)
+		config := &models.Config{
+			GenerateSerial: tc.testConfig.generateSerial,
+		}
+		// Make sure we call configure because we do use this in the SOA plugin
+		plugin.Configure(config)
+		// Because we called config, several the objects will now have non-mock values
+		// Replace those with mocks
+		serialIndexManager = mockSerialIndexManager
+		soaValuesNormalizer = mockSoaValuesNormalizer
+		if err := plugin.Normalize(tc.identifier, rr); err != nil {
+			handleCustomError(t, err, tc.err)
 		} else {
-			if tc.err != "" {
-				t.Errorf("expected error")
+			if tc.err != nil {
+				t.Errorf("expected error, did not get one")
+			} else {
+				if tc.testConfig.identifierAsName {
+					if rr.Name != tc.identifier {
+						t.Errorf("incorrect name: %s, expected %s", rr.Name, tc.identifier)
+					}
+				}
 			}
 		}
 	}
 }
-
 func TestSOAValidateZone(t *testing.T) {
-	plugin := &BuiltinPluginSOA{}
-	zone := &models.Zone{
-		ResourceRecords: map[string]*models.ResourceRecord{
-			"example.com.": {
-				Type: models.SOA,
-				Values: []*models.ResourceRecordValue{
-					{Value: "ns.example.com."},
-					{Value: "admin@example.com"},
-					{Value: "99"},
-					{Value: "1"},
-					{Value: "2"},
-					{Value: "3"},
-					{Value: "4"},
-				},
+	testCases := []struct {
+		zone *models.Zone
+		err  error
+	}{
+		{zone: &models.Zone{}, err: errors.New("invalid zone, missing SOA record, zone=testing")},
+		{zone: &models.Zone{ResourceRecords: map[string]*models.ResourceRecord{"example.com.": {Type: models.SOA}}}},
+		{zone: &models.Zone{
+			ResourceRecords: map[string]*models.ResourceRecord{
+				"example.com.":     {Type: models.SOA},
+				"two.example.com.": {Type: models.SOA},
 			},
+		},
+			err: errors.New("more than one SOA record found, only one SOA record is allowed, zone=testing"),
 		},
 	}
 
-	if err := plugin.ValidateZone("example.com.", zone); err != nil {
-		t.Errorf("unexpected error: %s", err)
+	plugin := &BuiltinPluginSOA{}
+	for _, tc := range testCases {
+		if err := plugin.ValidateZone("testing", tc.zone); err != nil {
+			if tc.err == nil {
+				t.Errorf("unexpected error: %s", err)
+			} else {
+				if tc.err.Error() != err.Error() {
+					t.Errorf("incorrect error: %s, want %s", err, tc.err)
+				}
+			}
+		}
 	}
 }
 
 func TestSOARender(t *testing.T) {
 	setup(t)
 	defer teardown(t)
-	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().IsSupportedPluginType("testing", models.SOA, plugins.SOA)
+	rr := &models.ResourceRecord{
+		Type: models.SOA,
+		Name: "render",
+	}
 	plugin := &BuiltinPluginSOA{}
-	_, err := plugin.Render("testing", &models.ResourceRecord{Type: models.SOA})
+	pluginType := plugins.SOA
+	testRender(t, testConfig{
+		plugin:     plugin,
+		pluginType: pluginType,
+		rrType:     rr.Type,
+		expects: func(identifier string, rr *models.ResourceRecord, err bool) {
+			call := mockValidator.EXPECT().IsSupportedPluginType(identifier, rr.Type, pluginType)
+			if err {
+				call.Return(testingError)
+			}
+		},
+	}, rr)
+	//Render uses the standard method so we're going to cheat
+	mockValidator.EXPECT().IsSupportedPluginType("testing", rr.Type, pluginType)
+	_, err := plugin.Render("testing", rr)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
+}
+
+// This feels a bit excessing and like
+func normalizeExpects_SOAPlugin(sn *soaNormalization) func(identifier string, rr *models.ResourceRecord, err bool) {
+	return func(identifier string, rr *models.ResourceRecord, err bool) {
+		call := mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.SOA)
+		if sn.commonValidationsErr {
+			call.Return(testingError)
+			return
+		}
+		if sn.identifierAsName {
+			call = mockValidator.EXPECT().IsFullyQualified(identifier, identifier, rr.Type)
+		} else {
+			call = mockValidator.EXPECT().IsFullyQualified(identifier, rr.Name, rr.Type)
+		}
+		if sn.isFullyQualifiedNameErr {
+			call.Return(testingError)
+			return
+		}
+		if sn.valueUsedErr {
+			return
+		}
+		if sn.commentUsedErr {
+			return
+		}
+		serial := ""
+		if sn.generateSerial {
+			serial = testingSerial
+			if sn.identifierAsName {
+				call = mockSerialIndexManager.EXPECT().GetNext(identifier)
+			} else {
+				call = mockSerialIndexManager.EXPECT().GetNext(rr.Name)
+			}
+
+			if sn.generateSerialErr {
+				call.Return("", testingError)
+				return
+			} else {
+				call.Return(serial, nil)
+			}
+		}
+		call = mockSoaValuesNormalizer.EXPECT().Normalize(identifier, rr, mockValidator, sn.generateSerial, serial)
+		if sn.soaValuesNormalizerErr {
+			call.Return(testingError)
+			return
+		}
+	}
+}
+
+func testSOA(sn soaNormalization) *models.ResourceRecord {
+	soa := &models.ResourceRecord{Type: models.SOA}
+
+	if !sn.identifierAsName {
+		soa.Name = "soa.example.com."
+	}
+
+	if sn.hasSerialInValues {
+		// We need to have all 7 values populated
+		soa.Values = []*models.ResourceRecordValue{
+			{Value: "ns1.example.com."},
+			{Value: "admin@example.com"},
+			{Value: testingSerial},
+			{Value: "refresh"},
+			{Value: "retry"},
+			{Value: "expire"},
+			{Value: "ncache"},
+		}
+	} else {
+		// We just need 6 values
+		soa.Values = []*models.ResourceRecordValue{
+			{Value: "ns1.example.com."},
+			{Value: "admin@example.com"},
+			{Value: "refresh"},
+			{Value: "retry"},
+			{Value: "expire"},
+			{Value: "ncache"},
+		}
+	}
+
+	if sn.valueUsedErr {
+		soa.Value = "i-should-not-be-here"
+	}
+
+	if sn.commentUsedErr {
+		soa.Comment = "i-should-not-be-here"
+	}
+
+	return soa
 }

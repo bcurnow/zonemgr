@@ -25,26 +25,26 @@ import (
 	"github.com/bcurnow/zonemgr/utils"
 )
 
-var _ plugins.ZoneMgrPlugin = &APlugin{}
+var _ plugins.ZoneMgrPlugin = &BuiltinPluginA{}
 
-type APlugin struct {
+type BuiltinPluginA struct {
 	plugins.ZoneMgrPlugin
 }
 
-func (p *APlugin) PluginVersion() (string, error) {
+func (p *BuiltinPluginA) PluginVersion() (string, error) {
 	return utils.Version(), nil
 }
 
-func (p *APlugin) PluginTypes() ([]plugins.PluginType, error) {
+func (p *BuiltinPluginA) PluginTypes() ([]plugins.PluginType, error) {
 	return plugins.PluginTypes(plugins.A), nil
 }
 
-func (p *APlugin) Configure(config *models.Config) error {
+func (p *BuiltinPluginA) Configure(config *models.Config) error {
 	// no config
 	return nil
 }
 
-func (p *APlugin) Normalize(identifier string, rr *models.ResourceRecord) error {
+func (p *BuiltinPluginA) Normalize(identifier string, rr *models.ResourceRecord) error {
 	if err := validations.CommonValidations(identifier, rr, plugins.A); err != nil {
 		return err
 	}
@@ -65,12 +65,12 @@ func (p *APlugin) Normalize(identifier string, rr *models.ResourceRecord) error 
 	return nil
 }
 
-func (p *APlugin) ValidateZone(name string, zone *models.Zone) error {
+func (p *BuiltinPluginA) ValidateZone(name string, zone *models.Zone) error {
 	//no-op
 	return nil
 }
 
-func (p *APlugin) Render(identifier string, rr *models.ResourceRecord) (string, error) {
+func (p *BuiltinPluginA) Render(identifier string, rr *models.ResourceRecord) (string, error) {
 	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.A); err != nil {
 		return "", err
 	}
@@ -79,5 +79,5 @@ func (p *APlugin) Render(identifier string, rr *models.ResourceRecord) (string, 
 }
 
 func init() {
-	registerBuiltIn(plugins.A, &APlugin{})
+	registerBuiltIn(plugins.A, &BuiltinPluginA{})
 }
