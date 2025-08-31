@@ -19,28 +19,6 @@
 
 package models
 
-import (
-	"fmt"
-
-	"github.com/bcurnow/zonemgr/utils"
-)
-
-type TTL struct {
-	Value   *int32 `yaml:"value"` // The use of a pointer to an int32 allows us to handle missing (nil) values more easily
-	Comment string `yaml:"comment"`
-}
-
-func (ttl *TTL) String() string {
-	return fmt.Sprintf("TTL{ Value: %s, Comment: %s }", utils.NilSafeString(ttl.Value), ttl.Comment)
-}
-
-func (t *TTL) Render() string {
-	if t.Value != nil {
-		comment := t.Comment
-		if comment != "" {
-			comment = " ;" + comment
-		}
-		return fmt.Sprintf("$TTL %d%s", *t.Value, comment)
-	}
-	return ""
+func toInt32Ptr(i int32) *int32 {
+	return &i
 }

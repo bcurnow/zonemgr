@@ -139,7 +139,7 @@ func TestGenerateZone_WithTTL(t *testing.T) {
 		t.Errorf("unexpected error: %s", err)
 	}
 
-	want := "$ORIGIN testing\n$TTL 30 ; testZone-TTL\nrecord1\nrecord2\n"
+	want := "$ORIGIN testing\n$TTL 30 ;testZone-TTL\nrecord1\nrecord2\n"
 
 	outputBytes, err := os.ReadFile(filepath.Join(outputDir, "testing"))
 	if err != nil {

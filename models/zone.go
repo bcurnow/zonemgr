@@ -19,6 +19,7 @@ package models
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // Represents the overall Zone file structure, the YAML file is an array of these
@@ -30,7 +31,22 @@ type Zone struct {
 }
 
 func (z *Zone) String() string {
-	return fmt.Sprintf("Zone{Config: %s, ResourceRecords: %s, TTL: %s}", z.Config, z.ResourceRecords, z.TTL)
+	var rrString strings.Builder
+
+	for identifier, rr := range z.ResourceRecords {
+		rrString.WriteString("     ")
+		rrString.WriteString(identifier)
+		rrString.WriteString(" -> ")
+		rrString.WriteString(rr.String())
+		rrString.WriteString("\n")
+	}
+
+	return "Zone{\n" +
+		fmt.Sprintf("   Config: %s\n", z.Config) +
+		"   ResourceRecords:\n" +
+		fmt.Sprintf("%s\n", rrString.String()[:len(rrString.String())-1]) +
+		fmt.Sprintf("   TTL: %s\n", z.TTL) +
+		"}"
 }
 
 func (z *Zone) SOARecord() *ResourceRecord {

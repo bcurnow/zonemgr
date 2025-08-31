@@ -19,28 +19,17 @@
 
 package models
 
-import (
-	"fmt"
+import "testing"
 
-	"github.com/bcurnow/zonemgr/utils"
-)
-
-type TTL struct {
-	Value   *int32 `yaml:"value"` // The use of a pointer to an int32 allows us to handle missing (nil) values more easily
-	Comment string `yaml:"comment"`
-}
-
-func (ttl *TTL) String() string {
-	return fmt.Sprintf("TTL{ Value: %s, Comment: %s }", utils.NilSafeString(ttl.Value), ttl.Comment)
-}
-
-func (t *TTL) Render() string {
-	if t.Value != nil {
-		comment := t.Comment
-		if comment != "" {
-			comment = " ;" + comment
-		}
-		return fmt.Sprintf("$TTL %d%s", *t.Value, comment)
+func TestString_Config(t *testing.T) {
+	c := &Config{
+		GenerateSerial:             true,
+		GenerateReverseLookupZones: true,
+		SerialChangeIndexDirectory: "testing",
 	}
-	return ""
+
+	want := "Config{ GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: testing }"
+	if c.String() != want {
+		t.Errorf("incorrect string:\n%s\nwant:\n%s", c.String(), want)
+	}
 }

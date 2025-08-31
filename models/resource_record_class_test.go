@@ -19,28 +19,17 @@
 
 package models
 
-import (
-	"fmt"
+import "testing"
 
-	"github.com/bcurnow/zonemgr/utils"
-)
-
-type TTL struct {
-	Value   *int32 `yaml:"value"` // The use of a pointer to an int32 allows us to handle missing (nil) values more easily
-	Comment string `yaml:"comment"`
-}
-
-func (ttl *TTL) String() string {
-	return fmt.Sprintf("TTL{ Value: %s, Comment: %s }", utils.NilSafeString(ttl.Value), ttl.Comment)
-}
-
-func (t *TTL) Render() string {
-	if t.Value != nil {
-		comment := t.Comment
-		if comment != "" {
-			comment = " ;" + comment
-		}
-		return fmt.Sprintf("$TTL %d%s", *t.Value, comment)
+func TestIsValid(t *testing.T) {
+	rrc := ResourceRecordClass("BOGUS")
+	if rrc.IsValid() {
+		t.Errorf("'BOGUS' resource record class should not be valid")
 	}
-	return ""
+
+	for _, rrc = range []ResourceRecordClass{INTERNET, CSNET, CHAOS, HESIOD} {
+		if !rrc.IsValid() {
+			t.Errorf("expected %s to be a valid ResourceRecordClass", rrc)
+		}
+	}
 }

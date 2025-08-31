@@ -16,31 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 package models
 
-import (
-	"fmt"
+import "testing"
 
-	"github.com/bcurnow/zonemgr/utils"
-)
+func TestString_ResourceRecordValue(t *testing.T) {
+	rrv := &ResourceRecordValue{Value: "value", Comment: "comment"}
+	want := "ResourceRecordValue{ Value: value, Comment: comment }"
 
-type TTL struct {
-	Value   *int32 `yaml:"value"` // The use of a pointer to an int32 allows us to handle missing (nil) values more easily
-	Comment string `yaml:"comment"`
-}
-
-func (ttl *TTL) String() string {
-	return fmt.Sprintf("TTL{ Value: %s, Comment: %s }", utils.NilSafeString(ttl.Value), ttl.Comment)
-}
-
-func (t *TTL) Render() string {
-	if t.Value != nil {
-		comment := t.Comment
-		if comment != "" {
-			comment = " ;" + comment
-		}
-		return fmt.Sprintf("$TTL %d%s", *t.Value, comment)
+	if rrv.String() != want {
+		t.Errorf("incorrect string: '%s', want: '%s'", rrv.String(), want)
 	}
-	return ""
 }

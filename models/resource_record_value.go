@@ -27,5 +27,5 @@ type ResourceRecordValue struct {
 }
 
 func (rrv *ResourceRecordValue) String() string {
-	return fmt.Sprintf("ResourceRecordValue{Value: %s, Comment: %s}", rrv.Value, rrv.Comment)
+	return fmt.Sprintf("ResourceRecordValue{ Value: %s, Comment: %s }", rrv.Value, rrv.Comment)
 }

@@ -25,5 +25,5 @@ type Config struct {
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Config{ GenerateSerial: %t, SerialChangeIndexDirectory: %s, GenerateReverseLookupZones: %t}", c.GenerateSerial, c.SerialChangeIndexDirectory, c.GenerateReverseLookupZones)
+	return fmt.Sprintf("Config{ GenerateSerial: %t, GenerateReverseLookupZones: %t, SerialChangeIndexDirectory: %s }", c.GenerateSerial, c.GenerateReverseLookupZones, c.SerialChangeIndexDirectory)
 }

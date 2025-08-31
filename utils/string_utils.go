@@ -21,9 +21,9 @@ package utils
 
 import "fmt"
 
-func NilSafeString(i any) string {
+func NilSafeString(i *int32) string {
 	if nil == i {
-		return "nil"
+		return "<nil>"
 	}
-	return fmt.Sprintf("%v", i)
+	return fmt.Sprintf("%d", *i)
 }

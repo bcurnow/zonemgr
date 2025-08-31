@@ -43,15 +43,15 @@ type ResourceRecord struct {
 }
 
 func (rr *ResourceRecord) String() string {
-	return fmt.Sprintf(`ResourceRecord{
-	Name: %s,
-	Type: %s,
-	Class: %s,
-	TTL: %s,
-	Values: %s,
-	Value: %s,
-	Comment: %s
-	}`, rr.Name, rr.Type, rr.Class, utils.NilSafeString(rr.TTL), rr.Values, rr.Value, rr.Comment)
+	return "ResourceRecord{\n" +
+		fmt.Sprintf("       Name: %s\n", rr.Name) +
+		fmt.Sprintf("       Type: %s\n", rr.Type) +
+		fmt.Sprintf("       Class: %s\n", rr.Class) +
+		fmt.Sprintf("       TTL: %s\n", utils.NilSafeString(rr.TTL)) +
+		fmt.Sprintf("       Values: %s\n", rr.Values) +
+		fmt.Sprintf("       Value: %s\n", rr.Value) +
+		fmt.Sprintf("       Comment: %s\n", rr.Comment) +
+		"     }"
 }
 
 // There are two possible places to get a value from: Value or Values[0].Value
@@ -59,19 +59,16 @@ func (rr *ResourceRecord) String() string {
 // Will return either Value or the Values[0].Value
 func (rr *ResourceRecord) RetrieveSingleValue() string {
 	valueCount := len(rr.Values)
-	if valueCount > 0 && rr.Value == "" {
+
+	if valueCount > 0 {
 		if valueCount > 1 {
-			hclog.L().Trace("Resource record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount)
+			hclog.L().Trace("Resource record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount, "values", rr.Values)
 		}
 		return rr.Values[0].Value
 	}
 
-	if valueCount == 0 && rr.Value != "" {
-		return rr.Value
-	}
-
-	//If we get here then values is empty and Value isn't set, return empty string
-	return ""
+	// We don't have any values so, even if this is empty, return it
+	return rr.Value
 }
 
 // There are two possible places for a comment to be: Comment or Values[0].Comment
@@ -79,19 +76,15 @@ func (rr *ResourceRecord) RetrieveSingleValue() string {
 // Will return either Comment or Values[0].Comment
 func (rr *ResourceRecord) RetrieveSingleComment() string {
 	valueCount := len(rr.Values)
-	if valueCount > 0 && rr.Comment == "" {
+	if valueCount > 0 && rr.Values[0].Comment != "" {
 		if valueCount > 1 {
-			hclog.L().Trace("Resoure record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount)
+			hclog.L().Trace("Resource record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount, "values", rr.Values)
 		}
 		return rr.Values[0].Comment
 	}
 
-	if valueCount == 0 && rr.Comment != "" {
-		return rr.Comment
-	}
-
-	//If we get here then values is empty and comment isn't set, return empty string
-	return ""
+	// We don't have any values so, even if this is empty, return it
+	return rr.Comment
 }
 
 // Validates that either Values has more than one element or Value is set, not both
@@ -171,7 +164,7 @@ func (rr *ResourceRecord) RenderMultivalueResource() string {
 		record.WriteString(fmt.Sprintf(ResourceRecordMultivalueIndentFormatString, "")) // This will add an indent inside the parens
 		record.WriteString(fmt.Sprintf(ResourceRecordNameFormatString, value.Value))
 		if value.Comment != "" {
-			record.WriteString(" ; ")
+			record.WriteString(" ;")
 			record.WriteString(value.Comment)
 		}
 		record.WriteString("\n")
