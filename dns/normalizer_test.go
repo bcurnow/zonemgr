@@ -26,13 +26,12 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/models/testingutils"
 	"github.com/bcurnow/zonemgr/utils"
 )
 
 func TestNormalizeZones(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	// Each plugin should be configured once for each zone
 	mockAPlugin.EXPECT().Configure(testZone.Config).Times(2)
@@ -69,7 +68,7 @@ func TestNormalizeZones(t *testing.T) {
 
 func TestNormalizeZones_BadAbsPath(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	// We need to ensure that filepath.Abs generates an error
 	// To do this, we're going to create a new directory, set the working directory to that director
@@ -122,7 +121,7 @@ func TestNormalizeZones_BadAbsPath(t *testing.T) {
 
 func TestNormalizeZones_NoZones(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{}); err != nil {
 		if err.Error() != "no zones found" {
@@ -134,7 +133,7 @@ func TestNormalizeZones_NoZones(t *testing.T) {
 }
 func TestNormalizeZone_NilConfig(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{"nil config zone": {Config: nil}}); err != nil {
 		if err.Error() != "zone is missing config, zoneName=nil config zone" {
@@ -147,7 +146,7 @@ func TestNormalizeZone_NilConfig(t *testing.T) {
 }
 func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	invalidZone := &models.Zone{
 		Config: testZone.Config,
@@ -171,7 +170,7 @@ func TestNormalizeZones_NoPluginForRecordType(t *testing.T) {
 }
 func TestNormalizeZones_NormalizeError(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	// Each plugin should be configured once for each zone
 	mockAPlugin.EXPECT().Configure(testZone.Config)
@@ -190,7 +189,7 @@ func TestNormalizeZones_NormalizeError(t *testing.T) {
 
 func TestNormalizeZones_ValidateError(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	// Each plugin should be configured once for each zone
 	mockAPlugin.EXPECT().Configure(testZone.Config)

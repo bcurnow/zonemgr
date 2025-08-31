@@ -24,9 +24,9 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/utils"
+	"github.com/golang/mock/gomock"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/models/testingutils"
 	"github.com/bcurnow/zonemgr/plugins"
 )
 
@@ -43,6 +43,7 @@ type testCase struct {
 }
 
 var (
+	mockController          *gomock.Controller
 	mockValidator           *plugins.MockValidator
 	mockSerialIndexManager  *utils.MockSerialIndexManager
 	mockSoaValuesNormalizer *plugins.MockSOAValuesNormalizer
@@ -50,20 +51,20 @@ var (
 )
 
 func setup(t *testing.T) {
-	testingutils.Setup(t)
-	mockValidator = plugins.NewMockValidator(testingutils.MockController)
+	mockController = gomock.NewController(t)
+	mockValidator = plugins.NewMockValidator(mockController)
 	validations = mockValidator
-	mockSerialIndexManager = utils.NewMockSerialIndexManager(testingutils.MockController)
+	mockSerialIndexManager = utils.NewMockSerialIndexManager(mockController)
 	serialIndexManager = mockSerialIndexManager
-	mockSoaValuesNormalizer = plugins.NewMockSOAValuesNormalizer(testingutils.MockController)
+	mockSoaValuesNormalizer = plugins.NewMockSOAValuesNormalizer(mockController)
 	soaValuesNormalizer = mockSoaValuesNormalizer
 	testingError = errors.New("testing error")
 }
 
-func teardown(t *testing.T) {
-	testingutils.Teardown(t)
+func teardown(_ *testing.T) {
 	validations = plugins.V()
 	serialIndexManager = nil
+	mockController.Finish()
 }
 
 // Runs the testing necessary for any resource type where the name needs to be a valid name or wildcard

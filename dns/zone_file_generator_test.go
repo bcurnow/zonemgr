@@ -25,14 +25,13 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/models/testingutils"
 )
 
 var outputDir = "zone_file_generator_test"
 
 func TestPluginZoneFileGenerator(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	res1 := PluginZoneFileGenerator(mockPlugins)
 	res2 := PluginZoneFileGenerator(mockPlugins)

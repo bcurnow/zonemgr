@@ -23,11 +23,12 @@ import (
 	"testing"
 
 	models "github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/models/testingutils"
 	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/golang/mock/gomock"
 )
 
 var (
+	mockController  *gomock.Controller
 	mockAPlugin     *plugins.MockZoneMgrPlugin
 	mockCNAMEPlugin *plugins.MockZoneMgrPlugin
 	mockPlugins     map[plugins.PluginType]plugins.ZoneMgrPlugin
@@ -37,9 +38,9 @@ var (
 )
 
 func dnsSetup(t *testing.T) {
-	testingutils.Setup(t)
-	mockAPlugin = plugins.NewMockZoneMgrPlugin(testingutils.MockController)
-	mockCNAMEPlugin = plugins.NewMockZoneMgrPlugin(testingutils.MockController)
+	mockController = gomock.NewController(t)
+	mockAPlugin = plugins.NewMockZoneMgrPlugin(mockController)
+	mockCNAMEPlugin = plugins.NewMockZoneMgrPlugin(mockController)
 
 	mockPlugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
 	mockPlugins[plugins.A] = mockAPlugin
@@ -60,11 +61,19 @@ func dnsSetup(t *testing.T) {
 			"record2": {Type: models.CNAME},
 		},
 		TTL: &models.TTL{
-			Value:   testingutils.ToInt32Ptr(30),
+			Value:   toInt32Ptr(30),
 			Comment: "testZone-TTL",
 		},
 	}
 	testZones = make(map[string]*models.Zone)
 	testZones["zone 1"] = testZone
 	testZones["zone 2"] = testZone
+}
+
+func dnsTeardown(_ *testing.T) {
+	mockController.Finish()
+}
+
+func toInt32Ptr(i int32) *int32 {
+	return &i
 }

@@ -22,14 +22,13 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/models/testingutils"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestLastOctet(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	testCases := []struct {
 		value string
@@ -52,7 +51,7 @@ func TestLastOctet(t *testing.T) {
 
 func TestReverseZoneName(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	testCases := []struct {
 		value string
@@ -75,7 +74,7 @@ func TestReverseZoneName(t *testing.T) {
 
 func TestToPTR(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	testCases := []struct {
 		name string
@@ -115,7 +114,7 @@ func TestToPTR(t *testing.T) {
 
 func TestReverseZone(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	zone := &models.Zone{
 		Config: &models.Config{},
@@ -166,7 +165,7 @@ func TestReverseZone(t *testing.T) {
 
 func TestReverseZone_NoResourceRecords(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	zone := &models.Zone{
 		Config:          &models.Config{},
@@ -182,7 +181,7 @@ func TestReverseZone_NoResourceRecords(t *testing.T) {
 
 func TestReverser(t *testing.T) {
 	dnsSetup(t)
-	defer testingutils.Teardown(t)
+	defer dnsTeardown(t)
 
 	one := Reverser()
 	two := Reverser()
