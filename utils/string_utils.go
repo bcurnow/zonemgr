@@ -21,7 +21,7 @@ package utils
 
 import "fmt"
 
-func NilSafeString(i interface{}) string {
+func NilSafeString(i any) string {
 	if nil == i {
 		return "nil"
 	}
