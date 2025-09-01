@@ -27,9 +27,11 @@ import (
 
 var validations = plugins.V()
 
-// Concrete implementation of the TypeHandler
+// Concrete implementation of the plugin
 type Plugin struct {
 }
+
+var _ plugins.ZoneMgrPlugin = &Plugin{}
 
 func (th *Plugin) PluginVersion() (string, error) {
 	return "1.0.0", nil
