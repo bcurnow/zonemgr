@@ -12,6 +12,9 @@ zonemgr-a-record-comment-override-plugin:
 	go build -o examples/bin/zonemgr-a-record-comment-override-plugin examples/zonemgr-a-record-comment-override-plugin.go
 
 run-test:
+	go test ./...
+
+run-test-with-coverage:
 	go test -cover -coverprofile=coverage.out -coverpkg github.com/bcurnow/zonemgr/cmd,github.com/bcurnow/zonemgr/dns,github.com/bcurnow/zonemgr/internal/plugins/builtin,github.com/bcurnow/zonemgr/models,github.com/bcurnow/zonemgr/plugin_manager,github.com/bcurnow/zonemgr/plugins,github.com/bcurnow/zonemgr/plugins/grpc,github.com/bcurnow/zonemgr/utils ./...
 
 html-coverage:
@@ -36,11 +39,11 @@ build:setup zonemgr
 
 build-all: build zonemgr-a-record-comment-override-plugin
 
-test: build run-test
+test: build-all run-test
 	
-coverage: test html-coverage
+coverage: build-all run-test-with-coverage html-coverage
 
 .PHONY: run-with-plugins
 
 run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
-	ZONEMGR_PLUGINS=examples/bin/ ./bin/zonemgr plugins
+	ZONEMGR_PLUGIN_DIR=examples/bin/ ./bin/zonemgr plugins --log-level trace
