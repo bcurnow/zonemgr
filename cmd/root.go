@@ -44,7 +44,7 @@ var (
 			setupLogging()
 
 			// Always load the plugins as the start of every command
-			if err := pluginManager.LoadPlugins(v.GetString("plugins-dir")); err != nil {
+			if err := pluginManager.LoadPlugins(v.GetString("plugin-dir")); err != nil {
 				return err
 			}
 
@@ -80,12 +80,13 @@ func initConfig(cmd *cobra.Command) error {
 	v = viper.New()
 	v.SetEnvPrefix("zonemgr")
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	v.AutomaticEnv()
 
 	// Bind all the cobra flags to viper
 	if err := v.BindPFlags(cmd.Flags()); err != nil {
 		return err
 	}
+
+	v.AutomaticEnv()
 
 	// Normalize the plugin-dir to an absolute path
 	absPluginDir, err := utils.ToAbsoluteFilePath(v.GetString("plugin-dir"), "plugin-dir")
