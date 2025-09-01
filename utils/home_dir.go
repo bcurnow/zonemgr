@@ -31,8 +31,16 @@ var HomeDir string
 func init() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to retrieve current user's home directory: %s", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "Unable to retrieve current user's home directory: %s\n", err)
+		workingDir, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Could not determine current working directory, returning empty string")
+			homeDir = ""
+		} else {
+			fmt.Fprintf(os.Stderr, "Defaulting to current working directory: %s\n", workingDir)
+			homeDir = workingDir
+		}
 	}
+
 	HomeDir = homeDir
 }
