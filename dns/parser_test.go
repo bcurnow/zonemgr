@@ -22,19 +22,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/bcurnow/zonemgr/internal/mocks"
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 )
 
 var (
-	mockNormalizer *MockNormalizer
+	mockNormalizer *mocks.MockNormalizer
 	defaultConfig  *models.Config
 )
 
 func testZoneYamlParserSetup(t *testing.T) {
 	dnsSetup(t)
-	mockNormalizer = NewMockNormalizer(mockController)
+	mockNormalizer = mocks.NewMockNormalizer(mockController)
 	defaultConfig = &models.Config{}
 }
 

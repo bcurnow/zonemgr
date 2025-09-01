@@ -22,6 +22,7 @@ package dns
 import (
 	"testing"
 
+	"github.com/bcurnow/zonemgr/internal/mocks"
 	models "github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/golang/mock/gomock"
@@ -29,8 +30,8 @@ import (
 
 var (
 	mockController  *gomock.Controller
-	mockAPlugin     *plugins.MockZoneMgrPlugin
-	mockCNAMEPlugin *plugins.MockZoneMgrPlugin
+	mockAPlugin     *mocks.MockZoneMgrPlugin
+	mockCNAMEPlugin *mocks.MockZoneMgrPlugin
 	mockPlugins     map[plugins.PluginType]plugins.ZoneMgrPlugin
 	mockMetadata    map[plugins.PluginType]*plugins.PluginMetadata
 	testZone        *models.Zone
@@ -39,8 +40,8 @@ var (
 
 func dnsSetup(t *testing.T) {
 	mockController = gomock.NewController(t)
-	mockAPlugin = plugins.NewMockZoneMgrPlugin(mockController)
-	mockCNAMEPlugin = plugins.NewMockZoneMgrPlugin(mockController)
+	mockAPlugin = mocks.NewMockZoneMgrPlugin(mockController)
+	mockCNAMEPlugin = mocks.NewMockZoneMgrPlugin(mockController)
 
 	mockPlugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
 	mockPlugins[plugins.A] = mockAPlugin

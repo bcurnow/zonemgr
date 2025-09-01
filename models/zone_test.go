@@ -128,10 +128,10 @@ func TestSortedResourceRecordKeys(t *testing.T) {
 		{
 			zone: &Zone{
 				ResourceRecords: map[string]*ResourceRecord{
-					"one":   &ResourceRecord{},
-					"two":   &ResourceRecord{},
-					"three": &ResourceRecord{},
-					"four":  &ResourceRecord{},
+					"one":   {},
+					"two":   {},
+					"three": {},
+					"four":  {},
 				},
 			},
 			want: []string{"four", "one", "three", "two"},
