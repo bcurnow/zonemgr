@@ -34,10 +34,10 @@ type Normalizer interface {
 type pluginNormalizer struct {
 	Normalizer
 	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
-	metadata map[plugins.PluginType]*plugins.PluginMetadata
+	metadata map[plugins.PluginType]*plugins.Metadata
 }
 
-func PluginNormalizer(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.PluginMetadata) Normalizer {
+func PluginNormalizer(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.Metadata) Normalizer {
 	return &pluginNormalizer{plugins: plugins, metadata: metadata}
 }
 
@@ -58,7 +58,7 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone, globalConfig
 		// Then all the normalization done
 		// Then all the zone validation
 		// If we do this in a single loop, we'd end up calling ValidateZone before all the normalization for the zone is complete
-		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.PluginMetadata) error {
+		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
 			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", metadata.Name)
 			p.Configure(zone.Config)
 			return nil
@@ -71,7 +71,7 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone, globalConfig
 		}
 
 		// Now perform any validations on the zone itself
-		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.PluginMetadata) error {
+		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
 			hclog.L().Debug("Calling Validatemodels.Zone", "zoneName", name, "pluginName", metadata.Name)
 			if err := p.ValidateZone(name, zone); err != nil {
 				return err

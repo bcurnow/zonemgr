@@ -32,18 +32,18 @@ import (
 
 type PluginManager interface {
 	Plugins() map[plugins.PluginType]plugins.ZoneMgrPlugin
-	Metadata() map[plugins.PluginType]*plugins.PluginMetadata
+	Metadata() map[plugins.PluginType]*plugins.Metadata
 	LoadPlugins(pluginDir string) error
 }
 
 type pluginManager struct {
 	PluginManager
 	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
-	metadata map[plugins.PluginType]*plugins.PluginMetadata
+	metadata map[plugins.PluginType]*plugins.Metadata
 }
 
 var (
-	instance = &pluginManager{plugins: make(map[plugins.PluginType]plugins.ZoneMgrPlugin), metadata: make(map[plugins.PluginType]*plugins.PluginMetadata)}
+	instance = &pluginManager{plugins: make(map[plugins.PluginType]plugins.ZoneMgrPlugin), metadata: make(map[plugins.PluginType]*plugins.Metadata)}
 	fs       = utils.FS()
 )
 
@@ -55,7 +55,7 @@ func (pm *pluginManager) Plugins() map[plugins.PluginType]plugins.ZoneMgrPlugin 
 	return pm.plugins
 }
 
-func (pm *pluginManager) Metadata() map[plugins.PluginType]*plugins.PluginMetadata {
+func (pm *pluginManager) Metadata() map[plugins.PluginType]*plugins.Metadata {
 	return pm.metadata
 }
 
@@ -94,7 +94,7 @@ func (pm *pluginManager) loadExternalPlugins(pluginDir string) error {
 
 		for _, pluginType := range supportedTypes {
 			existingMetadata := pm.metadata[pluginType]
-			newMetadata := &plugins.PluginMetadata{Name: pluginName, Command: pluginCmd, BuiltIn: false}
+			newMetadata := &plugins.Metadata{Name: pluginName, Command: pluginCmd, BuiltIn: false}
 			pm.handleOverride(pluginType, existingMetadata, newMetadata)
 			pm.plugins[pluginType] = zonemgrPlugin
 			pm.metadata[pluginType] = newMetadata
@@ -104,7 +104,7 @@ func (pm *pluginManager) loadExternalPlugins(pluginDir string) error {
 	return nil
 }
 
-func (pm *pluginManager) handleOverride(pluginType plugins.PluginType, existingMetadata *plugins.PluginMetadata, newMetadata *plugins.PluginMetadata) {
+func (pm *pluginManager) handleOverride(pluginType plugins.PluginType, existingMetadata *plugins.Metadata, newMetadata *plugins.Metadata) {
 	// Check to see if we already have a plugin for this ResourceRecord Type
 	_, ok := pm.plugins[pluginType]
 	if ok {

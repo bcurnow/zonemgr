@@ -51,7 +51,7 @@ func pluginManagerSetup(t *testing.T) {
 
 	// Make sure that the metadata and plugins maps are empty before we start
 	instance.plugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
-	instance.metadata = make(map[plugins.PluginType]*plugins.PluginMetadata)
+	instance.metadata = make(map[plugins.PluginType]*plugins.Metadata)
 
 	//Create a temp directory for testing
 	tempDir, err := os.MkdirTemp("", t.Name())
@@ -116,7 +116,7 @@ func TestMetadata(t *testing.T) {
 	pluginManagerSetup(t)
 	defer pluginManagerTearDown(t)
 
-	wanted := &plugins.PluginMetadata{Name: "testing", Command: "testing command", BuiltIn: false}
+	wanted := &plugins.Metadata{Name: "testing", Command: "testing command", BuiltIn: false}
 	instance.metadata["custom key"] = wanted
 
 	metadataFromPM := instance.Metadata()
@@ -250,8 +250,8 @@ func TestHandleOverride(t *testing.T) {
 			instance.plugins[plugins.A] = &builtin.BuiltinPluginA{}
 		}
 
-		existingMetadata := &plugins.PluginMetadata{Name: "Testing", Command: "Testing Command", BuiltIn: tc.builtin}
-		newMetadata := &plugins.PluginMetadata{Name: "New", Command: "New Command", BuiltIn: false}
+		existingMetadata := &plugins.Metadata{Name: "Testing", Command: "Testing Command", BuiltIn: tc.builtin}
+		newMetadata := &plugins.Metadata{Name: "New", Command: "New Command", BuiltIn: false}
 
 		// Turn up the log level
 		instance.handleOverride(plugins.A, existingMetadata, newMetadata)

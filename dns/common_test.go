@@ -33,7 +33,7 @@ var (
 	mockAPlugin     *mocks.MockZoneMgrPlugin
 	mockCNAMEPlugin *mocks.MockZoneMgrPlugin
 	mockPlugins     map[plugins.PluginType]plugins.ZoneMgrPlugin
-	mockMetadata    map[plugins.PluginType]*plugins.PluginMetadata
+	mockMetadata    map[plugins.PluginType]*plugins.Metadata
 	mockFs          *mocks.MockFileSystem
 	testZone        *models.Zone
 	testZones       map[string]*models.Zone
@@ -49,9 +49,9 @@ func dnsSetup(t *testing.T) {
 	mockPlugins[plugins.A] = mockAPlugin
 	mockPlugins[plugins.CNAME] = mockCNAMEPlugin
 
-	mockMetadata = make(map[plugins.PluginType]*plugins.PluginMetadata)
-	mockMetadata[plugins.A] = &plugins.PluginMetadata{Name: string(plugins.A), Command: "none", BuiltIn: true}
-	mockMetadata[plugins.CNAME] = &plugins.PluginMetadata{Name: string(plugins.CNAME), Command: "none", BuiltIn: true}
+	mockMetadata = make(map[plugins.PluginType]*plugins.Metadata)
+	mockMetadata[plugins.A] = &plugins.Metadata{Name: string(plugins.A), Command: "none", BuiltIn: true}
+	mockMetadata[plugins.CNAME] = &plugins.Metadata{Name: string(plugins.CNAME), Command: "none", BuiltIn: true}
 
 	mockFs = mocks.NewMockFileSystem(mockController)
 	fs = mockFs

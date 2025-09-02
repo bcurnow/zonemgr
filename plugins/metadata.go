@@ -19,7 +19,7 @@
 
 package plugins
 
-type PluginMetadata struct {
+type Metadata struct {
 	Name    string
 	Command string
 	BuiltIn bool

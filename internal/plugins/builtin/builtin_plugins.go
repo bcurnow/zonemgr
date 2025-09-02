@@ -22,17 +22,17 @@ package builtin
 import "github.com/bcurnow/zonemgr/plugins"
 
 var builtins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
-var metadata = make(map[plugins.PluginType]*plugins.PluginMetadata)
+var metadata = make(map[plugins.PluginType]*plugins.Metadata)
 
 func BuiltinPlugins() map[plugins.PluginType]plugins.ZoneMgrPlugin {
 	return builtins
 }
 
-func BuiltinMetadata() map[plugins.PluginType]*plugins.PluginMetadata {
+func BuiltinMetadata() map[plugins.PluginType]*plugins.Metadata {
 	return metadata
 }
 
 func registerBuiltIn(pluginType plugins.PluginType, plugin plugins.ZoneMgrPlugin) {
 	builtins[pluginType] = plugin
-	metadata[pluginType] = &plugins.PluginMetadata{Name: string(pluginType), Command: "Built In", BuiltIn: true}
+	metadata[pluginType] = &plugins.Metadata{Name: string(pluginType), Command: "Built In", BuiltIn: true}
 }

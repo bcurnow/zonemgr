@@ -35,10 +35,10 @@ type ZoneFileGenerator interface {
 type pluginZoneFileGenerator struct {
 	ZoneFileGenerator
 	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
-	metadata map[plugins.PluginType]*plugins.PluginMetadata
+	metadata map[plugins.PluginType]*plugins.Metadata
 }
 
-func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.PluginMetadata) ZoneFileGenerator {
+func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.Metadata) ZoneFileGenerator {
 	return &pluginZoneFileGenerator{plugins: plugins, metadata: metadata}
 }
 
@@ -60,7 +60,7 @@ func (zfg *pluginZoneFileGenerator) generate(name string, zone *models.Zone) ([]
 		content.WriteString("\n")
 	}
 
-	if err := plugins.WithSortedPlugins(zfg.plugins, zfg.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.PluginMetadata) error {
+	if err := plugins.WithSortedPlugins(zfg.plugins, zfg.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
 		p.Configure(zone.Config)
 		return nil
 	}); err != nil {

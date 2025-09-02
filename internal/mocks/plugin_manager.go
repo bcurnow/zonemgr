@@ -49,10 +49,10 @@ func (mr *MockPluginManagerMockRecorder) LoadPlugins(pluginDir interface{}) *gom
 }
 
 // Metadata mocks base method.
-func (m *MockPluginManager) Metadata() map[plugins.PluginType]*plugins.PluginMetadata {
+func (m *MockPluginManager) Metadata() map[plugins.PluginType]*plugins.Metadata {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Metadata")
-	ret0, _ := ret[0].(map[plugins.PluginType]*plugins.PluginMetadata)
+	ret0, _ := ret[0].(map[plugins.PluginType]*plugins.Metadata)
 	return ret0
 }
 

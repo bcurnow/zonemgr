@@ -68,13 +68,13 @@ func TestBuiltinMetadata(t *testing.T) {
 
 	testCases := []struct {
 		pluginType       plugins.PluginType
-		expectedMetadata *plugins.PluginMetadata
+		expectedMetadata *plugins.Metadata
 	}{
-		{pluginType: plugins.A, expectedMetadata: &plugins.PluginMetadata{Name: string(plugins.A), Command: "Built In", BuiltIn: true}},
-		{pluginType: plugins.CNAME, expectedMetadata: &plugins.PluginMetadata{Name: string(plugins.CNAME), Command: "Built In", BuiltIn: true}},
-		{pluginType: plugins.NS, expectedMetadata: &plugins.PluginMetadata{Name: string(plugins.NS), Command: "Built In", BuiltIn: true}},
-		{pluginType: plugins.PTR, expectedMetadata: &plugins.PluginMetadata{Name: string(plugins.PTR), Command: "Built In", BuiltIn: true}},
-		{pluginType: plugins.SOA, expectedMetadata: &plugins.PluginMetadata{Name: string(plugins.SOA), Command: "Built In", BuiltIn: true}},
+		{pluginType: plugins.A, expectedMetadata: &plugins.Metadata{Name: string(plugins.A), Command: "Built In", BuiltIn: true}},
+		{pluginType: plugins.CNAME, expectedMetadata: &plugins.Metadata{Name: string(plugins.CNAME), Command: "Built In", BuiltIn: true}},
+		{pluginType: plugins.NS, expectedMetadata: &plugins.Metadata{Name: string(plugins.NS), Command: "Built In", BuiltIn: true}},
+		{pluginType: plugins.PTR, expectedMetadata: &plugins.Metadata{Name: string(plugins.PTR), Command: "Built In", BuiltIn: true}},
+		{pluginType: plugins.SOA, expectedMetadata: &plugins.Metadata{Name: string(plugins.SOA), Command: "Built In", BuiltIn: true}},
 	}
 
 	for _, tc := range testCases {

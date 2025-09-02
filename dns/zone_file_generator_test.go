@@ -60,7 +60,7 @@ func TestGenerate_MissingPluginMetadata(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
 
-	g := &pluginZoneFileGenerator{plugins: mockPlugins, metadata: make(map[plugins.PluginType]*plugins.PluginMetadata)}
+	g := &pluginZoneFileGenerator{plugins: mockPlugins, metadata: make(map[plugins.PluginType]*plugins.Metadata)}
 	if _, err := g.generate("testing", testZone); err != nil {
 		want := "could not find plugin metadata for plugin type: A"
 		if err.Error() != want {

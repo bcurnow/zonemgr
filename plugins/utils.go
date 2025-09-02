@@ -28,7 +28,7 @@ func PluginTypes(pluginTypes ...PluginType) []PluginType {
 	return pluginTypes
 }
 
-func WithSortedPlugins(p map[PluginType]ZoneMgrPlugin, pluginMetadata map[PluginType]*PluginMetadata, fn func(pluginType PluginType, p ZoneMgrPlugin, metadata *PluginMetadata) error) error {
+func WithSortedPlugins(p map[PluginType]ZoneMgrPlugin, pluginMetadata map[PluginType]*Metadata, fn func(pluginType PluginType, p ZoneMgrPlugin, metadata *Metadata) error) error {
 	for _, pluginType := range sortedPluginKeys(p) {
 		metadata, ok := pluginMetadata[pluginType]
 		if !ok {
