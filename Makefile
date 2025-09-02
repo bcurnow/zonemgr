@@ -2,14 +2,18 @@
 
 SHELL := /bin/bash
 binaryName := zonemgr
-mocks := dns/normalizer.go plugin_manager/plugin_manager.go plugins/soa_values_normalizer.go plugins/validator.go plugins/zonemgr_plugin.go utils/serial_index_manager.go
+mocks := dns/normalizer.go plugin_manager/plugin_manager.go plugins/soa_values_normalizer.go plugins/validator.go plugins/zonemgr_plugin.go utils/filesystem.go utils/serial_index_manager.go
 
 zonemgr:
 	go build -o bin/${binaryName}
 
 zonemgr-a-record-comment-override-plugin:
-	mkdir -p examples/bin
-	go build -o examples/bin/zonemgr-a-record-comment-override-plugin examples/zonemgr-a-record-comment-override-plugin.go
+	mkdir -p examples/bin/comment-override
+	go build -o examples/bin/comment-override/zonemgr-a-record-comment-override-plugin examples/comment-override/zonemgr-a-record-comment-override-plugin.go
+
+zonemgr-a-record-not-implemented-plugin:
+	mkdir -p examples/bin/not-implemented
+	go build -o examples/bin/not-implemented/zonemgr-a-record-not-implemented-plugin examples/not-implemented/zonemgr-a-record-not-implemented-plugin.go
 
 run-test:
 	go test ./...
@@ -37,7 +41,8 @@ setup: format tidy mocks proto
 
 build:setup zonemgr
 
-build-all: build zonemgr-a-record-comment-override-plugin
+build-all: build zonemgr-a-record-comment-override-plugin zonemgr-a-record-not-implemented-plugin
+
 
 test: build-all run-test
 	
@@ -46,4 +51,4 @@ coverage: build-all run-test-with-coverage html-coverage
 .PHONY: run-with-plugins
 
 run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
-	ZONEMGR_PLUGIN_DIR=examples/bin/ ./bin/zonemgr plugins --log-level trace
+	ZONEMGR_PLUGIN_DIR=examples/bin/comment-override ./bin/zonemgr plugins --log-level trace
