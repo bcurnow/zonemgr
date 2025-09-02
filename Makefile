@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 binaryName := zonemgr
-mocks := dns/normalizer.go plugins/plugin_manager/plugin_manager.go plugins/soa_values_normalizer.go plugins/validator.go plugins/zonemgr_plugin.go utils/filesystem.go utils/serial_index_manager.go
+mocks := dns/normalizer.go plugins/plugin_manager/plugin_manager.go plugins/soa_values_normalizer.go plugins/validator.go plugins/zonemgr_plugin.go utils/filesystem.go dns/serial/serial_manager.go
 
 zonemgr:
 	go build -o bin/${binaryName}

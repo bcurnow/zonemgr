@@ -17,7 +17,7 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package utils
+package serial
 
 import (
 	"fmt"
@@ -25,33 +25,35 @@ import (
 	"time"
 )
 
-type SerialNumberGenerator interface {
-	GenerateBaseSerial() (*uint32, error)
-	GenerateSerial(index uint32) (*uint32, error)
-	ToSerial(serialString string) (*uint32, error)
+type Generator interface {
+	GenerateBase() (*uint32, error)
+	Generate(index uint32) (*uint32, error)
+	FromString(serialString string) (*uint32, error)
 }
 
-type TimeBasedSerialGenerator struct{}
+type TimeBasedGenerator struct{}
+
+var _ Generator = &TimeBasedGenerator{}
 
 // Generates a time-based serial number in the format YYYYMMDD
-func (g *TimeBasedSerialGenerator) GenerateBaseSerial() (*uint32, error) {
+func (g *TimeBasedGenerator) GenerateBase() (*uint32, error) {
 	t := time.Now()
 	serialString := fmt.Sprintf("%04d%02d%02d", t.Year(), t.Month(), t.Day())
-	return g.ToSerial(serialString)
+	return g.FromString(serialString)
 }
 
 // Generates a time-based serial number plus a numeric index
-func (g *TimeBasedSerialGenerator) GenerateSerial(index uint32) (*uint32, error) {
-	baseSerial, err := g.GenerateBaseSerial()
+func (g *TimeBasedGenerator) Generate(index uint32) (*uint32, error) {
+	baseSerial, err := g.GenerateBase()
 	if err != nil {
 		return nil, err
 	}
 	serialString := fmt.Sprintf("%d%02d", *baseSerial, index)
-	return g.ToSerial(serialString)
+	return g.FromString(serialString)
 }
 
 // Validates that the serialString contains a uint32 value in string form
-func (g *TimeBasedSerialGenerator) ToSerial(serialString string) (*uint32, error) {
+func (g *TimeBasedGenerator) FromString(serialString string) (*uint32, error) {
 	parsedSerial, err := strconv.ParseUint(serialString, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate a serial number from string '%s': %w", serialString, err)

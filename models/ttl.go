@@ -21,8 +21,6 @@ package models
 
 import (
 	"fmt"
-
-	"github.com/bcurnow/zonemgr/utils"
 )
 
 type TTL struct {
@@ -31,7 +29,7 @@ type TTL struct {
 }
 
 func (ttl *TTL) String() string {
-	return fmt.Sprintf("TTL{ Value: %s, Comment: %s }", utils.NilSafeString(ttl.Value), ttl.Comment)
+	return fmt.Sprintf("TTL{ Value: %s, Comment: %s }", nilSafeString(ttl.Value), ttl.Comment)
 }
 
 func (t *TTL) Render() string {

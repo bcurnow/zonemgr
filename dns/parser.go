@@ -20,7 +20,7 @@ import (
 	"fmt"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/utils/yaml"
+	"github.com/bcurnow/zonemgr/utils"
 )
 
 type ZoneParser interface {
@@ -30,11 +30,11 @@ type ZoneParser interface {
 type yamlZoneParser struct {
 	ZoneParser
 	normalizer Normalizer
-	reader     *yaml.ZoneYamlReader
+	reader     *utils.ZoneYamlFile
 }
 
 func YamlZoneParser(normalizer Normalizer) ZoneParser {
-	return &yamlZoneParser{normalizer: normalizer, reader: &yaml.ZoneYamlReader{}}
+	return &yamlZoneParser{normalizer: normalizer, reader: &utils.ZoneYamlFile{}}
 }
 
 func (p *yamlZoneParser) Parse(inputFile string, globalConfig *models.Config) (map[string]*models.Zone, error) {

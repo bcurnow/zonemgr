@@ -17,15 +17,15 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package utils
+package models
 
 import "strconv"
 
 type SerialIndex struct {
-	BaseSerialNumber *uint32 `yaml:"base_serial_number"`
-	ChangeIndex      *uint32 `yaml:"change_index"`
+	Base        *uint32 `yaml:"base_serial_number"`
+	ChangeIndex *uint32 `yaml:"change_index"`
 }
 
-func (si *SerialIndex) toSerial() string {
-	return strconv.Itoa(int(*si.BaseSerialNumber)) + strconv.Itoa(int(*si.ChangeIndex))
+func (si *SerialIndex) Serial() string {
+	return strconv.Itoa(int(*si.Base)) + strconv.Itoa(int(*si.ChangeIndex))
 }

@@ -45,7 +45,7 @@ type testCase struct {
 var (
 	mockController          *gomock.Controller
 	mockValidator           *mocks.MockValidator
-	mockSerialIndexManager  *mocks.MockSerialIndexManager
+	mockSerialIndexManager  *mocks.MockSerialManager
 	mockSoaValuesNormalizer *mocks.MockSOAValuesNormalizer
 	testingError            error
 )
@@ -54,7 +54,7 @@ func setup(t *testing.T) {
 	mockController = gomock.NewController(t)
 	mockValidator = mocks.NewMockValidator(mockController)
 	validations = mockValidator
-	mockSerialIndexManager = mocks.NewMockSerialIndexManager(mockController)
+	mockSerialIndexManager = mocks.NewMockSerialManager(mockController)
 	serialIndexManager = mockSerialIndexManager
 	mockSoaValuesNormalizer = mocks.NewMockSOAValuesNormalizer(mockController)
 	soaValuesNormalizer = mockSoaValuesNormalizer

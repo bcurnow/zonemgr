@@ -22,6 +22,7 @@ package builtin
 import (
 	"fmt"
 
+	"github.com/bcurnow/zonemgr/dns/serial"
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
@@ -29,7 +30,7 @@ import (
 
 var (
 	_                   plugins.ZoneMgrPlugin = &BuiltinPluginSOA{}
-	serialIndexManager  utils.SerialIndexManager
+	serialIndexManager  serial.SerialManager
 	soaValuesNormalizer plugins.SOAValuesNormalizer
 )
 
@@ -48,7 +49,7 @@ func (p *BuiltinPluginSOA) PluginTypes() ([]plugins.PluginType, error) {
 
 func (p *BuiltinPluginSOA) Configure(config *models.Config) error {
 	p.config = config
-	serialIndexManager = utils.FileSerialIndexManager(p.config.SerialChangeIndexDirectory)
+	serialIndexManager = serial.FileSerialManager(p.config.SerialChangeIndexDirectory)
 	soaValuesNormalizer = plugins.SVN()
 	return nil
 }
@@ -79,7 +80,7 @@ func (p *BuiltinPluginSOA) Normalize(identifier string, rr *models.ResourceRecor
 	generatedSerial := ""
 	if p.config.GenerateSerial {
 		// The name of the SOA record is also the name of the zone
-		nextSerial, err := serialIndexManager.GetNext(rr.Name)
+		nextSerial, err := serialIndexManager.Next(rr.Name)
 		if err != nil {
 			return err
 		}

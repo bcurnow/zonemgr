@@ -20,12 +20,15 @@
 package utils
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/gofrs/flock"
 	"github.com/hashicorp/go-hclog"
 )
 
@@ -39,7 +42,7 @@ var (
 	chmod    = os.Chmod
 	create   = os.Create
 	homeDir  string
-	readFile = os.ReadFile
+	mkdirAll = os.MkdirAll
 	stat     = os.Stat
 	walkDir  = filepath.WalkDir
 
@@ -52,8 +55,12 @@ type FileSystem interface {
 	CreateFile(path string, mode os.FileMode, contentFn func() ([]byte, error)) error
 	// Returns true if the path exists, false otherwise
 	Exists(path string) bool
+	// Gets a lock on a file
+	Flock(path string) (*flock.Flock, error)
 	// Returns the current user's home directory or "" if the current user can not be determined (e.g. when go-plugin executes a plugin)
 	HomeDir() string
+	// Creates the directory and any missing parents using the supplied permissions for any directory it creates, if the directory exists, this is a nop
+	MkdirAll(path string, mode os.FileMode) error
 	// Takes a path name and returns the absolute path value
 	// This method is similar to filepath.Abs but also handles
 	// paths that start with '~' and will automatically expand this to the
@@ -103,8 +110,36 @@ func (fs *fileSystem) Exists(path string) bool {
 	return !errors.Is(err, os.ErrNotExist)
 }
 
+// Will try and get the lock for 10 seconds, returns an error if it can't get the lock
+func (fs *fileSystem) Flock(path string) (*flock.Flock, error) {
+	// Create a file lock, this doesn't lock the file...yet
+	fileLock := flock.New(path)
+	// Setup a 10 second timer
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	hclog.L().Trace("Attempting to lock file, will try for 10 seconds", "file", path)
+	// Try the lock every half second
+	locked, err := fileLock.TryLockContext(ctx, 500*time.Millisecond)
+	if err != nil {
+		return nil, err
+	}
+
+	if locked {
+		hclog.L().Trace("Locked file", "file", path)
+		return fileLock, nil
+	}
+
+	// This should only happen if we fail to lock the file, this can happen because we timeout
+	return nil, fmt.Errorf("unexpected error, expected '%s' to be locked", path)
+}
+
 func (fs *fileSystem) HomeDir() string {
 	return homeDir
+}
+
+func (fs *fileSystem) MkdirAll(path string, mode os.FileMode) error {
+	return mkdirAll(path, mode)
 }
 
 func (fs *fileSystem) ToAbsoluteFilePath(path string) (string, error) {

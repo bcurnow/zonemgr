@@ -176,9 +176,9 @@ func normalizeExpects_SOAPlugin(sn *soaNormalization) func(identifier string, rr
 		if sn.generateSerial {
 			serial = testingSerial
 			if sn.identifierAsName {
-				call = mockSerialIndexManager.EXPECT().GetNext(identifier)
+				call = mockSerialIndexManager.EXPECT().Next(identifier)
 			} else {
-				call = mockSerialIndexManager.EXPECT().GetNext(rr.Name)
+				call = mockSerialIndexManager.EXPECT().Next(rr.Name)
 			}
 
 			if sn.generateSerialErr {
