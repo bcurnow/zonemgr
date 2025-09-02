@@ -32,7 +32,7 @@ func WithSortedPlugins(p map[PluginType]ZoneMgrPlugin, pluginMetadata map[Plugin
 	for _, pluginType := range sortedPluginKeys(p) {
 		metadata, ok := pluginMetadata[pluginType]
 		if !ok {
-			return errors.New("could not find plugin metadata for plugin type:" + string(pluginType))
+			return errors.New("could not find plugin metadata for plugin type: " + string(pluginType))
 		}
 		if err := fn(pluginType, p[pluginType], metadata); err != nil {
 			return err

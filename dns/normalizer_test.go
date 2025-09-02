@@ -33,19 +33,21 @@ func TestNormalize(t *testing.T) {
 	defer dnsTeardown(t)
 
 	testCases := []struct {
-		name             string
-		expectedConfig   *models.Config
-		zones            map[string]*models.Zone
-		absPathErr       bool
-		missingPluginErr bool
-		validateZoneErr  bool
-		normalizeErr     bool
+		name                     string
+		expectedConfig           *models.Config
+		zones                    map[string]*models.Zone
+		absPathErr               bool
+		missingPluginErr         bool
+		validateZoneErr          bool
+		normalizeErr             bool
+		missingPluginMetadataErr bool
 	}{
 		{name: "no-zones", zones: make(map[string]*models.Zone)},
 		{name: "no-config-defaulting", expectedConfig: testZone.Config, zones: testZones},
 		{name: "config-defaulting", expectedConfig: globalConfig, zones: map[string]*models.Zone{"nil-config-zone": {Config: nil}}},
 		{name: "abs-path-error", expectedConfig: testZone.Config, zones: testZones, absPathErr: true},
 		{name: "no-plugin-for-resource-record-type", expectedConfig: testZone.Config, zones: testZones, missingPluginErr: true},
+		{name: "missing-plugin-metadata", expectedConfig: testZone.Config, zones: testZones, missingPluginMetadataErr: true},
 		{name: "validation-error", expectedConfig: testZone.Config, zones: testZones, validateZoneErr: true},
 		{name: "normalize-error", expectedConfig: testZone.Config, zones: testZones, normalizeErr: true},
 	}
@@ -57,7 +59,7 @@ func TestNormalize(t *testing.T) {
 		// If we don't have any zones then we won't make any calls
 		if len(tc.zones) != 0 {
 			iterationZones := tc.zones
-			if tc.absPathErr || tc.normalizeErr || tc.validateZoneErr || tc.missingPluginErr {
+			if tc.absPathErr || tc.normalizeErr || tc.validateZoneErr || tc.missingPluginErr || tc.missingPluginMetadataErr {
 				// We need to adjust the number of zones we'll iterate over because we won't get past the first one
 				var firstZoneName string
 				var firstZone *models.Zone
@@ -79,7 +81,7 @@ func TestNormalize(t *testing.T) {
 				}
 
 				// If we don't have any plugins, Configure won't get called
-				if !tc.missingPluginErr {
+				if !tc.missingPluginErr && !tc.missingPluginMetadataErr {
 					// Each plugin should be configured once for each zone
 					mockAPlugin.EXPECT().Configure(tc.expectedConfig)
 					mockCNAMEPlugin.EXPECT().Configure(tc.expectedConfig)
@@ -94,7 +96,9 @@ func TestNormalize(t *testing.T) {
 								mockAPlugin.EXPECT().Normalize(identifier, rr)
 							}
 						} else {
-							mockCNAMEPlugin.EXPECT().Normalize(identifier, rr)
+							if !tc.normalizeErr {
+								mockCNAMEPlugin.EXPECT().Normalize(identifier, rr)
+							}
 						}
 
 					}
@@ -119,7 +123,12 @@ func TestNormalize(t *testing.T) {
 			thePlugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
 		}
 
-		if err := PluginNormalizer(thePlugins, mockMetadata).Normalize(tc.zones, tc.expectedConfig); err != nil {
+		theMetadata := mockMetadata
+		if tc.missingPluginMetadataErr {
+			theMetadata = make(map[plugins.PluginType]*plugins.PluginMetadata)
+		}
+
+		if err := PluginNormalizer(thePlugins, theMetadata).Normalize(tc.zones, tc.expectedConfig); err != nil {
 			// Determine which error we want
 			want := ""
 			if tc.absPathErr {
@@ -132,6 +141,8 @@ func TestNormalize(t *testing.T) {
 				want = "validate-zone-error"
 			} else if tc.normalizeErr {
 				want = "normalize-error"
+			} else if tc.missingPluginMetadataErr {
+				want = "could not find plugin metadata for plugin type: A"
 			}
 
 			if want != "" {

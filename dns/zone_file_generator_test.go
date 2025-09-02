@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
 )
 
@@ -53,6 +54,21 @@ func TestGenerateZone(t *testing.T) {
 		t.Errorf("unexpected error: %s", err)
 	}
 	defer os.Remove("./testing")
+}
+
+func TestGenerate_MissingPluginMetadata(t *testing.T) {
+	dnsSetup(t)
+	defer dnsTeardown(t)
+
+	g := &pluginZoneFileGenerator{plugins: mockPlugins, metadata: make(map[plugins.PluginType]*plugins.PluginMetadata)}
+	if _, err := g.generate("testing", testZone); err != nil {
+		want := "could not find plugin metadata for plugin type: A"
+		if err.Error() != want {
+			t.Errorf("incorrect error: '%s', want: '%s'", err, want)
+		}
+	} else {
+		t.Error("expected an error, found none")
+	}
 }
 
 func TestGenerate_NoPlugin(t *testing.T) {
