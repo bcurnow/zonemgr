@@ -35,15 +35,15 @@ func (m *MockNormalizer) EXPECT() *MockNormalizerMockRecorder {
 }
 
 // Normalize mocks base method.
-func (m *MockNormalizer) Normalize(zones map[string]*models.Zone) error {
+func (m *MockNormalizer) Normalize(zones map[string]*models.Zone, globalConfig *models.Config) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Normalize", zones)
+	ret := m.ctrl.Call(m, "Normalize", zones, globalConfig)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Normalize indicates an expected call of Normalize.
-func (mr *MockNormalizerMockRecorder) Normalize(zones interface{}) *gomock.Call {
+func (mr *MockNormalizerMockRecorder) Normalize(zones, globalConfig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Normalize", reflect.TypeOf((*MockNormalizer)(nil).Normalize), zones)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Normalize", reflect.TypeOf((*MockNormalizer)(nil).Normalize), zones, globalConfig)
 }

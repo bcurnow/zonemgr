@@ -48,6 +48,20 @@ func (mr *MockFileSystemMockRecorder) CreateFile(path, mode, contentFn interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFile", reflect.TypeOf((*MockFileSystem)(nil).CreateFile), path, mode, contentFn)
 }
 
+// Exists mocks base method.
+func (m *MockFileSystem) Exists(path string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Exists", path)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Exists indicates an expected call of Exists.
+func (mr *MockFileSystemMockRecorder) Exists(path interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockFileSystem)(nil).Exists), path)
+}
+
 // HomeDir mocks base method.
 func (m *MockFileSystem) HomeDir() string {
 	m.ctrl.T.Helper()
