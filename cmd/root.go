@@ -56,8 +56,10 @@ var (
 	}
 
 	pluginManager = plugin_manager.Manager()
-	v             *viper.Viper
-	homeDir       string
+	fileSystem    = utils.FS()
+
+	v       *viper.Viper
+	homeDir string
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -89,7 +91,7 @@ func initConfig(cmd *cobra.Command) error {
 	v.AutomaticEnv()
 
 	// Normalize the plugin-dir to an absolute path
-	absPluginDir, err := utils.ToAbsoluteFilePath(v.GetString("plugin-dir"), "plugin-dir")
+	absPluginDir, err := fileSystem.ToAbsoluteFilePath(v.GetString("plugin-dir"))
 	if err != nil {
 		return err
 	}

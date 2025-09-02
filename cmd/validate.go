@@ -21,7 +21,6 @@ import (
 
 	"github.com/bcurnow/zonemgr/dns"
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +33,7 @@ var (
 				rootCmd.PersistentPreRun(cmd, args)
 			}
 
-			absInput, err := utils.ToAbsoluteFilePath(input, "input")
+			absInput, err := fileSystem.ToAbsoluteFilePath(input)
 			if err != nil {
 				return err
 			}

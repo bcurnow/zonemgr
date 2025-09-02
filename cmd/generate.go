@@ -22,7 +22,6 @@ import (
 
 	"github.com/bcurnow/zonemgr/dns"
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/spf13/cobra"
@@ -36,13 +35,13 @@ var (
 			return generateZoneFile()
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			absOutputDir, err := utils.ToAbsoluteFilePath(outputDir, "output directory")
+			absOutputDir, err := fileSystem.ToAbsoluteFilePath(outputDir)
 			if err != nil {
 				return err
 			}
 			outputDir = absOutputDir
 
-			absInputFile, err := utils.ToAbsoluteFilePath(inputFile, "input file")
+			absInputFile, err := fileSystem.ToAbsoluteFilePath(inputFile)
 			if err != nil {
 				return err
 			}
@@ -53,7 +52,7 @@ var (
 			zoneYamlParser = dns.YamlZoneParser(normalizer)
 
 			// ensure that the serial-change-index-directory is an absolute file path
-			absSerialChangeIndexDirectory, err := utils.ToAbsoluteFilePath(v.GetString("serial-change-index-directory"), "serial-change-index-directory")
+			absSerialChangeIndexDirectory, err := fileSystem.ToAbsoluteFilePath(v.GetString("serial-change-index-directory"))
 			if err != nil {
 				return err
 			}
