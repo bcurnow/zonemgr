@@ -19,7 +19,10 @@
 
 package models
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+)
 
 func WithSortedZones(zones map[string]*Zone, fn func(name string, zone *Zone) error) error {
 	for _, zoneName := range sortedZoneKeys(zones) {
@@ -38,4 +41,11 @@ func sortedZoneKeys(zones map[string]*Zone) []string {
 	sort.Strings(keys)
 
 	return keys
+}
+
+func nilSafeString(i *int32) string {
+	if nil == i {
+		return "<nil>"
+	}
+	return fmt.Sprintf("%d", *i)
 }
