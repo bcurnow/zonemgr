@@ -21,12 +21,11 @@ package plugin_manager
 
 import (
 	"maps"
-	"os"
 	"os/exec"
-	"path/filepath"
 
 	"github.com/bcurnow/zonemgr/internal/plugins/builtin"
 	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
 )
@@ -43,7 +42,10 @@ type pluginManager struct {
 	metadata map[plugins.PluginType]*plugins.PluginMetadata
 }
 
-var instance = &pluginManager{plugins: make(map[plugins.PluginType]plugins.ZoneMgrPlugin), metadata: make(map[plugins.PluginType]*plugins.PluginMetadata)}
+var (
+	instance = &pluginManager{plugins: make(map[plugins.PluginType]plugins.ZoneMgrPlugin), metadata: make(map[plugins.PluginType]*plugins.PluginMetadata)}
+	fs       = utils.FS()
+)
 
 func Manager() PluginManager {
 	return instance
@@ -70,11 +72,14 @@ func (pm *pluginManager) LoadPlugins(pluginDir string) error {
 
 func (pm *pluginManager) loadExternalPlugins(pluginDir string) error {
 	hclog.L().Debug("Loading plugins", "pluginDir", pluginDir)
-	executables, err := pm.discoverPlugins(pluginDir)
+	executables, err := fs.WalkExecutables(pluginDir, false)
+
 	if err != nil {
 		hclog.L().Error("Error discovering plugins", "pluginDir", pluginDir, "err", err)
 		return err
 	}
+
+	hclog.L().Trace("Found executables", "pluginDir", pluginDir, "executableCount", len(executables))
 
 	for pluginName, pluginCmd := range executables {
 		client := pm.buildClient(pluginName, pluginCmd)
@@ -88,14 +93,9 @@ func (pm *pluginManager) loadExternalPlugins(pluginDir string) error {
 		}
 
 		for _, pluginType := range supportedTypes {
-			existingMetadata, ok := pm.metadata[pluginType]
+			existingMetadata := pm.metadata[pluginType]
 			newMetadata := &plugins.PluginMetadata{Name: pluginName, Command: pluginCmd, BuiltIn: false}
-
-			if ok {
-				// We've already got on, and it's very nice
-				pm.handleOverride(pluginType, existingMetadata, newMetadata)
-			}
-
+			pm.handleOverride(pluginType, existingMetadata, newMetadata)
 			pm.plugins[pluginType] = zonemgrPlugin
 			pm.metadata[pluginType] = newMetadata
 		}
@@ -116,59 +116,6 @@ func (pm *pluginManager) handleOverride(pluginType plugins.PluginType, existingM
 			hclog.L().Warn("Replacing non-default plugin", "pluginType", pluginType, "oldPluginName", existingMetadata.Name, "newPluginName", newMetadata.Name)
 		}
 	}
-}
-
-// Walks the specified directory looking for plugins, returns an array of all the executables found
-// Until goplugin.Discover is updated to check for the executable bit, this is our own implementation
-func (pm *pluginManager) discoverPlugins(pluginDir string) (map[string]string, error) {
-	var executables = make(map[string]string)
-
-	hclog.L().Trace("Walking plugins dir", "dir", pluginDir)
-	err := filepath.WalkDir(pluginDir, func(path string, d os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			if os.IsNotExist(walkErr) {
-				hclog.L().Trace("Could not find plugin directory", "dir", pluginDir)
-				return nil
-			}
-			return walkErr
-		}
-		hclog.L().Trace("Processing path", "path", path, "dir", pluginDir)
-
-		// Don't traverse sub-directories, this is arbitrary but we are keeping it simple
-		if d.IsDir() && path != pluginDir {
-			hclog.L().Trace("Subdirectories are not supported, skipping", "path", path, "dir", pluginDir)
-			return filepath.SkipDir
-		}
-
-		// Because we're using WalkDir, we need to get the FileInfo from the DirEntry
-		info, err := d.Info()
-		if err != nil {
-			return err
-		}
-
-		// Check if this is a file and if the file is executable
-		if info.Mode().IsRegular() {
-			// 0111 checks for the execute bit to be set
-			if info.Mode()&0111 == 0 {
-				hclog.L().Trace("Skipping non-executable file", "path", path, "dir", pluginDir)
-				return nil
-			}
-
-			// Get the absolute path of the file so we can provide the best debugging information
-			absPath, err := filepath.Abs(path)
-			if err != nil {
-				return err
-			}
-			executables[filepath.Base(path)] = absPath
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-	return executables, nil
 }
 
 func (pm *pluginManager) buildClient(pluginName string, pluginCmd string) *goplugin.Client {

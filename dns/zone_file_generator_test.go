@@ -21,13 +21,11 @@ package dns
 import (
 	"errors"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/utils"
 )
-
-var outputDir = "zone_file_generator_test"
 
 func TestPluginZoneFileGenerator(t *testing.T) {
 	dnsSetup(t)
@@ -41,18 +39,27 @@ func TestPluginZoneFileGenerator(t *testing.T) {
 	}
 }
 
-func TestGenerateZone_InvalidOutputDir(t *testing.T) {
-	err := PluginZoneFileGenerator(mockPlugins).GenerateZone("testing", testZone, "bogus")
-	if err == nil {
-		t.Errorf("expected error")
+func TestGenerateZone(t *testing.T) {
+	dnsSetup(t)
+	defer dnsTeardown(t)
+	// We want to use the actual implementation for this test
+	fs = utils.FS()
+	mockAPlugin.EXPECT().Configure(testZone.Config)
+	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
+	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("record1", nil)
+	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME}).Return("record2", nil)
+
+	if err := PluginZoneFileGenerator(mockPlugins).GenerateZone("testing", testZone, "."); err != nil {
+		t.Errorf("unexpected error: %s", err)
 	}
+	defer os.Remove("./testing")
 }
 
-func TestGenerateZone_NoPlugin(t *testing.T) {
+func TestGenerate_NoPlugin(t *testing.T) {
 	dnsSetup(t)
-	fileSetup(t)
-	defer fileTeardown(t)
-	g := PluginZoneFileGenerator(mockPlugins)
+	defer dnsTeardown(t)
+
+	g := &pluginZoneFileGenerator{plugins: mockPlugins}
 
 	// Insert an unknown resource record type
 	// Replace the resourceRecords
@@ -61,7 +68,7 @@ func TestGenerateZone_NoPlugin(t *testing.T) {
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
 
-	err := g.GenerateZone("testing", testZone, outputDir)
+	_, err := g.generate("testing", testZone)
 	if err == nil {
 		t.Errorf("expected error")
 	}
@@ -73,18 +80,18 @@ func TestGenerateZone_NoPlugin(t *testing.T) {
 	}
 }
 
-func TestGenerateZone_RenderError(t *testing.T) {
+func TestGenerate_RenderError(t *testing.T) {
 	dnsSetup(t)
-	fileSetup(t)
-	defer fileTeardown(t)
-	g := PluginZoneFileGenerator(mockPlugins)
+	defer dnsTeardown(t)
+
+	g := &pluginZoneFileGenerator{plugins: mockPlugins}
 
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
 	want := "testing error"
 	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("", errors.New(want))
 
-	err := g.GenerateZone("testing", testZone, outputDir)
+	_, err := g.generate("testing", testZone)
 	if err == nil {
 		t.Errorf("expected error")
 	}
@@ -94,11 +101,11 @@ func TestGenerateZone_RenderError(t *testing.T) {
 	}
 }
 
-func TestGenerateZone_NoTTL(t *testing.T) {
+func TestGenerate_NoTTL(t *testing.T) {
 	dnsSetup(t)
-	fileSetup(t)
-	defer fileTeardown(t)
-	g := PluginZoneFileGenerator(mockPlugins)
+	defer dnsTeardown(t)
+
+	g := &pluginZoneFileGenerator{plugins: mockPlugins}
 
 	testZone.TTL = nil
 	mockAPlugin.EXPECT().Configure(testZone.Config)
@@ -106,67 +113,36 @@ func TestGenerateZone_NoTTL(t *testing.T) {
 	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("record1", nil)
 	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME}).Return("record2", nil)
 
-	err := g.GenerateZone("testing", testZone, outputDir)
+	content, err := g.generate("testing", testZone)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
 
 	want := "$ORIGIN testing\nrecord1\nrecord2\n"
 
-	outputBytes, err := os.ReadFile(filepath.Join(outputDir, "testing"))
-	if err != nil {
-		t.Errorf("Unable to read the output file: %s", err)
-	}
-	output := string(outputBytes)
-	if output != want {
-		t.Errorf("Unexpected content:\n'%s'\nwant\n'%s'\n", output, want)
+	if string(content) != want {
+		t.Errorf("Unexpected content:\n'%s'\nwant\n'%s'\n", string(content), want)
 	}
 }
 
-func TestGenerateZone_WithTTL(t *testing.T) {
+func TestGenerate_WithTTL(t *testing.T) {
 	dnsSetup(t)
-	fileSetup(t)
-	defer fileTeardown(t)
-	g := PluginZoneFileGenerator(mockPlugins)
+	defer dnsTeardown(t)
+	g := &pluginZoneFileGenerator{plugins: mockPlugins}
 
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
 	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("record1", nil)
 	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME}).Return("record2", nil)
 
-	err := g.GenerateZone("testing", testZone, outputDir)
+	content, err := g.generate("testing", testZone)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
 
 	want := "$ORIGIN testing\n$TTL 30 ;testZone-TTL\nrecord1\nrecord2\n"
 
-	outputBytes, err := os.ReadFile(filepath.Join(outputDir, "testing"))
-	if err != nil {
-		t.Errorf("Unable to read the output file: %s", err)
-	}
-	output := string(outputBytes)
-	if output != want {
-		t.Errorf("Unexpected content:\n'%s'\nwant\n'%s'\n", output, want)
-	}
-}
-func fileSetup(t *testing.T) {
-	// Remove any previous testing directory
-	err := os.RemoveAll(outputDir)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-
-	// Recreate the empty directory
-	err = os.Mkdir(outputDir, 0755)
-	if err != nil {
-		t.Errorf("unexpected err: %s", err)
-	}
-}
-
-func fileTeardown(t *testing.T) {
-	err := os.RemoveAll(outputDir)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
+	if string(content) != want {
+		t.Errorf("Unexpected content:\n'%s'\nwant\n'%s'\n", string(content), want)
 	}
 }

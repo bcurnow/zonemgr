@@ -25,7 +25,6 @@ import (
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
-	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 )
 
@@ -66,7 +65,7 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 			return fmt.Errorf("zone is missing config, zoneName=%s", name)
 		} else {
 			// Ensure that the serial change index directory is an absolute path
-			absSerialChangeIndexDirectory, err := utils.ToAbsoluteFilePath(zone.Config.SerialChangeIndexDirectory, "serial_change_index_directory")
+			absSerialChangeIndexDirectory, err := fs.ToAbsoluteFilePath(zone.Config.SerialChangeIndexDirectory)
 			if err != nil {
 				return err
 			}

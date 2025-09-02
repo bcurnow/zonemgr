@@ -20,8 +20,8 @@
 package dns
 
 import (
+	"bytes"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 
@@ -43,19 +43,21 @@ func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugi
 }
 
 func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone, outputDir string) error {
-	outputFile, err := os.Create(filepath.Join(outputDir, name))
-	if err != nil {
-		return fmt.Errorf("failed to create output file for zone '%s': %w", name, err)
-	}
-	defer outputFile.Close()
+	outputFileName := filepath.Join(outputDir, name)
+	return fs.CreateFile(outputFileName, 0755, func() ([]byte, error) {
+		hclog.L().Info("Generating zone file", "outputFile", outputFileName, "zone", name)
+		return zfg.generate(name, zone)
+	})
+}
 
-	hclog.L().Info("Generating zone file", "outputFile", outputFile.Name(), "zone", name)
-
+func (zfg *pluginZoneFileGenerator) generate(name string, zone *models.Zone) ([]byte, error) {
+	var content bytes.Buffer
 	// Write out the origin
-	fmt.Fprintf(outputFile, "$ORIGIN %s\n", name)
+	content.WriteString(fmt.Sprintf("$ORIGIN %s\n", name))
 
 	if zone.TTL != nil {
-		fmt.Fprintln(outputFile, zone.TTL.Render())
+		content.WriteString(zone.TTL.Render())
+		content.WriteString("\n")
 	}
 
 	registeredPlugins := zfg.plugins
@@ -78,17 +80,18 @@ func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone,
 		rr := zone.ResourceRecords[identifier]
 		plugin := registeredPlugins[plugins.PluginType(rr.Type)]
 		if nil == plugin {
-			return fmt.Errorf("unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
+			return nil, fmt.Errorf("unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}
 		renderedRecord, err := plugin.Render(identifier, rr)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		// It is possible that the plugin determines that this resource should not be rendered, don't add to the file
 		if renderedRecord != "" {
-			fmt.Fprintln(outputFile, renderedRecord)
+			content.WriteString(renderedRecord)
+			content.WriteString("\n")
 		}
 	}
 
-	return nil
+	return content.Bytes(), nil
 }
