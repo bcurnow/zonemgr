@@ -24,7 +24,8 @@
 		* [SOA](#SOA)
 * [Examples Files](#ExamplesFiles)
 	* [zones.yaml](#zones.yaml)
-	* [zonemgr-a-record-comment-override-plugin](#zonemgr-a-record-comment-override-plugin)
+	* [comment-override/zonemgr-a-record-comment-override-plugin](#comment-overridezonemgr-a-record-comment-override-plugin)
+	* [not-implemented/zonemgr-a-record-not-implemented-plugin](#not-implementedzonemgr-a-record-not-implemented-plugin)
 * [Building](#Building)
 	* [tidy](#tidy)
 	* [format](#format)
@@ -341,9 +342,13 @@ The following describe the behaviors of the built-in plugins.
 
 A complete example of the yaml file.
 
-### <a name='zonemgr-a-record-comment-override-plugin'></a>zonemgr-a-record-comment-override-plugin
+### <a name='comment-overridezonemgr-a-record-comment-override-plugin'></a>comment-override/zonemgr-a-record-comment-override-plugin
 
 An example plugin that overrides the default A record plugin.
+
+### <a name='not-implementedzonemgr-a-record-not-implemented-plugin'></a>not-implemented/zonemgr-a-record-not-implemented-plugin
+
+An example plugin where all the methods return a not implemented error (this is primarily used in the testing)
 
 ## <a name='Building'></a>Building
 
@@ -363,11 +368,11 @@ Runs the `tidy` and `format` targets and then compiles zonemgr into bin
 
 ### <a name='build-all'></a>build-all
 
-Runs the `build` target and then compiles examples/zonemgr-a-record-comment-override-plugin to examples/bin
+Runs the `build` target and then compiles the plugins in the examples/ directorys to examples/bin
 
 ### <a name='run-with-plugins'></a>run-with-plugins
 
-Executes zonemgr `plugins` sub-command with the plugin directory set to examples/bin to show how plugins work
+Executes zonemgr `plugins` sub-command with the plugin directory set to examples/bin/comment-override to show how plugins work
 
 ## <a name='Releasing'></a>Releasing
 
