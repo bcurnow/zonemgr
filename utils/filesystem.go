@@ -20,6 +20,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -34,11 +35,13 @@ import (
 var (
 	// Store methods from the filepath and os packages as variables
 	// This will allow us to override these methods when we are testing
-	abs     = filepath.Abs
-	walkDir = filepath.WalkDir
-	create  = os.Create
-	chmod   = os.Chmod
-	homeDir string
+	abs      = filepath.Abs
+	chmod    = os.Chmod
+	create   = os.Create
+	homeDir  string
+	readFile = os.ReadFile
+	stat     = os.Stat
+	walkDir  = filepath.WalkDir
 
 	// Make sure we implement the interface
 	_ FileSystem = &fileSystem{}
@@ -47,6 +50,8 @@ var (
 type FileSystem interface {
 	// Creates the path specified, sets the mode and calls the contentFn to generate the file content
 	CreateFile(path string, mode os.FileMode, contentFn func() ([]byte, error)) error
+	// Returns true if the path exists, false otherwise
+	Exists(path string) bool
 	// Returns the current user's home directory or "" if the current user can not be determined (e.g. when go-plugin executes a plugin)
 	HomeDir() string
 	// Takes a path name and returns the absolute path value
@@ -91,6 +96,15 @@ func (fs *fileSystem) CreateFile(path string, mode os.FileMode, contentFn func()
 	}
 
 	return nil
+}
+
+func (fs *fileSystem) Exists(path string) bool {
+	_, err := stat(path)
+	return !errors.Is(err, os.ErrNotExist)
+}
+
+func (fs *fileSystem) HomeDir() string {
+	return homeDir
 }
 
 func (fs *fileSystem) ToAbsoluteFilePath(path string) (string, error) {
@@ -149,10 +163,6 @@ func (fs *fileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 		return nil
 	})
 	return executables, err
-}
-
-func (fs *fileSystem) HomeDir() string {
-	return homeDir
 }
 
 // This will exit the entire program if we can't get this but this generaly shouldn't happen
