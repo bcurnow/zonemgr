@@ -56,7 +56,7 @@ var (
 	}
 
 	pluginManager = plugin_manager.Manager()
-	fileSystem    = utils.FS()
+	fs            = utils.FS()
 
 	v       *viper.Viper
 	homeDir string
@@ -74,7 +74,7 @@ func init() {
 	rootCmd.PersistentFlags().Bool("log-time", false, "If set, prints the time on all the log messages")
 	rootCmd.PersistentFlags().Bool("log-color", false, "If set, prints the log messages in color where possible")
 	rootCmd.PersistentFlags().Bool("plugin-debug", false, "If set, will including plugin stdout/stderr in the log messages")
-	rootCmd.PersistentFlags().String("plugin-dir", filepath.Join(utils.HomeDir, ".local", "share", "zonemgr", "plugins"), "The directory to find Zonemgr plugins")
+	rootCmd.PersistentFlags().String("plugin-dir", filepath.Join(fs.HomeDir(), ".local", "share", "zonemgr", "plugins"), "The directory to find Zonemgr plugins")
 
 }
 
@@ -91,7 +91,7 @@ func initConfig(cmd *cobra.Command) error {
 	v.AutomaticEnv()
 
 	// Normalize the plugin-dir to an absolute path
-	absPluginDir, err := fileSystem.ToAbsoluteFilePath(v.GetString("plugin-dir"))
+	absPluginDir, err := fs.ToAbsoluteFilePath(v.GetString("plugin-dir"))
 	if err != nil {
 		return err
 	}

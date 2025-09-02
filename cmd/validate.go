@@ -33,7 +33,7 @@ var (
 				rootCmd.PersistentPreRun(cmd, args)
 			}
 
-			absInput, err := fileSystem.ToAbsoluteFilePath(input)
+			absInput, err := fs.ToAbsoluteFilePath(input)
 			if err != nil {
 				return err
 			}

@@ -48,6 +48,20 @@ func (mr *MockFileSystemMockRecorder) CreateFile(path, mode, contentFn interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFile", reflect.TypeOf((*MockFileSystem)(nil).CreateFile), path, mode, contentFn)
 }
 
+// HomeDir mocks base method.
+func (m *MockFileSystem) HomeDir() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HomeDir")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// HomeDir indicates an expected call of HomeDir.
+func (mr *MockFileSystemMockRecorder) HomeDir() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HomeDir", reflect.TypeOf((*MockFileSystem)(nil).HomeDir))
+}
+
 // ToAbsoluteFilePath mocks base method.
 func (m *MockFileSystem) ToAbsoluteFilePath(path string) (string, error) {
 	m.ctrl.T.Helper()

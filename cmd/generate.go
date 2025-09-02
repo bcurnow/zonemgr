@@ -35,13 +35,13 @@ var (
 			return generateZoneFile()
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			absOutputDir, err := fileSystem.ToAbsoluteFilePath(outputDir)
+			absOutputDir, err := fs.ToAbsoluteFilePath(outputDir)
 			if err != nil {
 				return err
 			}
 			outputDir = absOutputDir
 
-			absInputFile, err := fileSystem.ToAbsoluteFilePath(inputFile)
+			absInputFile, err := fs.ToAbsoluteFilePath(inputFile)
 			if err != nil {
 				return err
 			}
@@ -52,7 +52,7 @@ var (
 			zoneYamlParser = dns.YamlZoneParser(normalizer)
 
 			// ensure that the serial-change-index-directory is an absolute file path
-			absSerialChangeIndexDirectory, err := fileSystem.ToAbsoluteFilePath(v.GetString("serial-change-index-directory"))
+			absSerialChangeIndexDirectory, err := fs.ToAbsoluteFilePath(v.GetString("serial-change-index-directory"))
 			if err != nil {
 				return err
 			}

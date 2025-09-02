@@ -38,6 +38,7 @@ var (
 	walkDir = filepath.WalkDir
 	create  = os.Create
 	chmod   = os.Chmod
+	homeDir string
 
 	// Make sure we implement the interface
 	_ FileSystem = &fileSystem{}
@@ -46,6 +47,8 @@ var (
 type FileSystem interface {
 	// Creates the path specified, sets the mode and calls the contentFn to generate the file content
 	CreateFile(path string, mode os.FileMode, contentFn func() ([]byte, error)) error
+	// Returns the current user's home directory or "" if the current user can not be determined (e.g. when go-plugin executes a plugin)
+	HomeDir() string
 	// Takes a path name and returns the absolute path value
 	// This method is similar to filepath.Abs but also handles
 	// paths that start with '~' and will automatically expand this to the
@@ -93,7 +96,7 @@ func (fs *fileSystem) CreateFile(path string, mode os.FileMode, contentFn func()
 func (fs *fileSystem) ToAbsoluteFilePath(path string) (string, error) {
 	//go doesn't automatically handle the ~ expansion, do this manually
 	if strings.HasPrefix(path, "~") {
-		path = filepath.Join(HomeDir, path[1:])
+		path = filepath.Join(fs.HomeDir(), path[1:])
 	}
 
 	absPath, err := abs(path)
@@ -146,4 +149,27 @@ func (fs *fileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 		return nil
 	})
 	return executables, err
+}
+
+func (fs *fileSystem) HomeDir() string {
+	return homeDir
+}
+
+// This will exit the entire program if we can't get this but this generaly shouldn't happen
+// unless we're being run in a very strange way
+func init() {
+	dir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to retrieve current user's home directory: %s\n", err)
+		workingDir, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Could not determine current working directory, returning empty string")
+			dir = ""
+		} else {
+			fmt.Fprintf(os.Stderr, "Defaulting to current working directory: %s\n", workingDir)
+			dir = workingDir
+		}
+	}
+
+	homeDir = dir
 }
