@@ -18,11 +18,9 @@ package dns
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/hashicorp/go-hclog"
-	"gopkg.in/yaml.v3"
+	"github.com/bcurnow/zonemgr/utils/yaml"
 )
 
 type ZoneParser interface {
@@ -32,23 +30,21 @@ type ZoneParser interface {
 type yamlZoneParser struct {
 	ZoneParser
 	normalizer Normalizer
+	reader     *yaml.ZoneYamlReader
 }
 
 func YamlZoneParser(normalizer Normalizer) ZoneParser {
-	return &yamlZoneParser{normalizer: normalizer}
+	return &yamlZoneParser{normalizer: normalizer, reader: &yaml.ZoneYamlReader{}}
 }
 
 func (p *yamlZoneParser) Parse(inputFile string, globalConfig *models.Config) (map[string]*models.Zone, error) {
-	hclog.L().Debug("Opening input file", "inputFile", inputFile)
-	inputBytes, err := os.ReadFile(inputFile)
+	zones, err := p.reader.Read(inputFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open input %s: %w", inputFile, err)
+		return nil, err
 	}
 
-	hclog.L().Debug("Unmarshaling YAML", "inputFile", inputFile)
-	zones, err := p.unmarshal(inputBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal from %s: %w", inputFile, err)
+	if len(zones) == 0 {
+		return nil, fmt.Errorf("no zones found in input file")
 	}
 
 	for name, zone := range zones {
@@ -56,28 +52,11 @@ func (p *yamlZoneParser) Parse(inputFile string, globalConfig *models.Config) (m
 		if zone == nil {
 			return nil, fmt.Errorf("invalid input file %s, no zone information for zone %s", inputFile, name)
 		}
-		// Make sure we always have a complete config
-		if nil == zone.Config {
-			zone.Config = globalConfig
-		}
-
 	}
 
 	// Normalize the zones
-	if err = p.normalizer.Normalize(zones); err != nil {
+	if err = p.normalizer.Normalize(zones, globalConfig); err != nil {
 		return nil, fmt.Errorf("failed to normalize zones: %w", err)
-	}
-	return zones, nil
-}
-
-func (p *yamlZoneParser) unmarshal(inputBytes []byte) (map[string]*models.Zone, error) {
-	var zones map[string]*models.Zone
-	err := yaml.Unmarshal(inputBytes, &zones)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse input YAML: %w", err)
-	}
-	if len(zones) == 0 {
-		return nil, fmt.Errorf("no zones found in input file")
 	}
 	return zones, nil
 }

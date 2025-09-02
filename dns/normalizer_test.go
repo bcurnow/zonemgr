@@ -21,154 +21,136 @@ package dns
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestNormalize(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
-	serialChangeIndexDirectory := testZones["zone 1"].Config.SerialChangeIndexDirectory
-	mockFs.EXPECT().ToAbsoluteFilePath(serialChangeIndexDirectory).Return(serialChangeIndexDirectory, nil)
 
-	// Each plugin should be configured once for each zone
-	mockAPlugin.EXPECT().Configure(testZone.Config).Times(2)
-	mockCNAMEPlugin.EXPECT().Configure(testZone.Config).Times(2)
-
-	mockFs.EXPECT().ToAbsoluteFilePath(serialChangeIndexDirectory).Return("abs", nil)
-	// Each plugin should have normalize called for each zone
-	mockAPlugin.EXPECT().Normalize("record1", testZone.ResourceRecords["record1"]).Times(2)
-	mockCNAMEPlugin.EXPECT().Normalize("record2", testZone.ResourceRecords["record2"]).Times(2)
-
-	// Each plugin should have validate called for each zone
-	mockAPlugin.EXPECT().ValidateZone("zone 1", testZone)
-	mockCNAMEPlugin.EXPECT().ValidateZone("zone 1", testZone)
-	mockAPlugin.EXPECT().ValidateZone("zone 2", testZone)
-	mockCNAMEPlugin.EXPECT().ValidateZone("zone 2", testZone)
-
-	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(testZones); err != nil {
-		t.Errorf("Error NormalizingZones: %s", err)
+	testCases := []struct {
+		name             string
+		expectedConfig   *models.Config
+		zones            map[string]*models.Zone
+		absPathErr       bool
+		missingPluginErr bool
+		validateZoneErr  bool
+		normalizeErr     bool
+	}{
+		{name: "no-zones", zones: make(map[string]*models.Zone)},
+		{name: "no-config-defaulting", expectedConfig: testZone.Config, zones: testZones},
+		{name: "config-defaulting", expectedConfig: globalConfig, zones: map[string]*models.Zone{"nil-config-zone": {Config: nil}}},
+		{name: "abs-path-error", expectedConfig: testZone.Config, zones: testZones, absPathErr: true},
+		{name: "no-plugin-for-resource-record-type", expectedConfig: testZone.Config, zones: testZones, missingPluginErr: true},
+		{name: "validation-error", expectedConfig: testZone.Config, zones: testZones, validateZoneErr: true},
+		{name: "normalize-error", expectedConfig: testZone.Config, zones: testZones, normalizeErr: true},
 	}
 
-	want := "abs"
-	outputSerialChangeIndexDirectory := testZones["zone 1"].Config.SerialChangeIndexDirectory
-	if outputSerialChangeIndexDirectory != want {
-		t.Errorf("Incorrect serial change index directory: '%s', want '%s'", outputSerialChangeIndexDirectory, want)
-	}
-}
-
-func TestNormalize_BadAbsPath(t *testing.T) {
-	dnsSetup(t)
-	defer dnsTeardown(t)
-	want := "testing"
-	mockFs.EXPECT().ToAbsoluteFilePath(testZone.Config.SerialChangeIndexDirectory).Return("", errors.New(want))
-
-	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(testZones); err != nil {
-		// Make sure we got the right error
-		if err.Error() != want {
-			t.Errorf("unexpected error: %s, want %s", err, want)
-		}
-	} else {
-		t.Error("expected an error and got none")
-	}
-}
-
-func TestNormalize_NoZones(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
 
-	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{}); err != nil {
-		if err.Error() != "no zones found" {
-			t.Errorf("Error NormalizingZones: %s", err)
+	for _, tc := range testCases {
+		// If we don't have any zones then we won't make any calls
+		if len(tc.zones) != 0 {
+			iterationZones := tc.zones
+			if tc.absPathErr || tc.normalizeErr || tc.validateZoneErr || tc.missingPluginErr {
+				// We need to adjust the number of zones we'll iterate over because we won't get past the first one
+				var firstZoneName string
+				var firstZone *models.Zone
+				for k, v := range tc.zones {
+					firstZoneName = k
+					firstZone = v
+					break
+				}
+				iterationZones = map[string]*models.Zone{firstZoneName: firstZone}
+			}
+
+			models.WithSortedZones(iterationZones, func(zoneName string, zone *models.Zone) error {
+				if tc.absPathErr {
+					// This is the first thing we'll do so we only need this mock call
+					mockFs.EXPECT().ToAbsoluteFilePath(tc.expectedConfig.SerialChangeIndexDirectory).Return("", errors.New("abs-path-testing"))
+					return nil
+				} else {
+					mockFs.EXPECT().ToAbsoluteFilePath(tc.expectedConfig.SerialChangeIndexDirectory).Return(tc.expectedConfig.SerialChangeIndexDirectory, nil)
+				}
+
+				// If we don't have any plugins, Configure won't get called
+				if !tc.missingPluginErr {
+					// Each plugin should be configured once for each zone
+					mockAPlugin.EXPECT().Configure(tc.expectedConfig)
+					mockCNAMEPlugin.EXPECT().Configure(tc.expectedConfig)
+
+					for identifier, rr := range zone.ResourceRecords {
+						if rr.Type == models.A {
+							if tc.normalizeErr {
+								mockAPlugin.EXPECT().Normalize(identifier, rr).Return(errors.New("normalize-error"))
+								// We won't call any other plugins
+								break
+							} else {
+								mockAPlugin.EXPECT().Normalize(identifier, rr)
+							}
+						} else {
+							mockCNAMEPlugin.EXPECT().Normalize(identifier, rr)
+						}
+
+					}
+
+					if tc.validateZoneErr {
+						mockAPlugin.EXPECT().ValidateZone(zoneName, zone).Return(errors.New("validate-zone-error"))
+					} else {
+						if !tc.normalizeErr {
+							// Each plugin should have validate called for each zone
+							mockAPlugin.EXPECT().ValidateZone(zoneName, zone)
+							mockCNAMEPlugin.EXPECT().ValidateZone(zoneName, zone)
+						}
+					}
+				}
+
+				return nil
+			})
 		}
-	} else {
-		t.Errorf("Error NormalizingZones: %s", err)
-	}
-}
-func TestNormalize_NilConfig(t *testing.T) {
-	dnsSetup(t)
-	defer dnsTeardown(t)
 
-	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{"nil config zone": {Config: nil}}); err != nil {
-		if err.Error() != "zone is missing config, zoneName=nil config zone" {
-			t.Errorf("Error NormalizingZones: %s", err)
+		thePlugins := mockPlugins
+		if tc.missingPluginErr {
+			thePlugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
 		}
-	} else {
-		t.Errorf("Error NormalizingZones: %s", err)
 
-	}
-}
-func TestNormalize_NoPluginForRecordType(t *testing.T) {
-	dnsSetup(t)
-	defer dnsTeardown(t)
+		if err := PluginNormalizer(thePlugins, mockMetadata).Normalize(tc.zones, tc.expectedConfig); err != nil {
+			// Determine which error we want
+			want := ""
+			if tc.absPathErr {
+				want = "abs-path-testing"
+			} else if len(tc.zones) == 0 {
+				want = "no zones found"
+			} else if tc.missingPluginErr {
+				want = "unable to normalize zone 'zone1', no plugin for resource record type 'A', identifier: 'record1'"
+			} else if tc.validateZoneErr {
+				want = "validate-zone-error"
+			} else if tc.normalizeErr {
+				want = "normalize-error"
+			}
 
-	invalidZone := &models.Zone{
-		Config: testZone.Config,
-		ResourceRecords: map[string]*models.ResourceRecord{
-			"bad type": {Type: "bogus"},
-		},
-		TTL: testZone.TTL,
-	}
-	mockFs.EXPECT().ToAbsoluteFilePath(invalidZone.Config.SerialChangeIndexDirectory).Return(invalidZone.Config.SerialChangeIndexDirectory, nil)
-
-	// Each plugin should be configured once for each zone
-	mockAPlugin.EXPECT().Configure(invalidZone.Config)
-	mockCNAMEPlugin.EXPECT().Configure(invalidZone.Config)
-
-	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(map[string]*models.Zone{"invalid zone": invalidZone}); err != nil {
-		if err.Error() != "unable to normalize zone 'invalid zone', no plugin for resource record type 'bogus', identifier: 'bad type'" {
-			t.Errorf("Error NormalizingZones: %s", err)
+			if want != "" {
+				if err.Error() != want {
+					t.Errorf("incorrect error: '%s', want '%s'", err, want)
+				}
+			} else {
+				t.Errorf("%s - unexpected error:'%s'", tc.name, err)
+			}
+		} else {
+			if tc.absPathErr || len(tc.zones) == 0 || tc.missingPluginErr {
+				t.Errorf("%s - expected an error and found none", tc.name)
+			} else {
+				for zoneName, zone := range tc.zones {
+					if diff := cmp.Diff(zone.Config, tc.expectedConfig); diff != "" {
+						t.Errorf("%s - incorrect config for zone '%s':\n%s", tc.name, zoneName, diff)
+					}
+				}
+			}
 		}
-	} else {
-		t.Errorf("Error NormalizingZones: %s", err)
-	}
-}
-func TestNormalize_NormalizeError(t *testing.T) {
-	dnsSetup(t)
-	defer dnsTeardown(t)
-
-	mockFs.EXPECT().ToAbsoluteFilePath(testZone.Config.SerialChangeIndexDirectory).Return(testZone.Config.SerialChangeIndexDirectory, nil)
-
-	// Each plugin should be configured once for each zone
-	mockAPlugin.EXPECT().Configure(testZone.Config)
-	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
-
-	mockAPlugin.EXPECT().Normalize("record1", testZone.ResourceRecords["record1"]).Return(fmt.Errorf("test normalize error"))
-
-	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(testZones); err != nil {
-		if err.Error() != "test normalize error" {
-			t.Errorf("Error NormalizingZones: %s", err)
-		}
-	} else {
-		t.Errorf("Error NormalizingZones: %s", err)
-	}
-}
-
-func TestNormalize_ValidateError(t *testing.T) {
-	dnsSetup(t)
-	defer dnsTeardown(t)
-
-	mockFs.EXPECT().ToAbsoluteFilePath(testZone.Config.SerialChangeIndexDirectory).Return(testZone.Config.SerialChangeIndexDirectory, nil)
-
-	// Each plugin should be configured once for each zone
-	mockAPlugin.EXPECT().Configure(testZone.Config)
-	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
-
-	// Each plugin should have normalize called for each zone
-	mockAPlugin.EXPECT().Normalize("record1", testZone.ResourceRecords["record1"])
-	mockCNAMEPlugin.EXPECT().Normalize("record2", testZone.ResourceRecords["record2"])
-
-	// Each plugin should have validate called for each zone, we're not sure which order they will iterate in so EXPECT for both
-	mockAPlugin.EXPECT().ValidateZone("zone 1", testZone).Return(fmt.Errorf("test validate error")).MaxTimes(1)
-	mockCNAMEPlugin.EXPECT().ValidateZone("zone 1", testZone).Return(fmt.Errorf("test validate error")).MaxTimes(1)
-
-	if err := PluginNormalizer(mockPlugins, mockMetadata).Normalize(testZones); err != nil {
-		if err.Error() != "test validate error" {
-			t.Errorf("Error NormalizingZones: %s", err)
-		}
-	} else {
-		t.Errorf("Error NormalizingZones: %s", err)
 	}
 }

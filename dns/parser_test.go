@@ -25,18 +25,15 @@ import (
 	"github.com/bcurnow/zonemgr/internal/mocks"
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
 )
 
 var (
 	mockNormalizer *mocks.MockNormalizer
-	defaultConfig  *models.Config
 )
 
 func testZoneYamlParserSetup(t *testing.T) {
 	dnsSetup(t)
 	mockNormalizer = mocks.NewMockNormalizer(mockController)
-	defaultConfig = &models.Config{}
 }
 
 func TestParse(t *testing.T) {
@@ -48,30 +45,30 @@ func TestParse(t *testing.T) {
 		inputFile string
 		err       string
 	}{
-		{0, "empty.zones.yaml", "failed to unmarshal from empty.zones.yaml: no zones found in input file"},
+		{0, "empty.zones.yaml", "no zones found in input file"},
 		{0, "only-zone-name.zones.yaml", "invalid input file only-zone-name.zones.yaml, no zone information for zone and_now_for_something_completely_unexpected"},
-		{0, "invalid.zones.yaml", "failed to unmarshal from invalid.zones.yaml: failed to parse input YAML: yaml: unmarshal errors:\n  line 21: cannot unmarshal !!str `hello!` into bool"},
+		{0, "invalid.zones.yaml", "failed to parse input YAML: yaml: unmarshal errors:\n  line 21: cannot unmarshal !!str `hello!` into bool"},
 		{1, "minimal.zones.yaml", ""},
 		{5, "multiple.zones.yaml", ""},
-		{5, "missing.zones.yaml", "failed to open input missing.zones.yaml: open missing.zones.yaml: no such file or directory"},
+		{5, "missing.zones.yaml", "failed to open 'missing.zones.yaml': open missing.zones.yaml: no such file or directory"},
 	}
 
-	mockNormalizer.EXPECT().Normalize(gomock.Any()).MaxTimes(len(testCases))
+	mockNormalizer.EXPECT().Normalize(gomock.Any(), globalConfig).MaxTimes(len(testCases))
 
 	for _, tc := range testCases {
 		zones, err := YamlZoneParser(mockNormalizer).Parse(tc.inputFile, &models.Config{})
 
 		if err != nil {
 			if tc.err == "" {
-				t.Errorf("%s, did not expect error: %s", tc.inputFile, err)
+				t.Errorf("%s, unexpected error: %s", tc.inputFile, err)
 			} else {
 				if err.Error() != tc.err {
-					t.Errorf("%s, unexpected error:%s, want %s", tc.inputFile, err, tc.err)
+					t.Errorf("%s, incorrect error: %s, want %s", tc.inputFile, err, tc.err)
 				}
 			}
 		} else {
 			if tc.err != "" {
-				t.Errorf("%s, expected error %s", tc.inputFile, tc.err)
+				t.Errorf("%s, expected error '%s', found none", tc.inputFile, tc.err)
 			}
 		}
 
@@ -79,15 +76,7 @@ func TestParse(t *testing.T) {
 			if len(zones) != tc.count {
 				t.Errorf("%s, zone count=%d, want %d", tc.inputFile, len(zones), 1)
 			}
-
-			for _, zone := range zones {
-				// Make sure the config defaulting works
-				if diff := cmp.Diff(zone.Config, defaultConfig); diff != "" {
-					t.Errorf("%s, incorrect config:\n%s", tc.inputFile, diff)
-				}
-			}
 		}
-
 	}
 }
 
@@ -95,7 +84,7 @@ func TestParse_NormalizerError(t *testing.T) {
 	testZoneYamlParserSetup(t)
 	defer dnsTeardown(t)
 
-	mockNormalizer.EXPECT().Normalize(gomock.Any()).Return(fmt.Errorf("testing normalizer error"))
+	mockNormalizer.EXPECT().Normalize(gomock.Any(), globalConfig).Return(fmt.Errorf("testing normalizer error"))
 
 	_, err := YamlZoneParser(mockNormalizer).Parse("minimal.zones.yaml", &models.Config{})
 	if err == nil {

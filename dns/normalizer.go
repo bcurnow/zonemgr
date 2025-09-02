@@ -21,7 +21,6 @@ package dns
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
@@ -29,7 +28,7 @@ import (
 )
 
 type Normalizer interface {
-	Normalize(zones map[string]*models.Zone) error
+	Normalize(zones map[string]*models.Zone, globalConfig *models.Config) error
 }
 
 type pluginNormalizer struct {
@@ -42,41 +41,29 @@ func PluginNormalizer(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, meta
 	return &pluginNormalizer{plugins: plugins, metadata: metadata}
 }
 
-func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
+func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone, globalConfig *models.Config) error {
 	hclog.L().Trace("Normalizing zones", "count", len(zones))
 	if len(zones) == 0 {
 		return fmt.Errorf("no zones found")
 	}
 
-	// Get the zone names so we can sort them and provide a stable iteration order, this will make the log output look better as well has help with testing
-	zoneNames := make([]string, 0, len(zones))
-	for k := range zones {
-		zoneNames = append(zoneNames, k)
-	}
-	sort.Strings(zoneNames)
-
-	registeredPlugins := n.plugins
-	for _, name := range zoneNames {
-		zone := zones[name]
-
+	return models.WithSortedZones(zones, func(name string, zone *models.Zone) error {
 		// Normalize the config if necessary
-		if nil == zone.Config {
-			// This shouldn't happen unless there's an accident in the code (like perhaps creating new models.Zone for a reverse lookup zone and forgetting to populate Config)
-			return fmt.Errorf("zone is missing config, zoneName=%s", name)
-		} else {
-			// Ensure that the serial change index directory is an absolute path
-			absSerialChangeIndexDirectory, err := fs.ToAbsoluteFilePath(zone.Config.SerialChangeIndexDirectory)
-			if err != nil {
-				return err
-			}
-			zone.Config.SerialChangeIndexDirectory = absSerialChangeIndexDirectory
+		if err := n.normalizeConfig(name, zone, globalConfig); err != nil {
+			return err
 		}
 
 		// Configure each of the plugins for this specific zone
-		for pluginType, plugin := range registeredPlugins {
-			pluginMetadata := n.metadata[pluginType]
-			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", pluginMetadata.Name)
-			plugin.Configure(zone.Config)
+		// We need to do multiple loops over the plugins because we need all the plugins configured
+		// Then all the normalization done
+		// Then all the zone validation
+		// If we do this in a single loop, we'd end up calling ValidateZone before all the normalization for the zone is complete
+		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.PluginMetadata) error {
+			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", metadata.Name)
+			p.Configure(zone.Config)
+			return nil
+		}); err != nil {
+			return err
 		}
 
 		if err := n.normalizeZone(name, zone); err != nil {
@@ -84,23 +71,40 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 		}
 
 		// Now perform any validations on the zone itself
-		for pluginType, plugin := range registeredPlugins {
-			pluginMetadata := n.metadata[pluginType]
-			hclog.L().Debug("Calling Validatemodels.Zone", "zoneName", name, "pluginName", pluginMetadata.Name)
-			if err := plugin.ValidateZone(name, zone); err != nil {
+		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.PluginMetadata) error {
+			hclog.L().Debug("Calling Validatemodels.Zone", "zoneName", name, "pluginName", metadata.Name)
+			if err := p.ValidateZone(name, zone); err != nil {
 				return err
 			}
+			return nil
+		}); err != nil {
+			return err
 		}
+		return nil
+	})
+}
+
+func (n *pluginNormalizer) normalizeConfig(name string, zone *models.Zone, globalConfig *models.Config) error {
+	if nil == zone.Config {
+		hclog.L().Debug("Zone missing config, setting to global config", "zoneName", name, "globalConfig", globalConfig)
+		zone.Config = globalConfig
 	}
 
+	// Ensure that the serial change index directory is an absolute path
+	hclog.L().Trace("Ensuring serial-change-index-directory is an absolute path", "serialChangeIndexDirectory", zone.Config.SerialChangeIndexDirectory)
+	absSerialChangeIndexDirectory, err := fs.ToAbsoluteFilePath(zone.Config.SerialChangeIndexDirectory)
+	if err != nil {
+		return err
+	}
+	zone.Config.SerialChangeIndexDirectory = absSerialChangeIndexDirectory
 	return nil
 }
 
 func (n *pluginNormalizer) normalizeZone(name string, zone *models.Zone) error {
 	hclog.L().Debug("Normalizing zone", "name", name)
-	for _, identifier := range zone.SortedResourceRecordKeys() {
-		rr := zone.ResourceRecords[identifier]
+	if err := zone.WithSortedResourceRecords(func(identifier string, rr *models.ResourceRecord) error {
 		hclog.L().Trace("Normalizing record", "identifier", identifier, "zoneName", name)
+		// We only call normalize on the resource record types we have plugins for, no need to loop
 		plugin := n.plugins[plugins.PluginType(rr.Type)]
 		if nil == plugin {
 			return fmt.Errorf("unable to normalize zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
@@ -110,6 +114,10 @@ func (n *pluginNormalizer) normalizeZone(name string, zone *models.Zone) error {
 		if err != nil {
 			return err
 		}
+
+		return nil
+	}); err != nil {
+		return err
 	}
 	return nil
 }
