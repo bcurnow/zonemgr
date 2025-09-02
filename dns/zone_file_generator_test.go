@@ -31,8 +31,8 @@ func TestPluginZoneFileGenerator(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
 
-	res1 := PluginZoneFileGenerator(mockPlugins)
-	res2 := PluginZoneFileGenerator(mockPlugins)
+	res1 := PluginZoneFileGenerator(mockPlugins, mockMetadata)
+	res2 := PluginZoneFileGenerator(mockPlugins, mockMetadata)
 
 	if res1 == res2 {
 		t.Errorf("Expected a new instance on each call, got same instance")
@@ -49,7 +49,7 @@ func TestGenerateZone(t *testing.T) {
 	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("record1", nil)
 	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME}).Return("record2", nil)
 
-	if err := PluginZoneFileGenerator(mockPlugins).GenerateZone("testing", testZone, "."); err != nil {
+	if err := PluginZoneFileGenerator(mockPlugins, mockMetadata).GenerateZone("testing", testZone, "."); err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
 	defer os.Remove("./testing")
@@ -59,7 +59,7 @@ func TestGenerate_NoPlugin(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
 
-	g := &pluginZoneFileGenerator{plugins: mockPlugins}
+	g := &pluginZoneFileGenerator{plugins: mockPlugins, metadata: mockMetadata}
 
 	// Insert an unknown resource record type
 	// Replace the resourceRecords
@@ -84,7 +84,7 @@ func TestGenerate_RenderError(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
 
-	g := &pluginZoneFileGenerator{plugins: mockPlugins}
+	g := &pluginZoneFileGenerator{plugins: mockPlugins, metadata: mockMetadata}
 
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
@@ -105,7 +105,7 @@ func TestGenerate_NoTTL(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
 
-	g := &pluginZoneFileGenerator{plugins: mockPlugins}
+	g := &pluginZoneFileGenerator{plugins: mockPlugins, metadata: mockMetadata}
 
 	testZone.TTL = nil
 	mockAPlugin.EXPECT().Configure(testZone.Config)
@@ -128,7 +128,7 @@ func TestGenerate_NoTTL(t *testing.T) {
 func TestGenerate_WithTTL(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
-	g := &pluginZoneFileGenerator{plugins: mockPlugins}
+	g := &pluginZoneFileGenerator{plugins: mockPlugins, metadata: mockMetadata}
 
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)

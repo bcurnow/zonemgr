@@ -23,7 +23,6 @@ import (
 	"bytes"
 	"fmt"
 	"path/filepath"
-	"sort"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
@@ -35,11 +34,12 @@ type ZoneFileGenerator interface {
 }
 type pluginZoneFileGenerator struct {
 	ZoneFileGenerator
-	plugins map[plugins.PluginType]plugins.ZoneMgrPlugin
+	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
+	metadata map[plugins.PluginType]*plugins.PluginMetadata
 }
 
-func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin) ZoneFileGenerator {
-	return &pluginZoneFileGenerator{plugins: plugins}
+func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.PluginMetadata) ZoneFileGenerator {
+	return &pluginZoneFileGenerator{plugins: plugins, metadata: metadata}
 }
 
 func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone, outputDir string) error {
@@ -60,37 +60,32 @@ func (zfg *pluginZoneFileGenerator) generate(name string, zone *models.Zone) ([]
 		content.WriteString("\n")
 	}
 
-	registeredPlugins := zfg.plugins
-
-	// Configure each of the plugins for this specific zone
-	for _, plugin := range registeredPlugins {
-		plugin.Configure(zone.Config)
+	if err := plugins.WithSortedPlugins(zfg.plugins, zfg.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.PluginMetadata) error {
+		p.Configure(zone.Config)
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
-	// We're going to sort the record by identifier to make the output deterministic
-	identifiers := make([]string, 0, len(zone.ResourceRecords))
-	for k := range zone.ResourceRecords {
-		identifiers = append(identifiers, k)
-	}
-	sort.Strings(identifiers)
-
-	for _, identifier := range identifiers {
+	if err := zone.WithSortedResourceRecords(func(identifier string, rr *models.ResourceRecord) error {
 		// We're takiing advantage of the fact that we have plugin types that match standard resource record types
 		// so we can cast directly
-		rr := zone.ResourceRecords[identifier]
-		plugin := registeredPlugins[plugins.PluginType(rr.Type)]
+		plugin := zfg.plugins[plugins.PluginType(rr.Type)]
 		if nil == plugin {
-			return nil, fmt.Errorf("unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
+			return fmt.Errorf("unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}
 		renderedRecord, err := plugin.Render(identifier, rr)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		// It is possible that the plugin determines that this resource should not be rendered, don't add to the file
 		if renderedRecord != "" {
 			content.WriteString(renderedRecord)
 			content.WriteString("\n")
 		}
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
 	return content.Bytes(), nil

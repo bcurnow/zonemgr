@@ -47,7 +47,7 @@ var (
 			}
 			inputFile = absInputFile
 
-			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins())
+			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins(), pluginManager.Metadata())
 			normalizer = dns.PluginNormalizer(pluginManager.Plugins(), pluginManager.Metadata())
 			zoneYamlParser = dns.YamlZoneParser(normalizer)
 
@@ -94,7 +94,7 @@ func generateZoneFile() error {
 		if zone.Config.GenerateReverseLookupZones {
 			hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
 			reverseLookupZones := zoneReverser.ReverseZone(name, zone)
-			if err := normalizer.Normalize(reverseLookupZones); err != nil {
+			if err := normalizer.Normalize(reverseLookupZones, globalConfig); err != nil {
 				return err
 			}
 
