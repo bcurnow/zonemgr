@@ -78,7 +78,16 @@ func (z *Zone) ResourceRecordsByType() map[ResourceRecordType]map[string]*Resour
 	return z.resourceRecordsByType
 }
 
-func (z *Zone) SortedResourceRecordKeys() []string {
+func (z *Zone) WithSortedResourceRecords(fn func(identifier string, rr *ResourceRecord) error) error {
+	for _, identifier := range z.sortedResourceRecordKeys() {
+		if err := fn(identifier, z.ResourceRecords[identifier]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (z *Zone) sortedResourceRecordKeys() []string {
 	keys := make([]string, 0, len(z.ResourceRecords))
 	for k := range z.ResourceRecords {
 		keys = append(keys, k)
