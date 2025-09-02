@@ -19,6 +19,37 @@
 
 package plugins
 
+import (
+	"errors"
+	"sort"
+)
+
 func PluginTypes(pluginTypes ...PluginType) []PluginType {
 	return pluginTypes
+}
+
+func WithSortedPlugins(p map[PluginType]ZoneMgrPlugin, pluginMetadata map[PluginType]*PluginMetadata, fn func(pluginType PluginType, p ZoneMgrPlugin, metadata *PluginMetadata) error) error {
+	for _, pluginType := range sortedPluginKeys(p) {
+		metadata, ok := pluginMetadata[pluginType]
+		if !ok {
+			return errors.New("could not find plugin metadata for plugin type:" + string(pluginType))
+		}
+		if err := fn(pluginType, p[pluginType], metadata); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func sortedPluginKeys(p map[PluginType]ZoneMgrPlugin) []PluginType {
+	keys := make([]PluginType, 0, len(p))
+	for pluginType := range p {
+		keys = append(keys, pluginType)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		return string(keys[i]) < string(keys[j])
+	})
+
+	return keys
 }
