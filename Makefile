@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 binaryName := zonemgr
-mocks := dns/normalizer.go plugin_manager/plugin_manager.go plugins/soa_values_normalizer.go plugins/validator.go plugins/zonemgr_plugin.go utils/filesystem.go utils/serial_index_manager.go
+mocks := dns/normalizer.go plugins/plugin_manager/plugin_manager.go plugins/soa_values_normalizer.go plugins/validator.go plugins/zonemgr_plugin.go utils/filesystem.go utils/serial_index_manager.go
 
 zonemgr:
 	go build -o bin/${binaryName}
@@ -19,7 +19,7 @@ run-test:
 	go test ./...
 
 run-test-with-coverage:
-	go test -cover -coverprofile=coverage.out -coverpkg github.com/bcurnow/zonemgr/cmd,github.com/bcurnow/zonemgr/dns,github.com/bcurnow/zonemgr/internal/plugins/builtin,github.com/bcurnow/zonemgr/models,github.com/bcurnow/zonemgr/plugin_manager,github.com/bcurnow/zonemgr/plugins,github.com/bcurnow/zonemgr/plugins/grpc,github.com/bcurnow/zonemgr/utils ./...
+	go test -cover -coverprofile=coverage.out -coverpkg github.com/bcurnow/zonemgr/cmd,github.com/bcurnow/zonemgr/dns,github.com/bcurnow/zonemgr/internal/plugins/builtin,github.com/bcurnow/zonemgr/models,github.com/bcurnow/zonemgr/plugins,github.com/bcurnow/zonemgr/plugins/plugin_manager,github.com/bcurnow/zonemgr/plugins/grpc,github.com/bcurnow/zonemgr/utils ./...
 
 html-coverage:
 	go tool cover -html=coverage.out

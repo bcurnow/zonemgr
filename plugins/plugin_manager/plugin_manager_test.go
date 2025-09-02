@@ -24,6 +24,7 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -40,6 +41,7 @@ var (
 	pluginDir      string
 	mockController *gomock.Controller
 	mockFs         *mocks.MockFileSystem
+	exampleDir     = "../../examples"
 )
 
 func pluginManagerSetup(t *testing.T) {
@@ -186,10 +188,10 @@ func TestLoadExternalPlugins(t *testing.T) {
 		realFs                bool
 		wantedPluginCount     int
 	}{
-		{pluginDir: "../examples/bin/comment-override", realFs: true, wantedPluginCount: 1},
+		{pluginDir: filepath.Join(exampleDir, "bin", "comment-override"), realFs: true, wantedPluginCount: 1},
 		{pluginDir: "walk-executable-error", walkExecutablesErr: true},
 		{pluginDir: "plugin-instance-error", walkExecutablesResult: map[string]string{"does-not-exist": "does-not-exist"}, wantErr: "exec: \"does-not-exist\": executable file not found in $PATH"},
-		{pluginDir: "../examples/bin/not-implemented", realFs: true, wantErr: "rpc error: code = Unknown desc = testing Plugin - Not Implemented"},
+		{pluginDir: filepath.Join(exampleDir, "bin", "not-implemented"), realFs: true, wantErr: "rpc error: code = Unknown desc = testing Plugin - Not Implemented"},
 	}
 	pluginManagerSetup(t)
 	defer pluginManagerTearDown(t)
@@ -283,7 +285,7 @@ func TestPluginInstance_DispenseError(t *testing.T) {
 			"does-not-exist": &plugins.GRPCPlugin{},
 		},
 		AllowedProtocols: []goplugin.Protocol{goplugin.ProtocolGRPC}, // We only support plugins of type grpc
-		Cmd:              exec.Command("../examples/bin/comment-override/zonemgr-a-record-comment-override-plugin"),
+		Cmd:              exec.Command(filepath.Join(exampleDir, "bin", "comment-override/zonemgr-a-record-comment-override-plugin")),
 	}
 	client := goplugin.NewClient(clientConfig)
 

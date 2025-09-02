@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bcurnow/zonemgr/plugin_manager"
+	"github.com/bcurnow/zonemgr/plugins/plugin_manager"
 	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
