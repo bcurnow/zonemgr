@@ -143,7 +143,7 @@ func TestSortedResourceRecordKeys(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		actual := tc.zone.SortedResourceRecordKeys()
+		actual := tc.zone.sortedResourceRecordKeys()
 
 		if cmp.Diff(actual, tc.want) != "" {
 			t.Errorf("incorrect results:\n%s", cmp.Diff(actual, tc.want))
