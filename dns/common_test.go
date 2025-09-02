@@ -37,6 +37,7 @@ var (
 	mockFs          *mocks.MockFileSystem
 	testZone        *models.Zone
 	testZones       map[string]*models.Zone
+	globalConfig    = &models.Config{SerialChangeIndexDirectory: "global-serial-change-index-directory"}
 )
 
 func dnsSetup(t *testing.T) {
@@ -71,8 +72,10 @@ func dnsSetup(t *testing.T) {
 		},
 	}
 	testZones = make(map[string]*models.Zone)
-	testZones["zone 1"] = testZone
-	testZones["zone 2"] = testZone
+	testZones["zone1"] = testZone
+	testZones["zone2"] = testZone
+
+	globalConfig = &models.Config{}
 }
 
 func dnsTeardown(_ *testing.T) {
