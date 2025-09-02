@@ -8,6 +8,7 @@ import (
 	os "os"
 	reflect "reflect"
 
+	flock "github.com/gofrs/flock"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -62,6 +63,21 @@ func (mr *MockFileSystemMockRecorder) Exists(path interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockFileSystem)(nil).Exists), path)
 }
 
+// Flock mocks base method.
+func (m *MockFileSystem) Flock(path string) (*flock.Flock, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Flock", path)
+	ret0, _ := ret[0].(*flock.Flock)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Flock indicates an expected call of Flock.
+func (mr *MockFileSystemMockRecorder) Flock(path interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Flock", reflect.TypeOf((*MockFileSystem)(nil).Flock), path)
+}
+
 // HomeDir mocks base method.
 func (m *MockFileSystem) HomeDir() string {
 	m.ctrl.T.Helper()
@@ -74,6 +90,20 @@ func (m *MockFileSystem) HomeDir() string {
 func (mr *MockFileSystemMockRecorder) HomeDir() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HomeDir", reflect.TypeOf((*MockFileSystem)(nil).HomeDir))
+}
+
+// MkdirAll mocks base method.
+func (m *MockFileSystem) MkdirAll(path string, mode os.FileMode) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MkdirAll", path, mode)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MkdirAll indicates an expected call of MkdirAll.
+func (mr *MockFileSystemMockRecorder) MkdirAll(path, mode interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MkdirAll", reflect.TypeOf((*MockFileSystem)(nil).MkdirAll), path, mode)
 }
 
 // ToAbsoluteFilePath mocks base method.
