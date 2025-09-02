@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/spf13/cobra"
@@ -31,15 +30,6 @@ var (
 		Use:   "plugins",
 		Short: "Prints information about the current plugins",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			registeredPlugins := pluginManager.Plugins()
-
-			// Get all the plugin types so we sort and print the plugins in order
-			pluginTypes := make([]plugins.PluginType, 0, len(registeredPlugins))
-			for pluginType := range registeredPlugins {
-				pluginTypes = append(pluginTypes, pluginType)
-			}
-			slices.Sort(pluginTypes)
-
 			formatString := "%-6s %-60s %-20s %s\n"
 			// Turn on underline mode
 			fmt.Println("\033[4m")
@@ -47,16 +37,17 @@ var (
 			// Turn off underline mode
 			fmt.Print("\033[24m")
 
-			for _, pluginType := range pluginTypes {
-				plugin := registeredPlugins[pluginType]
-				pluginMetadata := pluginManager.Metadata()[pluginType]
-
-				pluginVersion, err := plugin.PluginVersion()
+			if err := plugins.WithSortedPlugins(pluginManager.Plugins(), pluginManager.Metadata(), func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.PluginMetadata) error {
+				pluginVersion, err := p.PluginVersion()
 				if err != nil {
 					return err
 				}
-				fmt.Printf(formatString, pluginType, pluginMetadata.Name, pluginVersion, pluginMetadata.Command)
+				fmt.Printf(formatString, pluginType, metadata.Name, pluginVersion, metadata.Command)
+				return nil
+			}); err != nil {
+				return err
 			}
+
 			return nil
 		},
 	}
