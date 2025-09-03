@@ -19,16 +19,27 @@
 
 package models
 
-import "strconv"
+import "testing"
 
-type SerialIndex struct {
-	Base        *uint32 `yaml:"base_serial_number"`
-	ChangeIndex *uint32 `yaml:"change_index"`
-}
-
-func (si *SerialIndex) Serial() string {
-	if nil == si.Base || nil == si.ChangeIndex {
-		return ""
+func TestSerial(t *testing.T) {
+	testCases := []struct {
+		base        *uint32
+		changeIndex *uint32
+		want        string
+	}{
+		{want: ""},
+		{base: toUint32Ptr(1), want: ""},
+		{changeIndex: toUint32Ptr(1), want: ""},
+		{base: toUint32Ptr(0), changeIndex: toUint32Ptr(0), want: "00"},
+		{base: toUint32Ptr(1), changeIndex: toUint32Ptr(1), want: "11"},
+		{base: toUint32Ptr(20250903), changeIndex: toUint32Ptr(1), want: "202509031"},
 	}
-	return strconv.Itoa(int(*si.Base)) + strconv.Itoa(int(*si.ChangeIndex))
+
+	for _, tc := range testCases {
+		si := &SerialIndex{Base: tc.base, ChangeIndex: tc.changeIndex}
+
+		if si.Serial() != tc.want {
+			t.Errorf("incorrect serial: '%s', want: '%s'", si.Serial(), tc.want)
+		}
+	}
 }
