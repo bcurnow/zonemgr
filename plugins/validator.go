@@ -149,7 +149,6 @@ func (v *validator) FormatEmail(identifier string, email string, rrType models.R
 		if err != nil {
 			return "", fmt.Errorf("invalid %s record, invalid email address: '%s', identifier: '%s'", rrType, email, identifier)
 		}
-
 		// Get the username portion of the email (<username>@<domain>), keep in mind that valid usernames can continue '@'
 		emailSeperator := strings.LastIndex(address.Address, "@")
 		username := email[:emailSeperator]
@@ -161,6 +160,11 @@ func (v *validator) FormatEmail(identifier string, email string, rrType models.R
 		// Recombinee the user and domain with a dot (.) to conform to RFC1035
 		email = username + "." + domain
 		// Replace the @ with a dot to follow RFC
+	} else {
+		// If they didn't put in a valid email, it must already be a fully qualifed name
+		if err := v.EnsureFullyQualified(identifier, email, rrType); err != nil {
+			return "", err
+		}
 	}
 
 	// At this point, assume that email address is a properly formatted RFC1035 string, there's only so much we can do to parse at this point

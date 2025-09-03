@@ -142,23 +142,27 @@ func TestFormatEmail(t *testing.T) {
 	}{
 		{email: "name@example.com", want: "name.example.com."},
 		{email: "name.example.com.", want: "name.example.com."},
-		{email: "name.example.com", want: "name.example.com."},
+		{email: "name.example.com", want: "name.example.com.", err: "invalid A record, must end with a trailing dot: 'name.example.com', identifier: 'testing'"},
 		{email: "bogus@example.com@example.com", err: "invalid A record, invalid email address: 'bogus@example.com@example.com', identifier: 'testing'"},
+		{email: ".bogus@example.com", err: "invalid A record, invalid email address: '.bogus@example.com', identifier: 'testing'"},
 	}
 
 	for _, tc := range testCases {
 		formattedEmail, err := validations.FormatEmail("testing", tc.email, models.A)
 		if err != nil {
 			if tc.err == "" {
-				t.Errorf("unexpected error: %s", err)
+				t.Errorf("%s - unexpected error: %s", tc.email, err)
 			} else {
 				if err.Error() != tc.err {
-					t.Errorf("incorrect error: %s, want %s", err, tc.err)
+					t.Errorf("%s - incorrect error: %s, want %s", tc.email, err, tc.err)
 				}
 			}
 		} else {
+			if tc.err != "" {
+				t.Errorf("%s - expected an error, found none", tc.email)
+			}
 			if formattedEmail != tc.want {
-				t.Errorf("incorrect email: %s, want %s", formattedEmail, tc.want)
+				t.Errorf("%s - incorrect email: %s, want %s", tc.email, formattedEmail, tc.want)
 			}
 		}
 	}
