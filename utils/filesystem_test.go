@@ -34,11 +34,7 @@ import (
 type infoErrorDirEntry struct {
 }
 
-var (
-	_        os.DirEntry = &infoErrorDirEntry{}
-	testDir  string
-	testFile *os.File
-)
+var _ os.DirEntry = &infoErrorDirEntry{}
 
 func (d *infoErrorDirEntry) Name() string {
 	return "testing"
@@ -56,27 +52,8 @@ func (d *infoErrorDirEntry) Info() (fs.FileInfo, error) {
 	return nil, errors.New("dinfoErr")
 }
 
-func createTemp(t *testing.T) {
-	// Create a temp directory
-	dir, err := os.MkdirTemp("", t.Name())
-	if err != nil {
-		t.Errorf("error creating temp directory name: %s", err)
-	}
-	testDir = dir
-
-	file, err := os.CreateTemp(testDir, t.Name())
-	if err != nil {
-		t.Errorf("error creating temp file in '%s': %s", testDir, err)
-	}
-	testFile = file
-}
-
-func fsTeardown(_ *testing.T) {
-	defer testFile.Close()
-	defer os.RemoveAll(testDir)
-}
-
 func TestCreateFile(t *testing.T) {
+	defer tempTeardown(t)
 	testCases := []struct {
 		createErr  bool
 		chmodErr   bool
@@ -92,6 +69,7 @@ func TestCreateFile(t *testing.T) {
 
 	for _, tc := range testCases {
 		createTemp(t)
+		defer tempTeardown(t)
 		if tc.createErr {
 			create = func(name string) (*os.File, error) {
 				if name != testFile.Name() {
@@ -185,6 +163,7 @@ func TestExists(t *testing.T) {
 }
 
 func TestFlock(t *testing.T) {
+	defer tempTeardown(t)
 	testCases := []struct {
 		tryErr      bool
 		isNotLocked bool
@@ -196,6 +175,8 @@ func TestFlock(t *testing.T) {
 
 	for _, tc := range testCases {
 		createTemp(t)
+		defer tempTeardown(t)
+
 		fileLock := flock.New(testFile.Name())
 		defer fileLock.Close()
 		if tc.tryErr {
@@ -309,7 +290,7 @@ func TestToAbsoluteFilePath(t *testing.T) {
 }
 
 func TestWalkExecutables(t *testing.T) {
-	defer fsTeardown(t)
+	defer tempTeardown(t)
 	testCases := []struct {
 		notExist       bool
 		walkErr        bool
@@ -327,6 +308,8 @@ func TestWalkExecutables(t *testing.T) {
 
 	for _, tc := range testCases {
 		createTemp(t)
+		defer tempTeardown(t)
+
 		// We've now got a directory with a single file (that is not executable) in it
 		// Let's setup some other cases
 
