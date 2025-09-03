@@ -44,7 +44,7 @@ func (svn *SOAValuesNormalizer) Normalize(identifier string, rr *models.Resource
 	numValues := len(rr.Values)
 
 	if numValues != 6 && numValues != 7 {
-		return fmt.Errorf("incorrect number of values for the SOA record, expected 6 (no serial) or 7, found %d", numValues)
+		return fmt.Errorf("incorrect number of values for the SOA record, expected 6 (no serial) or 7, found %d, identifier: '%s', name: '%s'", numValues, identifier, rr.Name)
 	}
 
 	if generateSerial && numValues != 6 {
@@ -78,21 +78,15 @@ func (svn *SOAValuesNormalizer) Normalize(identifier string, rr *models.Resource
 
 	rr.Values[1].Value = email
 
-	//Make sure none of the other values are < 0
-	if err := validations.EnsurePositive(identifier, rr.Values[3].Value, "REFRESH", rr.Type); err != nil {
-		return err
-	}
-
-	if err := validations.EnsurePositive(identifier, rr.Values[4].Value, "RETRY", rr.Type); err != nil {
-		return err
-	}
-
-	if err := validations.EnsurePositive(identifier, rr.Values[5].Value, "EXPIRE", rr.Type); err != nil {
-		return err
-	}
-
-	if err := validations.EnsurePositive(identifier, rr.Values[6].Value, "NCACHE", rr.Type); err != nil {
-		return err
+	for name, value := range map[string]string{
+		"REFRESH": rr.Values[3].Value,
+		"RETRY":   rr.Values[4].Value,
+		"EXPIRE":  rr.Values[5].Value,
+		"NCACHE":  rr.Values[6].Value,
+	} {
+		if err := validations.EnsurePositive(identifier, value, name, rr.Type); err != nil {
+			return err
+		}
 	}
 
 	return nil
