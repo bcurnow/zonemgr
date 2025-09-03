@@ -31,7 +31,7 @@ import (
 var (
 	_                   plugins.ZoneMgrPlugin = &BuiltinPluginSOA{}
 	serialIndexManager  serial.SerialManager
-	soaValuesNormalizer plugins.SOAValuesNormalizer
+	soaValuesNormalizer plugins.ValuesNormalizer
 )
 
 type BuiltinPluginSOA struct {
@@ -50,7 +50,7 @@ func (p *BuiltinPluginSOA) PluginTypes() ([]plugins.PluginType, error) {
 func (p *BuiltinPluginSOA) Configure(config *models.Config) error {
 	p.config = config
 	serialIndexManager = serial.FileSerialManager(p.config.SerialChangeIndexDirectory)
-	soaValuesNormalizer = plugins.SVN()
+	soaValuesNormalizer = &plugins.SOAValuesNormalizer{}
 	return nil
 }
 

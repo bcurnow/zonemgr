@@ -28,23 +28,19 @@ import (
 
 const generatedSerialNumberComment = "Zonemgr generated serial number"
 
-type SOAValuesNormalizer interface {
+type ValuesNormalizer interface {
 	// Will take a SOA record and normalize the values
 	// generateSerial indicates if we should be generating the serial number
 	// serial is the next serial number to use, will be "" if generateSerial is false
 	Normalize(identifer string, rr *models.ResourceRecord, validations Validator, generateSerial bool, serial string) error
 }
 
-var _ SOAValuesNormalizer = &soaValuesNormalizer{}
+var _ ValuesNormalizer = &SOAValuesNormalizer{}
 
-func SVN() SOAValuesNormalizer {
-	return &soaValuesNormalizer{}
+type SOAValuesNormalizer struct {
 }
 
-type soaValuesNormalizer struct {
-}
-
-func (svn *soaValuesNormalizer) Normalize(identifier string, rr *models.ResourceRecord, validations Validator, generateSerial bool, serial string) error {
+func (svn *SOAValuesNormalizer) Normalize(identifier string, rr *models.ResourceRecord, validations Validator, generateSerial bool, serial string) error {
 	numValues := len(rr.Values)
 
 	if numValues != 6 && numValues != 7 {
@@ -102,7 +98,7 @@ func (svn *soaValuesNormalizer) Normalize(identifier string, rr *models.Resource
 	return nil
 }
 
-func (svn *soaValuesNormalizer) insertSerial(rr *models.ResourceRecord, serial string) {
+func (svn *SOAValuesNormalizer) insertSerial(rr *models.ResourceRecord, serial string) {
 	// We don't have a serial number so use the generated one, we'll need to rearrange the values
 	// serial number should be at position two, create a new array with seven elements
 	withSerial := make([]*models.ResourceRecordValue, 7)
