@@ -46,7 +46,7 @@ var (
 	mockController          *gomock.Controller
 	mockValidator           *mocks.MockValidator
 	mockSerialIndexManager  *mocks.MockSerialManager
-	mockSoaValuesNormalizer *mocks.MockSOAValuesNormalizer
+	mockSoaValuesNormalizer *mocks.MockValuesNormalizer
 	testingError            error
 )
 
@@ -56,7 +56,7 @@ func setup(t *testing.T) {
 	validations = mockValidator
 	mockSerialIndexManager = mocks.NewMockSerialManager(mockController)
 	serialIndexManager = mockSerialIndexManager
-	mockSoaValuesNormalizer = mocks.NewMockSOAValuesNormalizer(mockController)
+	mockSoaValuesNormalizer = mocks.NewMockValuesNormalizer(mockController)
 	soaValuesNormalizer = mockSoaValuesNormalizer
 	testingError = errors.New("testing error")
 }

@@ -12,31 +12,31 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockSOAValuesNormalizer is a mock of SOAValuesNormalizer interface.
-type MockSOAValuesNormalizer struct {
+// MockValuesNormalizer is a mock of ValuesNormalizer interface.
+type MockValuesNormalizer struct {
 	ctrl     *gomock.Controller
-	recorder *MockSOAValuesNormalizerMockRecorder
+	recorder *MockValuesNormalizerMockRecorder
 }
 
-// MockSOAValuesNormalizerMockRecorder is the mock recorder for MockSOAValuesNormalizer.
-type MockSOAValuesNormalizerMockRecorder struct {
-	mock *MockSOAValuesNormalizer
+// MockValuesNormalizerMockRecorder is the mock recorder for MockValuesNormalizer.
+type MockValuesNormalizerMockRecorder struct {
+	mock *MockValuesNormalizer
 }
 
-// NewMockSOAValuesNormalizer creates a new mock instance.
-func NewMockSOAValuesNormalizer(ctrl *gomock.Controller) *MockSOAValuesNormalizer {
-	mock := &MockSOAValuesNormalizer{ctrl: ctrl}
-	mock.recorder = &MockSOAValuesNormalizerMockRecorder{mock}
+// NewMockValuesNormalizer creates a new mock instance.
+func NewMockValuesNormalizer(ctrl *gomock.Controller) *MockValuesNormalizer {
+	mock := &MockValuesNormalizer{ctrl: ctrl}
+	mock.recorder = &MockValuesNormalizerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSOAValuesNormalizer) EXPECT() *MockSOAValuesNormalizerMockRecorder {
+func (m *MockValuesNormalizer) EXPECT() *MockValuesNormalizerMockRecorder {
 	return m.recorder
 }
 
 // Normalize mocks base method.
-func (m *MockSOAValuesNormalizer) Normalize(identifer string, rr *models.ResourceRecord, validations plugins.Validator, generateSerial bool, serial string) error {
+func (m *MockValuesNormalizer) Normalize(identifer string, rr *models.ResourceRecord, validations plugins.Validator, generateSerial bool, serial string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Normalize", identifer, rr, validations, generateSerial, serial)
 	ret0, _ := ret[0].(error)
@@ -44,7 +44,7 @@ func (m *MockSOAValuesNormalizer) Normalize(identifer string, rr *models.Resourc
 }
 
 // Normalize indicates an expected call of Normalize.
-func (mr *MockSOAValuesNormalizerMockRecorder) Normalize(identifer, rr, validations, generateSerial, serial interface{}) *gomock.Call {
+func (mr *MockValuesNormalizerMockRecorder) Normalize(identifer, rr, validations, generateSerial, serial interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Normalize", reflect.TypeOf((*MockSOAValuesNormalizer)(nil).Normalize), identifer, rr, validations, generateSerial, serial)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Normalize", reflect.TypeOf((*MockValuesNormalizer)(nil).Normalize), identifer, rr, validations, generateSerial, serial)
 }
