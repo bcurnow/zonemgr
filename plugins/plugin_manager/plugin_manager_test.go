@@ -137,14 +137,14 @@ func TestMetadata(t *testing.T) {
 }
 
 func TestLoadPlugins(t *testing.T) {
+	pluginManagerSetup(t)
+	defer pluginManagerTearDown(t)
 	testCases := []struct {
 		walkExecutablesErr bool
 	}{
 		{walkExecutablesErr: true},
 		{walkExecutablesErr: false},
 	}
-	pluginManagerSetup(t)
-	defer pluginManagerTearDown(t)
 
 	for _, tc := range testCases {
 		call := mockFs.EXPECT().WalkExecutables(t.Name(), false)
@@ -180,6 +180,8 @@ func TestLoadPlugins(t *testing.T) {
 }
 
 func TestLoadExternalPlugins(t *testing.T) {
+	pluginManagerSetup(t)
+	defer pluginManagerTearDown(t)
 	testCases := []struct {
 		pluginDir             string
 		walkExecutablesErr    bool
@@ -193,8 +195,6 @@ func TestLoadExternalPlugins(t *testing.T) {
 		{pluginDir: "plugin-instance-error", walkExecutablesResult: map[string]string{"does-not-exist": "does-not-exist"}, wantErr: "exec: \"does-not-exist\": executable file not found in $PATH"},
 		{pluginDir: filepath.Join(exampleDir, "bin", "not-implemented"), realFs: true, wantErr: "rpc error: code = Unknown desc = testing Plugin - Not Implemented"},
 	}
-	pluginManagerSetup(t)
-	defer pluginManagerTearDown(t)
 
 	for _, tc := range testCases {
 		if tc.realFs {
