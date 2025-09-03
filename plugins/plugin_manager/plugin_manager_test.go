@@ -28,7 +28,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bcurnow/zonemgr/internal/mocks"
 	"github.com/bcurnow/zonemgr/internal/plugins/builtin"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
@@ -40,13 +39,13 @@ import (
 var (
 	pluginDir      string
 	mockController *gomock.Controller
-	mockFs         *mocks.MockFileSystemOperations
+	mockFs         *utils.MockFileSystemOperations
 	exampleDir     = "../../examples"
 )
 
 func pluginManagerSetup(t *testing.T) {
 	mockController = gomock.NewController(t)
-	mockFs = mocks.NewMockFileSystemOperations(mockController)
+	mockFs = utils.NewMockFileSystemOperations(mockController)
 	fs = mockFs
 
 	// Make sure that the metadata and plugins maps are empty before we start

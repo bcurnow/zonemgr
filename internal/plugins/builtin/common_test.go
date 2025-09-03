@@ -23,9 +23,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/bcurnow/zonemgr/internal/mocks"
 	"github.com/golang/mock/gomock"
 
+	"github.com/bcurnow/zonemgr/dns/serial"
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
 )
@@ -44,19 +44,19 @@ type testCase struct {
 
 var (
 	mockController          *gomock.Controller
-	mockValidator           *mocks.MockValidator
-	mockSerialIndexManager  *mocks.MockSerialManager
-	mockSoaValuesNormalizer *mocks.MockValuesNormalizer
+	mockValidator           *plugins.MockValidator
+	mockSerialIndexManager  *serial.MockSerialManager
+	mockSoaValuesNormalizer *plugins.MockValuesNormalizer
 	testingError            error
 )
 
 func setup(t *testing.T) {
 	mockController = gomock.NewController(t)
-	mockValidator = mocks.NewMockValidator(mockController)
+	mockValidator = plugins.NewMockValidator(mockController)
 	validations = mockValidator
-	mockSerialIndexManager = mocks.NewMockSerialManager(mockController)
+	mockSerialIndexManager = serial.NewMockSerialManager(mockController)
 	serialIndexManager = mockSerialIndexManager
-	mockSoaValuesNormalizer = mocks.NewMockValuesNormalizer(mockController)
+	mockSoaValuesNormalizer = plugins.NewMockValuesNormalizer(mockController)
 	soaValuesNormalizer = mockSoaValuesNormalizer
 	testingError = errors.New("testing error")
 }

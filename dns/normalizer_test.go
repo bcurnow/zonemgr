@@ -63,11 +63,15 @@ func TestNormalize(t *testing.T) {
 				// We need to adjust the number of zones we'll iterate over because we won't get past the first one
 				var firstZoneName string
 				var firstZone *models.Zone
-				for k, v := range tc.zones {
-					firstZoneName = k
-					firstZone = v
-					break
-				}
+				first := true
+				models.WithSortedZones(tc.zones, func(name string, zone *models.Zone) error {
+					if first {
+						firstZoneName = name
+						firstZone = zone
+						first = false
+					}
+					return nil
+				})
 				iterationZones = map[string]*models.Zone{firstZoneName: firstZone}
 			}
 

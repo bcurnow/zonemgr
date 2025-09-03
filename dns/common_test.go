@@ -22,19 +22,19 @@ package dns
 import (
 	"testing"
 
-	"github.com/bcurnow/zonemgr/internal/mocks"
 	models "github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/golang/mock/gomock"
 )
 
 var (
 	mockController  *gomock.Controller
-	mockAPlugin     *mocks.MockZoneMgrPlugin
-	mockCNAMEPlugin *mocks.MockZoneMgrPlugin
+	mockAPlugin     *plugins.MockZoneMgrPlugin
+	mockCNAMEPlugin *plugins.MockZoneMgrPlugin
 	mockPlugins     map[plugins.PluginType]plugins.ZoneMgrPlugin
 	mockMetadata    map[plugins.PluginType]*plugins.Metadata
-	mockFs          *mocks.MockFileSystemOperations
+	mockFs          *utils.MockFileSystemOperations
 	testZone        *models.Zone
 	testZones       map[string]*models.Zone
 	globalConfig    = &models.Config{SerialChangeIndexDirectory: "global-serial-change-index-directory"}
@@ -42,8 +42,8 @@ var (
 
 func dnsSetup(t *testing.T) {
 	mockController = gomock.NewController(t)
-	mockAPlugin = mocks.NewMockZoneMgrPlugin(mockController)
-	mockCNAMEPlugin = mocks.NewMockZoneMgrPlugin(mockController)
+	mockAPlugin = plugins.NewMockZoneMgrPlugin(mockController)
+	mockCNAMEPlugin = plugins.NewMockZoneMgrPlugin(mockController)
 
 	mockPlugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
 	mockPlugins[plugins.A] = mockAPlugin
@@ -53,7 +53,7 @@ func dnsSetup(t *testing.T) {
 	mockMetadata[plugins.A] = &plugins.Metadata{Name: string(plugins.A), Command: "none", BuiltIn: true}
 	mockMetadata[plugins.CNAME] = &plugins.Metadata{Name: string(plugins.CNAME), Command: "none", BuiltIn: true}
 
-	mockFs = mocks.NewMockFileSystemOperations(mockController)
+	mockFs = utils.NewMockFileSystemOperations(mockController)
 	fs = mockFs
 
 	testZone = &models.Zone{

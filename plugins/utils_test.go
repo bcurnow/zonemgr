@@ -20,7 +20,10 @@
 package plugins
 
 import (
+	"errors"
 	"testing"
+
+	"github.com/golang/mock/gomock"
 )
 
 func TestPluginTypes(t *testing.T) {
@@ -38,5 +41,68 @@ func TestPluginTypes(t *testing.T) {
 	pluginTypes = PluginTypes(A, CNAME, NS, PTR, SOA)
 	if len(pluginTypes) != 5 {
 		t.Errorf("incorrect number of plugin types: %d, want 5", len(pluginTypes))
+	}
+}
+
+func TestWithSortedPlugins(t *testing.T) {
+	testCases := []struct {
+		missingMetadata bool
+		functionErr     bool
+	}{
+		{},
+		{missingMetadata: true},
+		{functionErr: true},
+	}
+
+	mockController := gomock.NewController(t)
+	defer mockController.Finish()
+	mockZoneMgrPlugin := NewMockZoneMgrPlugin(mockController)
+	mockZoneMgrPluginMetadata := &Metadata{Name: "mock", Command: "testing", BuiltIn: false}
+
+	for _, tc := range testCases {
+		mockPlugins := make(map[PluginType]ZoneMgrPlugin)
+		mockPlugins[A] = mockZoneMgrPlugin
+		mockPlugins[CNAME] = mockZoneMgrPlugin
+		mockMetadata := make(map[PluginType]*Metadata)
+		mockMetadata[A] = mockZoneMgrPluginMetadata
+		mockMetadata[CNAME] = mockZoneMgrPluginMetadata
+
+		first := true
+		testFn := func(pluginType PluginType, p ZoneMgrPlugin, metadata *Metadata) error {
+			if first {
+				first = false
+				if pluginType != A {
+					t.Errorf("incorrect first plugin type: '%s', want: '%s'", pluginType, A)
+				}
+			}
+			return nil
+		}
+
+		if tc.functionErr {
+			testFn = func(pluginType PluginType, p ZoneMgrPlugin, metadata *Metadata) error {
+				return errors.New("functionErr")
+			}
+		}
+
+		if tc.missingMetadata {
+			mockMetadata = make(map[PluginType]*Metadata)
+		}
+
+		if err := WithSortedPlugins(mockPlugins, mockMetadata, testFn); err != nil {
+			want := ""
+			if tc.functionErr {
+				want = "functionErr"
+			} else if tc.missingMetadata {
+				want = "could not find plugin metadata for plugin type: A"
+			}
+
+			if err.Error() != want {
+				t.Errorf("incorrect error: '%s', want: '%s'", err, want)
+			}
+		} else {
+			if tc.functionErr || tc.missingMetadata {
+				t.Error("expected an error, found none")
+			}
+		}
 	}
 }
