@@ -59,7 +59,7 @@ func TestNormalize(t *testing.T) {
 		// If we don't have any zones then we won't make any calls
 		if len(tc.zones) != 0 {
 			iterationZones := tc.zones
-			if tc.absPathErr || tc.normalizeErr || tc.validateZoneErr || tc.missingPluginErr || tc.missingPluginMetadataErr {
+			if len(iterationZones) > 1 && (tc.absPathErr || tc.normalizeErr || tc.validateZoneErr || tc.missingPluginErr || tc.missingPluginMetadataErr) {
 				// We need to adjust the number of zones we'll iterate over because we won't get past the first one
 				var firstZoneName string
 				var firstZone *models.Zone
@@ -86,12 +86,12 @@ func TestNormalize(t *testing.T) {
 					mockAPlugin.EXPECT().Configure(tc.expectedConfig)
 					mockCNAMEPlugin.EXPECT().Configure(tc.expectedConfig)
 
-					for identifier, rr := range zone.ResourceRecords {
+					zone.WithSortedResourceRecords(func(identifier string, rr *models.ResourceRecord) error {
 						if rr.Type == models.A {
 							if tc.normalizeErr {
 								mockAPlugin.EXPECT().Normalize(identifier, rr).Return(errors.New("normalize-error"))
 								// We won't call any other plugins
-								break
+								return nil
 							} else {
 								mockAPlugin.EXPECT().Normalize(identifier, rr)
 							}
@@ -100,8 +100,8 @@ func TestNormalize(t *testing.T) {
 								mockCNAMEPlugin.EXPECT().Normalize(identifier, rr)
 							}
 						}
-
-					}
+						return nil
+					})
 
 					if tc.validateZoneErr {
 						mockAPlugin.EXPECT().ValidateZone(zoneName, zone).Return(errors.New("validate-zone-error"))
