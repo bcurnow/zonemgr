@@ -44,7 +44,7 @@ func TestGenerateZone(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
 	// We want to use the actual implementation for this test
-	fs = utils.FS()
+	fs = &utils.FileSystem{}
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
 	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("record1", nil)

@@ -22,6 +22,7 @@ package plugin_manager
 import (
 	"maps"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/bcurnow/zonemgr/internal/plugins/builtin"
 	"github.com/bcurnow/zonemgr/plugins"
@@ -43,8 +44,8 @@ type pluginManager struct {
 }
 
 var (
-	instance = &pluginManager{plugins: make(map[plugins.PluginType]plugins.ZoneMgrPlugin), metadata: make(map[plugins.PluginType]*plugins.Metadata)}
-	fs       = utils.FS()
+	instance                            = &pluginManager{plugins: make(map[plugins.PluginType]plugins.ZoneMgrPlugin), metadata: make(map[plugins.PluginType]*plugins.Metadata)}
+	fs       utils.FileSystemOperations = &utils.FileSystem{}
 )
 
 func Manager() PluginManager {
@@ -81,7 +82,8 @@ func (pm *pluginManager) loadExternalPlugins(pluginDir string) error {
 
 	hclog.L().Trace("Found executables", "pluginDir", pluginDir, "executableCount", len(executables))
 
-	for pluginName, pluginCmd := range executables {
+	for pluginPath, pluginCmd := range executables {
+		pluginName := filepath.Base(pluginPath)
 		client := pm.buildClient(pluginName, pluginCmd)
 		zonemgrPlugin, err := pm.pluginInstance(pluginName, client)
 		if err != nil {

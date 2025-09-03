@@ -21,4 +21,4 @@ package dns
 
 import "github.com/bcurnow/zonemgr/utils"
 
-var fs = utils.FS()
+var fs utils.FileSystemOperations = &utils.FileSystem{}

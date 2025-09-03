@@ -20,13 +20,11 @@
 package utils
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/gofrs/flock"
 	"github.com/hashicorp/go-hclog"
@@ -38,19 +36,22 @@ import (
 var (
 	// Store methods from the filepath and os packages as variables
 	// This will allow us to override these methods when we are testing
-	abs      = filepath.Abs
-	chmod    = os.Chmod
-	create   = os.Create
-	homeDir  string
-	mkdirAll = os.MkdirAll
-	stat     = os.Stat
-	walkDir  = filepath.WalkDir
+	abs         = filepath.Abs
+	chmod       = os.Chmod
+	create      = os.Create
+	getWd       = os.Getwd
+	homeDir     string
+	mkdirAll    = os.MkdirAll
+	newFlock    = flock.New
+	stat        = os.Stat
+	userHomeDir = os.UserHomeDir
+	walkDir     = filepath.WalkDir
 
 	// Make sure we implement the interface
-	_ FileSystem = &fileSystem{}
+	_ FileSystemOperations = &FileSystem{}
 )
 
-type FileSystem interface {
+type FileSystemOperations interface {
 	// Creates the path specified, sets the mode and calls the contentFn to generate the file content
 	CreateFile(path string, mode os.FileMode, contentFn func() ([]byte, error)) error
 	// Returns true if the path exists, false otherwise
@@ -71,14 +72,10 @@ type FileSystem interface {
 	WalkExecutables(root string, includeSubDirs bool) (map[string]string, error)
 }
 
-type fileSystem struct {
+type FileSystem struct {
 }
 
-func FS() FileSystem {
-	return &fileSystem{}
-}
-
-func (fs *fileSystem) CreateFile(path string, mode os.FileMode, contentFn func() ([]byte, error)) error {
+func (fs *FileSystem) CreateFile(path string, mode os.FileMode, contentFn func() ([]byte, error)) error {
 	outputFile, err := create(path)
 	if err != nil {
 		return fmt.Errorf("failed to create output file '%s': %w", path, err)
@@ -87,7 +84,7 @@ func (fs *fileSystem) CreateFile(path string, mode os.FileMode, contentFn func()
 
 	// Set the mode on the file
 	if err := chmod(path, mode); err != nil {
-		return fmt.Errorf("error with chmod of '%s' to '%o'", path, mode)
+		return fmt.Errorf("error with chmod of '%s' to '%o': %s", path, mode, err)
 	}
 
 	content, err := contentFn()
@@ -105,22 +102,18 @@ func (fs *fileSystem) CreateFile(path string, mode os.FileMode, contentFn func()
 	return nil
 }
 
-func (fs *fileSystem) Exists(path string) bool {
+func (fs *FileSystem) Exists(path string) bool {
 	_, err := stat(path)
 	return !errors.Is(err, os.ErrNotExist)
 }
 
 // Will try and get the lock for 10 seconds, returns an error if it can't get the lock
-func (fs *fileSystem) Flock(path string) (*flock.Flock, error) {
+func (fs *FileSystem) Flock(path string) (*flock.Flock, error) {
 	// Create a file lock, this doesn't lock the file...yet
-	fileLock := flock.New(path)
-	// Setup a 10 second timer
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	fileLock := newFlock(path)
 
-	hclog.L().Trace("Attempting to lock file, will try for 10 seconds", "file", path)
-	// Try the lock every half second
-	locked, err := fileLock.TryLockContext(ctx, 500*time.Millisecond)
+	hclog.L().Trace("Attempting to lock file exclusively", "file", path)
+	locked, err := fileLock.TryLock()
 	if err != nil {
 		return nil, err
 	}
@@ -131,18 +124,18 @@ func (fs *fileSystem) Flock(path string) (*flock.Flock, error) {
 	}
 
 	// This should only happen if we fail to lock the file, this can happen because we timeout
-	return nil, fmt.Errorf("unexpected error, expected '%s' to be locked", path)
+	return nil, fmt.Errorf("unable to acquire exclusive lock on '%s'", path)
 }
 
-func (fs *fileSystem) HomeDir() string {
+func (fs *FileSystem) HomeDir() string {
 	return homeDir
 }
 
-func (fs *fileSystem) MkdirAll(path string, mode os.FileMode) error {
+func (fs *FileSystem) MkdirAll(path string, mode os.FileMode) error {
 	return mkdirAll(path, mode)
 }
 
-func (fs *fileSystem) ToAbsoluteFilePath(path string) (string, error) {
+func (fs *FileSystem) ToAbsoluteFilePath(path string) (string, error) {
 	//go doesn't automatically handle the ~ expansion, do this manually
 	if strings.HasPrefix(path, "~") {
 		path = filepath.Join(fs.HomeDir(), path[1:])
@@ -156,7 +149,7 @@ func (fs *fileSystem) ToAbsoluteFilePath(path string) (string, error) {
 	return absPath, nil
 }
 
-func (fs *fileSystem) WalkExecutables(root string, includeSubDirs bool) (map[string]string, error) {
+func (fs *FileSystem) WalkExecutables(root string, includeSubDirs bool) (map[string]string, error) {
 	executables := make(map[string]string)
 	err := walkDir(root, func(path string, d os.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -169,9 +162,14 @@ func (fs *fileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 		hclog.L().Trace("Processing path", "path", path)
 
 		// Don't traverse sub-directories, this is arbitrary but we are keeping it simple
-		if d.IsDir() && path != root && !includeSubDirs {
-			hclog.L().Trace("Subdirectories are not supported, skipping", "path", path)
-			return filepath.SkipDir
+		if d.IsDir() && path != root {
+			if includeSubDirs {
+				// We don't do anything with this dir but indicate no errors
+				return nil
+			} else {
+				hclog.L().Trace("Subdirectories are not supported, skipping", "path", path)
+				return filepath.SkipDir
+			}
 		}
 
 		info, err := d.Info()
@@ -188,12 +186,13 @@ func (fs *fileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 			}
 
 			// Get the absolute path of the file so we can provide the best debugging information
-			absPath, err := filepath.Abs(path)
+			absPath, err := abs(path)
 			if err != nil {
 				return err
 			}
 			hclog.L().Trace("Adding executable", "executable", absPath)
-			executables[filepath.Base(path)] = absPath
+			// We need to add the fully path here because if we find the same executable with two different name
+			executables[path] = absPath
 		}
 		return nil
 	})
@@ -202,11 +201,11 @@ func (fs *fileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 
 // This will exit the entire program if we can't get this but this generaly shouldn't happen
 // unless we're being run in a very strange way
-func init() {
-	dir, err := os.UserHomeDir()
+func determineHomeDir() {
+	dir, err := userHomeDir()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to retrieve current user's home directory: %s\n", err)
-		workingDir, err := os.Getwd()
+		workingDir, err := getWd()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Could not determine current working directory, returning empty string")
 			dir = ""
@@ -217,4 +216,8 @@ func init() {
 	}
 
 	homeDir = dir
+}
+
+func init() {
+	determineHomeDir()
 }

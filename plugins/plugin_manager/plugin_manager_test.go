@@ -40,13 +40,13 @@ import (
 var (
 	pluginDir      string
 	mockController *gomock.Controller
-	mockFs         *mocks.MockFileSystem
+	mockFs         *mocks.MockFileSystemOperations
 	exampleDir     = "../../examples"
 )
 
 func pluginManagerSetup(t *testing.T) {
 	mockController = gomock.NewController(t)
-	mockFs = mocks.NewMockFileSystem(mockController)
+	mockFs = mocks.NewMockFileSystemOperations(mockController)
 	fs = mockFs
 
 	// Make sure that the metadata and plugins maps are empty before we start
@@ -198,7 +198,7 @@ func TestLoadExternalPlugins(t *testing.T) {
 
 	for _, tc := range testCases {
 		if tc.realFs {
-			fs = utils.FS()
+			fs = &utils.FileSystem{}
 		} else {
 			fs = mockFs
 			call := mockFs.EXPECT().WalkExecutables(tc.pluginDir, false)

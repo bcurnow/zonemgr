@@ -56,7 +56,7 @@ var (
 	}
 
 	pluginManager = plugin_manager.Manager()
-	fs            = utils.FS()
+	fs            = &utils.FileSystem{}
 
 	v       *viper.Viper
 	homeDir string

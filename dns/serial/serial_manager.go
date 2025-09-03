@@ -38,7 +38,7 @@ const initalChangeIndex uint32 = 1
 
 var (
 	generator Generator = &TimeBasedGenerator{}
-	fs                  = utils.FS()
+	fs                  = &utils.FileSystem{}
 )
 
 type fileSerialmanager struct {

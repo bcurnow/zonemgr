@@ -34,7 +34,7 @@ var (
 	mockCNAMEPlugin *mocks.MockZoneMgrPlugin
 	mockPlugins     map[plugins.PluginType]plugins.ZoneMgrPlugin
 	mockMetadata    map[plugins.PluginType]*plugins.Metadata
-	mockFs          *mocks.MockFileSystem
+	mockFs          *mocks.MockFileSystemOperations
 	testZone        *models.Zone
 	testZones       map[string]*models.Zone
 	globalConfig    = &models.Config{SerialChangeIndexDirectory: "global-serial-change-index-directory"}
@@ -53,7 +53,7 @@ func dnsSetup(t *testing.T) {
 	mockMetadata[plugins.A] = &plugins.Metadata{Name: string(plugins.A), Command: "none", BuiltIn: true}
 	mockMetadata[plugins.CNAME] = &plugins.Metadata{Name: string(plugins.CNAME), Command: "none", BuiltIn: true}
 
-	mockFs = mocks.NewMockFileSystem(mockController)
+	mockFs = mocks.NewMockFileSystemOperations(mockController)
 	fs = mockFs
 
 	testZone = &models.Zone{
