@@ -1,0 +1,10 @@
+	github.com/bcurnow/zonemgr/main.go
+	github.com/bcurnow/zonemgr/dns/mock_normalizer.go
+	github.com/bcurnow/zonemgr/dns/serial/mock_serial_manager.go
+	github.com/bcurnow/zonemgr/plugins/plugin_manager/mock_plugin_manager.go
+	github.com/bcurnow/zonemgr/plugins/mock_soa_values_normalizer.go
+	github.com/bcurnow/zonemgr/plugins/mock_validator.go
+	github.com/bcurnow/zonemgr/plugins/mock_zonemgr_plugin.go
+  github.com/bcurnow/zonemgr/plugins/proto/zonemgrplugin_grpc.pb.go
+  github.com/bcurnow/zonemgr/plugins/proto/zonemgrplugin.pb.go
+	github.com/bcurnow/zonemgr/utils/mock_filesystem.go

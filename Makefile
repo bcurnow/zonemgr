@@ -2,7 +2,6 @@
 
 SHELL := /bin/bash
 binaryName := zonemgr
-mocks := dns/normalizer.go plugins/plugin_manager/plugin_manager.go plugins/soa_values_normalizer.go plugins/validator.go plugins/zonemgr_plugin.go utils/filesystem.go dns/serial/serial_manager.go
 
 zonemgr:
 	go build -o bin/${binaryName}
@@ -19,7 +18,10 @@ run-test:
 	go test ./...
 
 run-test-with-coverage:
-	go test -cover -coverprofile=coverage.out -coverpkg github.com/bcurnow/zonemgr/cmd,github.com/bcurnow/zonemgr/dns,github.com/bcurnow/zonemgr/internal/plugins/builtin,github.com/bcurnow/zonemgr/models,github.com/bcurnow/zonemgr/plugins,github.com/bcurnow/zonemgr/plugins/plugin_manager,github.com/bcurnow/zonemgr/plugins/grpc,github.com/bcurnow/zonemgr/utils ./...
+	$(eval COV_PKGS=$(shell go list ./... | grep -v examples | grep -v proto | tr '\n' ','))
+	go test ./... -cover -coverprofile=coverage.out -coverpkg $(COV_PKGS)
+	./exclude-from-coverage.sh
+	go tool cover -func coverage.out | grep "^total:"
 
 html-coverage:
 	go tool cover -html=coverage.out
@@ -31,8 +33,13 @@ tidy:
 	go mod tidy
 
 mocks:
-	@mkdir -p internal/mocks
-	@$(foreach mock, $(mocks), mockgen -source=$(mock) -package mocks -self_package "github.com/bcurnow/zonemgr/internal/mocks" >internal/mocks/`basename $(mock)`;)
+	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_normalizer.go
+	mockgen -source=dns/serial/serial_manager.go -package serial -self_package "github.com/bcurnow/zonemgr/dns/serial">dns/serial/mock_serial_manager.go
+	mockgen -source=plugins/plugin_manager/plugin_manager.go -package plugin_manager -self_package "github.com/bcurnow/zonemgr/plugins/plugin_manager">plugins/plugin_manager/mock_plugin_manager.go
+	mockgen -source=plugins/soa_values_normalizer.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_soa_values_normalizer.go
+	mockgen -source=plugins/validator.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_validator.go
+	mockgen -source=plugins/zonemgr_plugin.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_zonemgr_plugin.go
+	mockgen -source=utils/filesystem.go  -package utils -self_package "github.com/bcurnow/zonemgr/utils">utils/mock_filesystem.go
 
 proto:
 	buf generate
