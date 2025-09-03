@@ -33,13 +33,14 @@ type Zone struct {
 func (z *Zone) String() string {
 	var rrString strings.Builder
 
-	for identifier, rr := range z.ResourceRecords {
+	z.WithSortedResourceRecords(func(identifier string, rr *ResourceRecord) error {
 		rrString.WriteString("     ")
 		rrString.WriteString(identifier)
 		rrString.WriteString(" -> ")
 		rrString.WriteString(rr.String())
 		rrString.WriteString("\n")
-	}
+		return nil
+	})
 
 	return "Zone{\n" +
 		fmt.Sprintf("   Config: %s\n", z.Config) +
