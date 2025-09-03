@@ -42,11 +42,12 @@ type SerialIndexYamlFile struct {
 }
 
 var (
-	_         YamlFile[map[string]*models.Zone] = &ZoneYamlFile{}
-	_         YamlFile[*models.SerialIndex]     = &SerialIndexYamlFile{}
-	unmarshal                                   = yaml.Unmarshal
-	marshal                                     = yaml.Marshal
-	open                                        = os.Open
+	_               YamlFile[map[string]*models.Zone] = &ZoneYamlFile{}
+	_               YamlFile[*models.SerialIndex]     = &SerialIndexYamlFile{}
+	unmarshal                                         = yaml.Unmarshal
+	marshal                                           = yaml.Marshal
+	openFile                                          = os.OpenFile
+	marshalFileMode                                   = os.O_WRONLY | os.O_CREATE | os.O_APPEND
 )
 
 func (yr *ZoneYamlFile) Read(path string) (map[string]*models.Zone, error) {
@@ -84,19 +85,19 @@ func unmarshalYaml[T any](path string) (T, error) {
 }
 
 func marshalYaml[T any](path string, content T) error {
-	file, err := open(path)
+	file, err := openFile(path, marshalFileMode, 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open '%s': %w", path, err)
 	}
 	defer file.Close()
 
 	yamlBytes, err := marshal(content)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal '%v': %w", content, err)
 	}
 
 	if _, err := file.Write(yamlBytes); err != nil {
-		return err
+		return fmt.Errorf("failed to write to '%s': %w", path, err)
 	}
 
 	return nil
