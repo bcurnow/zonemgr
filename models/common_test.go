@@ -22,3 +22,7 @@ package models
 func toInt32Ptr(i int32) *int32 {
 	return &i
 }
+
+func toUint32Ptr(i uint32) *uint32 {
+	return &i
+}
