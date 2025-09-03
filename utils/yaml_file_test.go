@@ -61,7 +61,7 @@ func TestRead_SerialIndexYamlFile(t *testing.T) {
 	readFile = func(_ string) ([]byte, error) { return []byte("testing"), nil }
 	unmarshal = func(_ []byte, _ interface{}) (err error) { return nil }
 
-	f := (&ZoneYamlFile{})
+	f := (&SerialIndexYamlFile{})
 
 	serialIndex, err := f.Read("testing")
 	if err != nil {
@@ -69,7 +69,7 @@ func TestRead_SerialIndexYamlFile(t *testing.T) {
 	}
 
 	if serialIndex != nil {
-		t.Errorf("incorrect result: %s, expected nil", serialIndex)
+		t.Errorf("incorrect result: %v, expected nil", serialIndex)
 	}
 }
 
