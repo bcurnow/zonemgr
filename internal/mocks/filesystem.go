@@ -12,31 +12,31 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockFileSystem is a mock of FileSystem interface.
-type MockFileSystem struct {
+// MockFileSystemOperations is a mock of FileSystemOperations interface.
+type MockFileSystemOperations struct {
 	ctrl     *gomock.Controller
-	recorder *MockFileSystemMockRecorder
+	recorder *MockFileSystemOperationsMockRecorder
 }
 
-// MockFileSystemMockRecorder is the mock recorder for MockFileSystem.
-type MockFileSystemMockRecorder struct {
-	mock *MockFileSystem
+// MockFileSystemOperationsMockRecorder is the mock recorder for MockFileSystemOperations.
+type MockFileSystemOperationsMockRecorder struct {
+	mock *MockFileSystemOperations
 }
 
-// NewMockFileSystem creates a new mock instance.
-func NewMockFileSystem(ctrl *gomock.Controller) *MockFileSystem {
-	mock := &MockFileSystem{ctrl: ctrl}
-	mock.recorder = &MockFileSystemMockRecorder{mock}
+// NewMockFileSystemOperations creates a new mock instance.
+func NewMockFileSystemOperations(ctrl *gomock.Controller) *MockFileSystemOperations {
+	mock := &MockFileSystemOperations{ctrl: ctrl}
+	mock.recorder = &MockFileSystemOperationsMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockFileSystem) EXPECT() *MockFileSystemMockRecorder {
+func (m *MockFileSystemOperations) EXPECT() *MockFileSystemOperationsMockRecorder {
 	return m.recorder
 }
 
 // CreateFile mocks base method.
-func (m *MockFileSystem) CreateFile(path string, mode os.FileMode, contentFn func() ([]byte, error)) error {
+func (m *MockFileSystemOperations) CreateFile(path string, mode os.FileMode, contentFn func() ([]byte, error)) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateFile", path, mode, contentFn)
 	ret0, _ := ret[0].(error)
@@ -44,13 +44,13 @@ func (m *MockFileSystem) CreateFile(path string, mode os.FileMode, contentFn fun
 }
 
 // CreateFile indicates an expected call of CreateFile.
-func (mr *MockFileSystemMockRecorder) CreateFile(path, mode, contentFn interface{}) *gomock.Call {
+func (mr *MockFileSystemOperationsMockRecorder) CreateFile(path, mode, contentFn interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFile", reflect.TypeOf((*MockFileSystem)(nil).CreateFile), path, mode, contentFn)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFile", reflect.TypeOf((*MockFileSystemOperations)(nil).CreateFile), path, mode, contentFn)
 }
 
 // Exists mocks base method.
-func (m *MockFileSystem) Exists(path string) bool {
+func (m *MockFileSystemOperations) Exists(path string) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Exists", path)
 	ret0, _ := ret[0].(bool)
@@ -58,13 +58,13 @@ func (m *MockFileSystem) Exists(path string) bool {
 }
 
 // Exists indicates an expected call of Exists.
-func (mr *MockFileSystemMockRecorder) Exists(path interface{}) *gomock.Call {
+func (mr *MockFileSystemOperationsMockRecorder) Exists(path interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockFileSystem)(nil).Exists), path)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockFileSystemOperations)(nil).Exists), path)
 }
 
 // Flock mocks base method.
-func (m *MockFileSystem) Flock(path string) (*flock.Flock, error) {
+func (m *MockFileSystemOperations) Flock(path string) (*flock.Flock, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Flock", path)
 	ret0, _ := ret[0].(*flock.Flock)
@@ -73,13 +73,13 @@ func (m *MockFileSystem) Flock(path string) (*flock.Flock, error) {
 }
 
 // Flock indicates an expected call of Flock.
-func (mr *MockFileSystemMockRecorder) Flock(path interface{}) *gomock.Call {
+func (mr *MockFileSystemOperationsMockRecorder) Flock(path interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Flock", reflect.TypeOf((*MockFileSystem)(nil).Flock), path)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Flock", reflect.TypeOf((*MockFileSystemOperations)(nil).Flock), path)
 }
 
 // HomeDir mocks base method.
-func (m *MockFileSystem) HomeDir() string {
+func (m *MockFileSystemOperations) HomeDir() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HomeDir")
 	ret0, _ := ret[0].(string)
@@ -87,13 +87,13 @@ func (m *MockFileSystem) HomeDir() string {
 }
 
 // HomeDir indicates an expected call of HomeDir.
-func (mr *MockFileSystemMockRecorder) HomeDir() *gomock.Call {
+func (mr *MockFileSystemOperationsMockRecorder) HomeDir() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HomeDir", reflect.TypeOf((*MockFileSystem)(nil).HomeDir))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HomeDir", reflect.TypeOf((*MockFileSystemOperations)(nil).HomeDir))
 }
 
 // MkdirAll mocks base method.
-func (m *MockFileSystem) MkdirAll(path string, mode os.FileMode) error {
+func (m *MockFileSystemOperations) MkdirAll(path string, mode os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MkdirAll", path, mode)
 	ret0, _ := ret[0].(error)
@@ -101,13 +101,13 @@ func (m *MockFileSystem) MkdirAll(path string, mode os.FileMode) error {
 }
 
 // MkdirAll indicates an expected call of MkdirAll.
-func (mr *MockFileSystemMockRecorder) MkdirAll(path, mode interface{}) *gomock.Call {
+func (mr *MockFileSystemOperationsMockRecorder) MkdirAll(path, mode interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MkdirAll", reflect.TypeOf((*MockFileSystem)(nil).MkdirAll), path, mode)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MkdirAll", reflect.TypeOf((*MockFileSystemOperations)(nil).MkdirAll), path, mode)
 }
 
 // ToAbsoluteFilePath mocks base method.
-func (m *MockFileSystem) ToAbsoluteFilePath(path string) (string, error) {
+func (m *MockFileSystemOperations) ToAbsoluteFilePath(path string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ToAbsoluteFilePath", path)
 	ret0, _ := ret[0].(string)
@@ -116,13 +116,13 @@ func (m *MockFileSystem) ToAbsoluteFilePath(path string) (string, error) {
 }
 
 // ToAbsoluteFilePath indicates an expected call of ToAbsoluteFilePath.
-func (mr *MockFileSystemMockRecorder) ToAbsoluteFilePath(path interface{}) *gomock.Call {
+func (mr *MockFileSystemOperationsMockRecorder) ToAbsoluteFilePath(path interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToAbsoluteFilePath", reflect.TypeOf((*MockFileSystem)(nil).ToAbsoluteFilePath), path)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToAbsoluteFilePath", reflect.TypeOf((*MockFileSystemOperations)(nil).ToAbsoluteFilePath), path)
 }
 
 // WalkExecutables mocks base method.
-func (m *MockFileSystem) WalkExecutables(root string, includeSubDirs bool) (map[string]string, error) {
+func (m *MockFileSystemOperations) WalkExecutables(root string, includeSubDirs bool) (map[string]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WalkExecutables", root, includeSubDirs)
 	ret0, _ := ret[0].(map[string]string)
@@ -131,7 +131,7 @@ func (m *MockFileSystem) WalkExecutables(root string, includeSubDirs bool) (map[
 }
 
 // WalkExecutables indicates an expected call of WalkExecutables.
-func (mr *MockFileSystemMockRecorder) WalkExecutables(root, includeSubDirs interface{}) *gomock.Call {
+func (mr *MockFileSystemOperationsMockRecorder) WalkExecutables(root, includeSubDirs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WalkExecutables", reflect.TypeOf((*MockFileSystem)(nil).WalkExecutables), root, includeSubDirs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WalkExecutables", reflect.TypeOf((*MockFileSystemOperations)(nil).WalkExecutables), root, includeSubDirs)
 }
