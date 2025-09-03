@@ -44,17 +44,17 @@ type Validator interface {
 	//   - Validation that only Comment or Values is populated
 	CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error
 	// Checks if the supplied resource record matches one of the support plugin types
-	IsSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error
+	EnsureSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error
 	// Validates that the name provided matches the RFC1035 regex for valid names according to RFC1035
 	// and is less then or equal to 255 total characters
-	IsValidRFC1035Name(identifier string, name string, rrType models.ResourceRecordType) error
+	EnsureValidRFC1035Name(identifier string, name string, rrType models.ResourceRecordType) error
 	// Checks if the name provide is either the wildcard ('@') or is a valid name
-	IsValidNameOrWildcard(identifier string, name string, rrType models.ResourceRecordType) error
+	EnsureValidNameOrWildcard(identifier string, name string, rrType models.ResourceRecordType) error
 	// Formats and email address according to RFC1035
 	FormatEmail(identifier string, email string, rrType models.ResourceRecordType) (string, error)
 	// Most DNS names in a zone file need to be fully qualified domain names, while we can't validate if the entire name itself is valid,
 	// we can ensure that it is a valid name and ends with a trailing dot
-	IsFullyQualified(identifier string, name string, rrType models.ResourceRecordType) error
+	EnsureFullyQualified(identifier string, name string, rrType models.ResourceRecordType) error
 	// Ensure that the string passed in ends with a trailing dot
 	EnsureTrailingDot(name string) string
 	// Ensure that the string is an IP address
@@ -62,7 +62,7 @@ type Validator interface {
 	// Ensure that the string is NOT an IP address
 	EnsureNotIP(identifier string, s string, rrType models.ResourceRecordType) error
 	//  Ensurre that the string is a 32-bit integer which is positive and greater than zero
-	IsPositive(identifier string, s string, fieldName string, rrType models.ResourceRecordType) error
+	EnsurePositive(identifier string, s string, fieldName string, rrType models.ResourceRecordType) error
 }
 
 type validator struct {
@@ -81,7 +81,7 @@ func V() Validator {
 //   - Validation that only Comment or Values is populated
 func (v *validator) CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error {
 	// Validate that this resource record is of the supported type
-	if err := v.IsSupportedPluginType(identifier, rr.Type, supportedTypes...); err != nil {
+	if err := v.EnsureSupportedPluginType(identifier, rr.Type, supportedTypes...); err != nil {
 		return err
 	}
 
@@ -104,7 +104,7 @@ func (v *validator) CommonValidations(identifier string, rr *models.ResourceReco
 }
 
 // Checks if the supplied resource record matches one of the support plugin types
-func (v *validator) IsSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error {
+func (v *validator) EnsureSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error {
 	if !slices.Contains(supportedTypes, PluginType(rrType)) {
 		return fmt.Errorf("this plugin does not handle resource records of type '%s' only '%s', identifier: '%s'", rrType, supportedTypes, identifier)
 	}
@@ -113,32 +113,32 @@ func (v *validator) IsSupportedPluginType(identifier string, rrType models.Resou
 
 // Validates that the name provided matches the RFC1035 regex for valid names according to RFC1035
 // and is less then or equal to 255 total characters
-func (v *validator) IsValidRFC1035Name(identifier string, name string, rrType models.ResourceRecordType) error {
+func (v *validator) EnsureValidRFC1035Name(identifier string, name string, rrType models.ResourceRecordType) error {
 	if len(name) > 255 {
-		return fmt.Errorf("invalid %s record, must be less than 255 characters: '%s', identifier:'%s'", rrType, name, identifier)
+		return fmt.Errorf("invalid %s record, must be less than 255 characters: '%s', identifier: '%s'", rrType, name, identifier)
 	}
 
 	if !dnsNameRegexRFC1035.MatchString(name) {
-		return fmt.Errorf("invalid %s record, does not match regexp '%s': '%s', identifier:'%s'", rrType, dnsNameRegexRFC1035String, name, identifier)
+		return fmt.Errorf("invalid %s record, does not match regexp '%s': '%s', identifier: '%s'", rrType, dnsNameRegexRFC1035String, name, identifier)
 	}
 
 	//Split the domain at each part (".") and then run some additional validations
 	parts := strings.Split(name, ".")
 	for _, part := range parts {
 		if strings.HasPrefix(part, "-") || strings.HasSuffix(part, "-") {
-			return fmt.Errorf("invalid %s record, cannot start or end with a hyphen (-): '%s', identifier:'%s'", rrType, name, identifier)
+			return fmt.Errorf("invalid %s record, cannot start or end with a hyphen (-): '%s', identifier: '%s'", rrType, name, identifier)
 		}
 	}
 	return nil
 }
 
 // Checks if the name provide is either the wildcard ('@') or is a valid name
-func (v *validator) IsValidNameOrWildcard(identifier string, name string, rrType models.ResourceRecordType) error {
+func (v *validator) EnsureValidNameOrWildcard(identifier string, name string, rrType models.ResourceRecordType) error {
 	// Check if the name matches the regex or is a wildcard
 	if name == "@" {
 		return nil
 	}
-	return v.IsValidRFC1035Name(identifier, name, rrType)
+	return v.EnsureValidRFC1035Name(identifier, name, rrType)
 }
 
 // Formats and email address according to RFC1035
@@ -147,7 +147,7 @@ func (v *validator) FormatEmail(identifier string, email string, rrType models.R
 		// Assume this is a standard email address that will be parseable
 		address, err := mail.ParseAddress(email)
 		if err != nil {
-			return "", fmt.Errorf("invalid %s record, invalid email address: '%s', identifier:'%s'", rrType, email, identifier)
+			return "", fmt.Errorf("invalid %s record, invalid email address: '%s', identifier: '%s'", rrType, email, identifier)
 		}
 
 		// Get the username portion of the email (<username>@<domain>), keep in mind that valid usernames can continue '@'
@@ -169,8 +169,8 @@ func (v *validator) FormatEmail(identifier string, email string, rrType models.R
 
 // Most DNS names in a zone file need to be fully qualified domain names, while we can't validate if the entire name itself is valid,
 // we can ensure that it is a valid name and ends with a trailing dot
-func (v *validator) IsFullyQualified(identifier string, name string, rrType models.ResourceRecordType) error {
-	if err := v.IsValidRFC1035Name(identifier, name, rrType); err != nil {
+func (v *validator) EnsureFullyQualified(identifier string, name string, rrType models.ResourceRecordType) error {
+	if err := v.EnsureValidRFC1035Name(identifier, name, rrType); err != nil {
 		return err
 	}
 
@@ -210,7 +210,7 @@ func (v *validator) EnsureNotIP(identifier string, s string, rrType models.Resou
 }
 
 // Ensure that the string is a 32-bit integer which is a positive number greater than zero
-func (v *validator) IsPositive(identifier string, s string, fieldName string, rrType models.ResourceRecordType) error {
+func (v *validator) EnsurePositive(identifier string, s string, fieldName string, rrType models.ResourceRecordType) error {
 	value, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
 		return err

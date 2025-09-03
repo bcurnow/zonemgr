@@ -63,7 +63,7 @@ func (p *BuiltinPluginSOA) Normalize(identifier string, rr *models.ResourceRecor
 		rr.Name = identifier
 	}
 
-	if err := validations.IsFullyQualified(identifier, rr.Name, rr.Type); err != nil {
+	if err := validations.EnsureFullyQualified(identifier, rr.Name, rr.Type); err != nil {
 		return err
 	}
 
@@ -108,7 +108,7 @@ func (p *BuiltinPluginSOA) ValidateZone(name string, zone *models.Zone) error {
 }
 
 func (p *BuiltinPluginSOA) Render(identifier string, rr *models.ResourceRecord) (string, error) {
-	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.SOA); err != nil {
+	if err := validations.EnsureSupportedPluginType(identifier, rr.Type, plugins.SOA); err != nil {
 		return "", err
 	}
 

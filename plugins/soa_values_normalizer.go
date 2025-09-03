@@ -71,7 +71,7 @@ func (svn *soaValuesNormalizer) Normalize(identifier string, rr *models.Resource
 	// The only other option is that we have 7 values and we don't generate the serial number so there's nothing to do
 
 	// Now, check the values, first the nameserver
-	if err := validations.IsFullyQualified(identifier, rr.Values[0].Value, rr.Type); err != nil {
+	if err := validations.EnsureFullyQualified(identifier, rr.Values[0].Value, rr.Type); err != nil {
 		return err
 	}
 
@@ -83,19 +83,19 @@ func (svn *soaValuesNormalizer) Normalize(identifier string, rr *models.Resource
 	rr.Values[1].Value = email
 
 	//Make sure none of the other values are < 0
-	if err := validations.IsPositive(identifier, rr.Values[3].Value, "REFRESH", rr.Type); err != nil {
+	if err := validations.EnsurePositive(identifier, rr.Values[3].Value, "REFRESH", rr.Type); err != nil {
 		return err
 	}
 
-	if err := validations.IsPositive(identifier, rr.Values[4].Value, "RETRY", rr.Type); err != nil {
+	if err := validations.EnsurePositive(identifier, rr.Values[4].Value, "RETRY", rr.Type); err != nil {
 		return err
 	}
 
-	if err := validations.IsPositive(identifier, rr.Values[5].Value, "EXPIRE", rr.Type); err != nil {
+	if err := validations.EnsurePositive(identifier, rr.Values[5].Value, "EXPIRE", rr.Type); err != nil {
 		return err
 	}
 
-	if err := validations.IsPositive(identifier, rr.Values[6].Value, "NCACHE", rr.Type); err != nil {
+	if err := validations.EnsurePositive(identifier, rr.Values[6].Value, "NCACHE", rr.Type); err != nil {
 		return err
 	}
 

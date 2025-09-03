@@ -43,7 +43,7 @@ func TestNormalize_CNAMEPlugin(t *testing.T) {
 	tc.expects = normalizeExpects_CNAMEPlugin(true, false, false)
 	testCommonValidations(t, tc, rr)
 	tc.expects = normalizeExpects_CNAMEPlugin(false, true, false)
-	testIsValidNameOrWildcard(t, tc, rr)
+	testEnsureValidNameOrWildcard(t, tc, rr)
 	tc.expects = normalizeExpects_CNAMEPlugin(false, false, true)
 	testEnsureNotIP(t, tc, rr)
 
@@ -56,7 +56,7 @@ func TestNormalize_CNAMEPlugin(t *testing.T) {
 
 	mockValidator.EXPECT().CommonValidations(identifier, noName, tc.pluginType)
 	// make sure the name defaulted
-	mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, rr.Type)
+	mockValidator.EXPECT().EnsureValidNameOrWildcard(identifier, identifier, rr.Type)
 	mockValidator.EXPECT().EnsureNotIP(identifier, noName.RetrieveSingleValue(), rr.Type)
 	if err := tc.plugin.Normalize(identifier, noName); err != nil {
 		t.Errorf("unexpected error:\n'%s'", err)
@@ -139,14 +139,14 @@ func TestRender_CNAMEPlugin(t *testing.T) {
 		pluginType: pluginType,
 		rrType:     rr.Type,
 		expects: func(identifier string, rr *models.ResourceRecord, err bool) {
-			call := mockValidator.EXPECT().IsSupportedPluginType(identifier, rr.Type, pluginType)
+			call := mockValidator.EXPECT().EnsureSupportedPluginType(identifier, rr.Type, pluginType)
 			if err {
 				call.Return(testingError)
 			}
 		},
 	}, rr)
 	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().IsSupportedPluginType("testing", rr.Type, pluginType)
+	mockValidator.EXPECT().EnsureSupportedPluginType("testing", rr.Type, pluginType)
 	_, err := plugin.Render("testing", rr)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
@@ -160,7 +160,7 @@ func normalizeExpects_CNAMEPlugin(commonValidationsErr bool, isValidNameOrWildca
 			call.Return(testingError)
 			return
 		}
-		call = mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, rr.Type)
+		call = mockValidator.EXPECT().EnsureValidNameOrWildcard(identifier, rr.Name, rr.Type)
 		if isValidNameOrWildcardErr && err {
 			call.Return(testingError)
 			return

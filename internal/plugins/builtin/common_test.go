@@ -87,13 +87,13 @@ func testCommonValidations(t *testing.T, testConf *testConfig, rr *models.Resour
 	}
 }
 
-func testIsValidNameOrWildcard(t *testing.T, testConf *testConfig, rr *models.ResourceRecord) {
+func testEnsureValidNameOrWildcard(t *testing.T, testConf *testConfig, rr *models.ResourceRecord) {
 	testCases := []testCase{
 		{
-			identifier: "IsValidNameOrWildcard-Valid",
+			identifier: "EnsureValidNameOrWildcard-Valid",
 		},
 		{
-			identifier: "IsValidNameOrWildcard-Error",
+			identifier: "EnsureValidNameOrWildcard-Error",
 			err:        true,
 		},
 	}
@@ -158,13 +158,13 @@ func testRender(t *testing.T, testConf testConfig, rr *models.ResourceRecord) {
 	}
 }
 
-func testIsFullyQualified(t *testing.T, testConf *testConfig, rr *models.ResourceRecord) {
+func testEnsureFullyQualified(t *testing.T, testConf *testConfig, rr *models.ResourceRecord) {
 	testCases := []testCase{
 		{
-			identifier: "IsFullyQualified-Valid",
+			identifier: "EnsureFullyQualified-Valid",
 		},
 		{
-			identifier: "IsFullyQualified-Error",
+			identifier: "EnsureFullyQualified-Error",
 			err:        true,
 		},
 	}

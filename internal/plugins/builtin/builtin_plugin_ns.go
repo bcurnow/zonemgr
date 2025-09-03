@@ -56,7 +56,7 @@ func (p *BuiltinPluginNS) Normalize(identifier string, rr *models.ResourceRecord
 		rr.Name = "@"
 	}
 
-	if err := validations.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
+	if err := validations.EnsureValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
 		return err
 	}
 
@@ -69,7 +69,7 @@ func (p *BuiltinPluginNS) Normalize(identifier string, rr *models.ResourceRecord
 		return err
 	}
 
-	if err := validations.IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
+	if err := validations.EnsureFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
 		return err
 	}
 
@@ -82,7 +82,7 @@ func (p *BuiltinPluginNS) ValidateZone(name string, zone *models.Zone) error {
 }
 
 func (p *BuiltinPluginNS) Render(identifier string, rr *models.ResourceRecord) (string, error) {
-	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.NS); err != nil {
+	if err := validations.EnsureSupportedPluginType(identifier, rr.Type, plugins.NS); err != nil {
 		return "", err
 	}
 

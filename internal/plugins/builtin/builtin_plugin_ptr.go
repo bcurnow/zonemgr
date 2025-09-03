@@ -52,11 +52,11 @@ func (p *BuiltinPluginPTR) Normalize(identifier string, rr *models.ResourceRecor
 		rr.Name = identifier
 	}
 
-	if err := validations.IsValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
+	if err := validations.EnsureValidNameOrWildcard(identifier, rr.Name, rr.Type); err != nil {
 		return err
 	}
 
-	if err := validations.IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
+	if err := validations.EnsureFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type); err != nil {
 		return err
 	}
 
@@ -68,7 +68,7 @@ func (p *BuiltinPluginPTR) ValidateZone(name string, zone *models.Zone) error {
 }
 
 func (p *BuiltinPluginPTR) Render(identifier string, rr *models.ResourceRecord) (string, error) {
-	if err := validations.IsSupportedPluginType(identifier, rr.Type, plugins.PTR); err != nil {
+	if err := validations.EnsureSupportedPluginType(identifier, rr.Type, plugins.PTR); err != nil {
 		return "", err
 	}
 

@@ -57,7 +57,7 @@ func TestCommonValidations(t *testing.T) {
 	}
 }
 
-func TestIsSupportedPluginType(t *testing.T) {
+func TestEnsureSupportedPluginType(t *testing.T) {
 	testCases := []struct {
 		rrType         models.ResourceRecordType
 		supportedTypes []PluginType
@@ -68,7 +68,7 @@ func TestIsSupportedPluginType(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		if err := validations.IsSupportedPluginType("testing", tc.rrType, tc.supportedTypes...); err != nil {
+		if err := validations.EnsureSupportedPluginType("testing", tc.rrType, tc.supportedTypes...); err != nil {
 			if tc.err == "" {
 				t.Errorf("unexpected error: %s", err)
 			} else {
@@ -84,7 +84,7 @@ func TestIsSupportedPluginType(t *testing.T) {
 	}
 }
 
-func TestIsValidRFC1035Name(t *testing.T) {
+func TestEnsureValidRFC1035Name(t *testing.T) {
 	longRecordName := "MoreThan255Character" + strings.Repeat("s", 255)
 
 	testCases := []struct {
@@ -92,14 +92,15 @@ func TestIsValidRFC1035Name(t *testing.T) {
 		err  string
 	}{
 		{name: "valid"},
-		{name: longRecordName, err: fmt.Sprintf("invalid A record, must be less than 255 characters: '%s', identifier:'testing'", longRecordName)},
+		{name: longRecordName, err: fmt.Sprintf("invalid A record, must be less than 255 characters: '%s', identifier: 'testing'", longRecordName)},
 		{name: "1isvalid"},
-		{name: "withhyphenstart.-valid", err: "invalid A record, cannot start or end with a hyphen (-): 'withhyphenstart.-valid', identifier:'testing'"},
-		{name: "withhyphenend.valid-", err: "invalid A record, cannot start or end with a hyphen (-): 'withhyphenend.valid-', identifier:'testing'"},
+		{name: "$bogus", err: fmt.Sprintf("invalid A record, does not match regexp '%s': '$bogus', identifier: 'testing'", dnsNameRegexRFC1035String)},
+		{name: "withhyphenstart.-valid", err: "invalid A record, cannot start or end with a hyphen (-): 'withhyphenstart.-valid', identifier: 'testing'"},
+		{name: "withhyphenend.valid-", err: "invalid A record, cannot start or end with a hyphen (-): 'withhyphenend.valid-', identifier: 'testing'"},
 	}
 
 	for _, tc := range testCases {
-		if err := validations.IsValidRFC1035Name("testing", tc.name, models.A); err != nil {
+		if err := validations.EnsureValidRFC1035Name("testing", tc.name, models.A); err != nil {
 			if tc.err == "" {
 				t.Errorf("unexpected error: %s", err)
 			} else {
@@ -115,10 +116,20 @@ func TestIsValidRFC1035Name(t *testing.T) {
 	}
 }
 
-func TestIValidNameOrWildcard(t *testing.T) {
-	// We just need to valid the @ case, the others are already tested
-	if err := validations.IsValidNameOrWildcard("testing", "@", models.A); err != nil {
+func TestEnsureValidNameOrWildcard(t *testing.T) {
+	// We just need to valid the @ case and anything that will cause IsValidRFC1035Name to fail
+	// the others are tested elsewhere
+	if err := validations.EnsureValidNameOrWildcard("testing", "@", models.A); err != nil {
 		t.Errorf("unexpected error")
+	}
+
+	if err := validations.EnsureValidNameOrWildcard("testing", "$bogus", models.A); err != nil {
+		want := fmt.Sprintf("invalid A record, does not match regexp '%s': '$bogus', identifier: 'testing'", dnsNameRegexRFC1035String)
+		if err.Error() != want {
+			t.Errorf("incorrrect error: '%s', want: '%s'", err, want)
+		}
+	} else {
+		t.Error("expected an error, found none")
 	}
 }
 
@@ -132,7 +143,7 @@ func TestFormatEmail(t *testing.T) {
 		{email: "name@example.com", want: "name.example.com."},
 		{email: "name.example.com.", want: "name.example.com."},
 		{email: "name.example.com", want: "name.example.com."},
-		{email: "bogus@example.com@example.com", err: "invalid A record, invalid email address: 'bogus@example.com@example.com', identifier:'testing'"},
+		{email: "bogus@example.com@example.com", err: "invalid A record, invalid email address: 'bogus@example.com@example.com', identifier: 'testing'"},
 	}
 
 	for _, tc := range testCases {
@@ -153,19 +164,20 @@ func TestFormatEmail(t *testing.T) {
 	}
 }
 
-func TestIsFullyQualified(t *testing.T) {
+func TestEnsureFullyQualified(t *testing.T) {
 
 	testCases := []struct {
 		name string
 		err  string
 	}{
 		{name: "name.domain.com."},
+		{name: "$bogus", err: fmt.Sprintf("invalid A record, does not match regexp '%s': '$bogus', identifier: 'testing'", dnsNameRegexRFC1035String)},
 		{name: "name.domain.com", err: "invalid A record, must end with a trailing dot: 'name.domain.com', identifier: 'testing'"},
 		{name: "name.", err: "invalid A record, must be fully qualified with at least two dots: 'name.', identifier: 'testing'"},
 	}
 
 	for _, tc := range testCases {
-		err := validations.IsFullyQualified("testing", tc.name, models.A)
+		err := validations.EnsureFullyQualified("testing", tc.name, models.A)
 		if err != nil {
 			if tc.err == "" {
 				t.Errorf("unexpected error: %s", err)
@@ -177,6 +189,87 @@ func TestIsFullyQualified(t *testing.T) {
 		} else {
 			if tc.err != "" {
 				t.Errorf("expected error")
+			}
+		}
+	}
+}
+
+func TestEnsureIP(t *testing.T) {
+	testCases := []struct {
+		s   string
+		err string
+	}{
+		{s: "1.2.3.4"},
+		{s: "not an ip", err: "invalid A record, 'not an ip' must be a valid IP address, identifier: 'testing'"},
+	}
+
+	for _, tc := range testCases {
+		if err := validations.EnsureIP("testing", tc.s, models.A); err != nil {
+			if tc.err != "" {
+				if err.Error() != tc.err {
+					t.Errorf("incorrect error: '%s', want: '%s'", err, tc.err)
+				}
+			} else {
+				t.Errorf("unexpected error: %s", err)
+			}
+		} else {
+			if tc.err != "" {
+				t.Error("expected an error, found none")
+			}
+		}
+	}
+}
+
+func TestEnsureNotIP(t *testing.T) {
+	testCases := []struct {
+		s   string
+		err string
+	}{
+		{s: "1.2.3.4", err: "invalid A record, '1.2.3.4' must not be an IP address, identifier: 'testing'"},
+		{s: "not an ip"},
+	}
+
+	for _, tc := range testCases {
+		if err := validations.EnsureNotIP("testing", tc.s, models.A); err != nil {
+			if tc.err != "" {
+				if err.Error() != tc.err {
+					t.Errorf("incorrect error: '%s', want: '%s'", err, tc.err)
+				}
+			} else {
+				t.Errorf("unexpected error: %s", err)
+			}
+		} else {
+			if tc.err != "" {
+				t.Error("expected an error, found none")
+			}
+		}
+	}
+}
+
+func TestEnsurePositive(t *testing.T) {
+	testCases := []struct {
+		s   string
+		err string
+	}{
+		{s: "bogus", err: "strconv.ParseInt: parsing \"bogus\": invalid syntax"},
+		{s: "0"},
+		{s: "1"},
+		{s: "1234567890"},
+		{s: "-1", err: "retry must not be less than 0 on a SOA record, was '-1', identifier: 'testing'"},
+	}
+
+	for _, tc := range testCases {
+		if err := validations.EnsurePositive("testing", tc.s, "retry", models.SOA); err != nil {
+			if tc.err != "" {
+				if err.Error() != tc.err {
+					t.Errorf("incorrect error: '%s', want: '%s'", err, tc.err)
+				}
+			} else {
+				t.Errorf("unexpected error: %s", err)
+			}
+		} else {
+			if tc.err != "" {
+				t.Error("expected an error, found none")
 			}
 		}
 	}

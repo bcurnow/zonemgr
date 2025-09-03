@@ -135,14 +135,14 @@ func TestSOARender(t *testing.T) {
 		pluginType: pluginType,
 		rrType:     rr.Type,
 		expects: func(identifier string, rr *models.ResourceRecord, err bool) {
-			call := mockValidator.EXPECT().IsSupportedPluginType(identifier, rr.Type, pluginType)
+			call := mockValidator.EXPECT().EnsureSupportedPluginType(identifier, rr.Type, pluginType)
 			if err {
 				call.Return(testingError)
 			}
 		},
 	}, rr)
 	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().IsSupportedPluginType("testing", rr.Type, pluginType)
+	mockValidator.EXPECT().EnsureSupportedPluginType("testing", rr.Type, pluginType)
 	_, err := plugin.Render("testing", rr)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
@@ -158,9 +158,9 @@ func normalizeExpects_SOAPlugin(sn *soaNormalization) func(identifier string, rr
 			return
 		}
 		if sn.identifierAsName {
-			call = mockValidator.EXPECT().IsFullyQualified(identifier, identifier, rr.Type)
+			call = mockValidator.EXPECT().EnsureFullyQualified(identifier, identifier, rr.Type)
 		} else {
-			call = mockValidator.EXPECT().IsFullyQualified(identifier, rr.Name, rr.Type)
+			call = mockValidator.EXPECT().EnsureFullyQualified(identifier, rr.Name, rr.Type)
 		}
 		if sn.isFullyQualifiedNameErr {
 			call.Return(testingError)

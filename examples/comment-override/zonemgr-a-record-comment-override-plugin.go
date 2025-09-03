@@ -68,7 +68,7 @@ func (th *Plugin) ValidateZone(name string, zone *models.Zone) error {
 }
 
 func (th *Plugin) Render(identifier string, rr *models.ResourceRecord) (string, error) {
-	validations.IsSupportedPluginType(identifier, rr.Type, plugins.A)
+	validations.EnsureSupportedPluginType(identifier, rr.Type, plugins.A)
 	// Leverage the standard rendering
 	return rr.RenderSingleValueResource(), nil
 }

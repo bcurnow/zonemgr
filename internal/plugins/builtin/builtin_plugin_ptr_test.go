@@ -42,7 +42,7 @@ func TestPTRNormalize(t *testing.T) {
 	tc.expects = normalizeExpects_PTRPlugin(true, false, false)
 	testCommonValidations(t, tc, rr)
 	tc.expects = normalizeExpects_PTRPlugin(false, true, false)
-	testIsValidNameOrWildcard(t, tc, rr)
+	testEnsureValidNameOrWildcard(t, tc, rr)
 	tc.expects = normalizeExpects_PTRPlugin(false, false, true)
 	testEnsureIP(t, tc, rr)
 
@@ -54,8 +54,8 @@ func TestPTRNormalize(t *testing.T) {
 	}
 	mockValidator.EXPECT().CommonValidations(identifier, noName, tc.pluginType)
 	// Make sure the name defaulted
-	mockValidator.EXPECT().IsValidNameOrWildcard(identifier, identifier, rr.Type)
-	mockValidator.EXPECT().IsFullyQualified(identifier, noName.RetrieveSingleValue(), rr.Type)
+	mockValidator.EXPECT().EnsureValidNameOrWildcard(identifier, identifier, rr.Type)
+	mockValidator.EXPECT().EnsureFullyQualified(identifier, noName.RetrieveSingleValue(), rr.Type)
 
 	if err := tc.plugin.Normalize(identifier, noName); err != nil {
 		t.Errorf("unexpected error:\n'%s'", err)
@@ -76,14 +76,14 @@ func TestPTRRender(t *testing.T) {
 		pluginType: pluginType,
 		rrType:     rr.Type,
 		expects: func(identifier string, rr *models.ResourceRecord, err bool) {
-			call := mockValidator.EXPECT().IsSupportedPluginType(identifier, rr.Type, pluginType)
+			call := mockValidator.EXPECT().EnsureSupportedPluginType(identifier, rr.Type, pluginType)
 			if err {
 				call.Return(testingError)
 			}
 		},
 	}, rr)
 	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().IsSupportedPluginType("testing", rr.Type, pluginType)
+	mockValidator.EXPECT().EnsureSupportedPluginType("testing", rr.Type, pluginType)
 	_, err := plugin.Render("testing", rr)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
@@ -97,12 +97,12 @@ func normalizeExpects_PTRPlugin(commonValidationsErr bool, isValidNameOrWildcard
 			call.Return(testingError)
 			return
 		}
-		call = mockValidator.EXPECT().IsValidNameOrWildcard(identifier, rr.Name, rr.Type)
+		call = mockValidator.EXPECT().EnsureValidNameOrWildcard(identifier, rr.Name, rr.Type)
 		if isValidNameOrWildcardErr && err {
 			call.Return(testingError)
 			return
 		}
-		call = mockValidator.EXPECT().IsFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type)
+		call = mockValidator.EXPECT().EnsureFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type)
 		if isFullyQualifiedErr && err {
 			call.Return(testingError)
 		}

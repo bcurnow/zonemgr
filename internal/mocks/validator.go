@@ -54,6 +54,20 @@ func (mr *MockValidatorMockRecorder) CommonValidations(identifier, rr interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommonValidations", reflect.TypeOf((*MockValidator)(nil).CommonValidations), varargs...)
 }
 
+// EnsureFullyQualified mocks base method.
+func (m *MockValidator) EnsureFullyQualified(identifier, name string, rrType models.ResourceRecordType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EnsureFullyQualified", identifier, name, rrType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EnsureFullyQualified indicates an expected call of EnsureFullyQualified.
+func (mr *MockValidatorMockRecorder) EnsureFullyQualified(identifier, name, rrType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureFullyQualified", reflect.TypeOf((*MockValidator)(nil).EnsureFullyQualified), identifier, name, rrType)
+}
+
 // EnsureIP mocks base method.
 func (m *MockValidator) EnsureIP(identifier, s string, rrType models.ResourceRecordType) error {
 	m.ctrl.T.Helper()
@@ -82,6 +96,39 @@ func (mr *MockValidatorMockRecorder) EnsureNotIP(identifier, s, rrType interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureNotIP", reflect.TypeOf((*MockValidator)(nil).EnsureNotIP), identifier, s, rrType)
 }
 
+// EnsurePositive mocks base method.
+func (m *MockValidator) EnsurePositive(identifier, s, fieldName string, rrType models.ResourceRecordType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EnsurePositive", identifier, s, fieldName, rrType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EnsurePositive indicates an expected call of EnsurePositive.
+func (mr *MockValidatorMockRecorder) EnsurePositive(identifier, s, fieldName, rrType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsurePositive", reflect.TypeOf((*MockValidator)(nil).EnsurePositive), identifier, s, fieldName, rrType)
+}
+
+// EnsureSupportedPluginType mocks base method.
+func (m *MockValidator) EnsureSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...plugins.PluginType) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{identifier, rrType}
+	for _, a := range supportedTypes {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "EnsureSupportedPluginType", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EnsureSupportedPluginType indicates an expected call of EnsureSupportedPluginType.
+func (mr *MockValidatorMockRecorder) EnsureSupportedPluginType(identifier, rrType interface{}, supportedTypes ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{identifier, rrType}, supportedTypes...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureSupportedPluginType", reflect.TypeOf((*MockValidator)(nil).EnsureSupportedPluginType), varargs...)
+}
+
 // EnsureTrailingDot mocks base method.
 func (m *MockValidator) EnsureTrailingDot(name string) string {
 	m.ctrl.T.Helper()
@@ -94,6 +141,34 @@ func (m *MockValidator) EnsureTrailingDot(name string) string {
 func (mr *MockValidatorMockRecorder) EnsureTrailingDot(name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureTrailingDot", reflect.TypeOf((*MockValidator)(nil).EnsureTrailingDot), name)
+}
+
+// EnsureValidNameOrWildcard mocks base method.
+func (m *MockValidator) EnsureValidNameOrWildcard(identifier, name string, rrType models.ResourceRecordType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EnsureValidNameOrWildcard", identifier, name, rrType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EnsureValidNameOrWildcard indicates an expected call of EnsureValidNameOrWildcard.
+func (mr *MockValidatorMockRecorder) EnsureValidNameOrWildcard(identifier, name, rrType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureValidNameOrWildcard", reflect.TypeOf((*MockValidator)(nil).EnsureValidNameOrWildcard), identifier, name, rrType)
+}
+
+// EnsureValidRFC1035Name mocks base method.
+func (m *MockValidator) EnsureValidRFC1035Name(identifier, name string, rrType models.ResourceRecordType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EnsureValidRFC1035Name", identifier, name, rrType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EnsureValidRFC1035Name indicates an expected call of EnsureValidRFC1035Name.
+func (mr *MockValidatorMockRecorder) EnsureValidRFC1035Name(identifier, name, rrType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureValidRFC1035Name", reflect.TypeOf((*MockValidator)(nil).EnsureValidRFC1035Name), identifier, name, rrType)
 }
 
 // FormatEmail mocks base method.
@@ -109,79 +184,4 @@ func (m *MockValidator) FormatEmail(identifier, email string, rrType models.Reso
 func (mr *MockValidatorMockRecorder) FormatEmail(identifier, email, rrType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FormatEmail", reflect.TypeOf((*MockValidator)(nil).FormatEmail), identifier, email, rrType)
-}
-
-// IsFullyQualified mocks base method.
-func (m *MockValidator) IsFullyQualified(identifier, name string, rrType models.ResourceRecordType) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsFullyQualified", identifier, name, rrType)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IsFullyQualified indicates an expected call of IsFullyQualified.
-func (mr *MockValidatorMockRecorder) IsFullyQualified(identifier, name, rrType interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsFullyQualified", reflect.TypeOf((*MockValidator)(nil).IsFullyQualified), identifier, name, rrType)
-}
-
-// IsPositive mocks base method.
-func (m *MockValidator) IsPositive(identifier, s, fieldName string, rrType models.ResourceRecordType) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsPositive", identifier, s, fieldName, rrType)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IsPositive indicates an expected call of IsPositive.
-func (mr *MockValidatorMockRecorder) IsPositive(identifier, s, fieldName, rrType interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsPositive", reflect.TypeOf((*MockValidator)(nil).IsPositive), identifier, s, fieldName, rrType)
-}
-
-// IsSupportedPluginType mocks base method.
-func (m *MockValidator) IsSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...plugins.PluginType) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{identifier, rrType}
-	for _, a := range supportedTypes {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "IsSupportedPluginType", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IsSupportedPluginType indicates an expected call of IsSupportedPluginType.
-func (mr *MockValidatorMockRecorder) IsSupportedPluginType(identifier, rrType interface{}, supportedTypes ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{identifier, rrType}, supportedTypes...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSupportedPluginType", reflect.TypeOf((*MockValidator)(nil).IsSupportedPluginType), varargs...)
-}
-
-// IsValidNameOrWildcard mocks base method.
-func (m *MockValidator) IsValidNameOrWildcard(identifier, name string, rrType models.ResourceRecordType) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsValidNameOrWildcard", identifier, name, rrType)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IsValidNameOrWildcard indicates an expected call of IsValidNameOrWildcard.
-func (mr *MockValidatorMockRecorder) IsValidNameOrWildcard(identifier, name, rrType interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsValidNameOrWildcard", reflect.TypeOf((*MockValidator)(nil).IsValidNameOrWildcard), identifier, name, rrType)
-}
-
-// IsValidRFC1035Name mocks base method.
-func (m *MockValidator) IsValidRFC1035Name(identifier, name string, rrType models.ResourceRecordType) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsValidRFC1035Name", identifier, name, rrType)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IsValidRFC1035Name indicates an expected call of IsValidRFC1035Name.
-func (mr *MockValidatorMockRecorder) IsValidRFC1035Name(identifier, name, rrType interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsValidRFC1035Name", reflect.TypeOf((*MockValidator)(nil).IsValidRFC1035Name), identifier, name, rrType)
 }
