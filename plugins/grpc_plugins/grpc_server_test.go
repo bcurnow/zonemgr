@@ -140,7 +140,7 @@ func TestNormalize_Server(t *testing.T) {
 
 	for _, tc := range testCases {
 		identifier := "testing"
-		rr := &models.ResourceRecord{Type: models.A, Name: "Testing"}
+		rr := &models.ResourceRecord{Type: models.A, Name: "Testing", Values: make([]*models.ResourceRecordValue, 0)}
 		call := mockImpl.EXPECT().Normalize(identifier, rr)
 		if tc.err != nil {
 			call.Return(tc.err)
@@ -202,7 +202,7 @@ func TestRender_Server(t *testing.T) {
 
 	for _, tc := range testCases {
 		identifier := "testing"
-		rr := &models.ResourceRecord{Type: models.A, Name: "Testing"}
+		rr := &models.ResourceRecord{Type: models.A, Name: "Testing", Values: make([]*models.ResourceRecordValue, 0)}
 		call := mockImpl.EXPECT().Render(identifier, rr)
 		if tc.err != nil {
 			call.Return("", tc.err)

@@ -125,7 +125,7 @@ func TestNormalize_Client(t *testing.T) {
 		err      error
 		wantedRR *models.ResourceRecord
 	}{
-		{wantedRR: &models.ResourceRecord{Type: models.A, Name: "testing"}},
+		{wantedRR: &models.ResourceRecord{Type: models.A, Name: "testing", Values: make([]*models.ResourceRecordValue, 0)}},
 		{err: errors.New("testing-err")},
 	}
 
