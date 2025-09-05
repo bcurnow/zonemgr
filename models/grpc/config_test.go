@@ -27,7 +27,7 @@ import (
 	"github.com/bcurnow/zonemgr/plugins/proto"
 )
 
-func TestUpdateConfigFromProtoBuf(t *testing.T) {
+func TestConfigFromProtoBuf(t *testing.T) {
 	testCases := []struct {
 		config *models.Config
 		proto  *proto.Config
@@ -42,7 +42,7 @@ func TestUpdateConfigFromProtoBuf(t *testing.T) {
 		if tc.config == nil {
 			inputConfig = nil
 		}
-		UpdateConfigFromProtoBuf(tc.proto, inputConfig)
+		ConfigFromProtoBuf(tc.proto, inputConfig)
 
 		if tc.config == nil {
 			if inputConfig != nil {
@@ -50,35 +50,6 @@ func TestUpdateConfigFromProtoBuf(t *testing.T) {
 			}
 		} else {
 			if !reflect.DeepEqual(inputConfig, tc.config) {
-				t.Errorf("incorrect result: %s, want: %s", inputConfig, tc.config)
-			}
-		}
-	}
-}
-
-func TestConfigFromProtoBuf(t *testing.T) {
-	testCases := []struct {
-		config *models.Config
-		proto  *proto.Config
-	}{
-		{config: &models.Config{}, proto: nil},
-		{config: &models.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing"}, proto: &proto.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing"}},
-	}
-
-	for _, tc := range testCases {
-		inputConfig := &models.Config{}
-		if tc.config == nil {
-			inputConfig = nil
-		}
-
-		result := ConfigFromProtoBuf(tc.proto)
-
-		if tc.config == nil {
-			if result != nil {
-				t.Errorf("expected nil proto.Config to return nil")
-			}
-		} else {
-			if !reflect.DeepEqual(result, tc.config) {
 				t.Errorf("incorrect result: %s, want: %s", inputConfig, tc.config)
 			}
 		}

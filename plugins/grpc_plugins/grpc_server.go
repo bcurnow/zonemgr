@@ -22,6 +22,7 @@ package grpc_plugins
 import (
 	"context"
 
+	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/models/grpc"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/proto"
@@ -52,7 +53,9 @@ func (s *GRPCServer) PluginTypes(ctx context.Context, req *proto.Empty) (*proto.
 }
 
 func (s *GRPCServer) Configure(ctx context.Context, req *proto.ConfigureRequest) (*proto.Empty, error) {
-	err := s.Impl.Configure(grpc.ConfigFromProtoBuf(req.Config))
+	c := &models.Config{}
+	grpc.ConfigFromProtoBuf(req.Config, c)
+	err := s.Impl.Configure(c)
 	return &proto.Empty{}, err
 }
 

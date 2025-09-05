@@ -7,7 +7,7 @@ import (
 
 // Updates the passed in zone with values from the protocol buff
 func UpdateZoneFromProtoBuf(p *proto.Zone, zone *models.Zone) {
-	UpdateConfigFromProtoBuf(p.Config, zone.Config)
+	ConfigFromProtoBuf(p.Config, zone.Config)
 	UpdateResourceRecordsFromProtoBuf(p.ResourceRecords, zone.ResourceRecords)
 	UpdateTTLFromProtoBuf(p.Ttl, zone.TTL)
 }
