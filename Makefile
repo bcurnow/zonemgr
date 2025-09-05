@@ -32,10 +32,13 @@ format:
 tidy:
 	go mod tidy
 
-mocks:
+mocks: proto mocks-gen
+
+mocks-gen:
 	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_normalizer.go
 	mockgen -source=dns/serial/serial_manager.go -package serial -self_package "github.com/bcurnow/zonemgr/dns/serial">dns/serial/mock_serial_manager.go
 	mockgen -source=plugins/plugin_manager/plugin_manager.go -package plugin_manager -self_package "github.com/bcurnow/zonemgr/plugins/plugin_manager">plugins/plugin_manager/mock_plugin_manager.go
+	mockgen -source=plugins/proto/zonemgrplugin_grpc.pb.go -package proto -self_package "github.com/bcurnow/zonemgr/plugins/proto">plugins/proto/mock_zonemgr_plugin_client.go
 	mockgen -source=plugins/soa_values_normalizer.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_soa_values_normalizer.go
 	mockgen -source=plugins/validator.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_validator.go
 	mockgen -source=plugins/zonemgr_plugin.go -package plugins -self_package "github.com/bcurnow/zonemgr/plugins">plugins/mock_zonemgr_plugin.go
@@ -44,7 +47,7 @@ mocks:
 proto:
 	buf generate
 
-setup: format tidy mocks proto
+setup: format tidy mocks
 
 build:setup zonemgr
 
