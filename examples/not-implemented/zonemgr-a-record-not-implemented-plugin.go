@@ -24,6 +24,7 @@ import (
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/bcurnow/zonemgr/plugins/grpc_plugins"
 	goplugin "github.com/hashicorp/go-plugin"
 )
 
@@ -61,7 +62,7 @@ func main() {
 	goplugin.Serve(&goplugin.ServeConfig{
 		HandshakeConfig: plugins.HandshakeConfig,
 		Plugins: map[string]goplugin.Plugin{
-			"zonemgr-a-record-comment-override-plugin": &plugins.GRPCPlugin{Impl: &Plugin{}},
+			"zonemgr-a-record-comment-override-plugin": &grpc_plugins.GRPCPlugin{Impl: &Plugin{}},
 		},
 		GRPCServer: goplugin.DefaultGRPCServer,
 	})

@@ -17,13 +17,14 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package grpc_plugins
 
 import (
 	"context"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/plugins/grpc"
+	"github.com/bcurnow/zonemgr/models/grpc"
+	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/proto"
 )
 
@@ -39,15 +40,15 @@ func (c *GRPCClient) PluginVersion() (string, error) {
 	return resp.Version, nil
 }
 
-func (c *GRPCClient) PluginTypes() ([]PluginType, error) {
+func (c *GRPCClient) PluginTypes() ([]plugins.PluginType, error) {
 	resp, err := c.client.PluginTypes(context.Background(), &proto.Empty{})
 
 	if err != nil {
 		return nil, err
 	}
-	supportedPluginTypes := make([]PluginType, len(resp.SupportedTypes))
+	supportedPluginTypes := make([]plugins.PluginType, len(resp.SupportedTypes))
 	for i, pluginTypeString := range resp.SupportedTypes {
-		supportedPluginTypes[i] = PluginType(pluginTypeString)
+		supportedPluginTypes[i] = plugins.PluginType(pluginTypeString)
 	}
 
 	return supportedPluginTypes, nil
@@ -98,4 +99,4 @@ func (c *GRPCClient) Render(identifier string, rr *models.ResourceRecord) (strin
 	return resp.Content, nil
 }
 
-var _ ZoneMgrPlugin = &GRPCClient{}
+var _ plugins.ZoneMgrPlugin = &GRPCClient{}

@@ -53,7 +53,7 @@ type ZonemgrPluginClient interface {
 	Configure(ctx context.Context, in *ConfigureRequest, opts ...grpc.CallOption) (*Empty, error)
 	Normalize(ctx context.Context, in *NormalizeRequest, opts ...grpc.CallOption) (*NormalizeResponse, error)
 	ValidateZone(ctx context.Context, in *ValidateZoneRequest, opts ...grpc.CallOption) (*Empty, error)
-	Render(ctx context.Context, in *RenderRequest, opts ...grpc.CallOption) (*RenderResonse, error)
+	Render(ctx context.Context, in *RenderRequest, opts ...grpc.CallOption) (*RenderResponse, error)
 }
 
 type zonemgrPluginClient struct {
@@ -114,9 +114,9 @@ func (c *zonemgrPluginClient) ValidateZone(ctx context.Context, in *ValidateZone
 	return out, nil
 }
 
-func (c *zonemgrPluginClient) Render(ctx context.Context, in *RenderRequest, opts ...grpc.CallOption) (*RenderResonse, error) {
+func (c *zonemgrPluginClient) Render(ctx context.Context, in *RenderRequest, opts ...grpc.CallOption) (*RenderResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RenderResonse)
+	out := new(RenderResponse)
 	err := c.cc.Invoke(ctx, ZonemgrPlugin_Render_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ type ZonemgrPluginServer interface {
 	Configure(context.Context, *ConfigureRequest) (*Empty, error)
 	Normalize(context.Context, *NormalizeRequest) (*NormalizeResponse, error)
 	ValidateZone(context.Context, *ValidateZoneRequest) (*Empty, error)
-	Render(context.Context, *RenderRequest) (*RenderResonse, error)
+	Render(context.Context, *RenderRequest) (*RenderResponse, error)
 }
 
 // UnimplementedZonemgrPluginServer should be embedded to have
@@ -158,7 +158,7 @@ func (UnimplementedZonemgrPluginServer) Normalize(context.Context, *NormalizeReq
 func (UnimplementedZonemgrPluginServer) ValidateZone(context.Context, *ValidateZoneRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateZone not implemented")
 }
-func (UnimplementedZonemgrPluginServer) Render(context.Context, *RenderRequest) (*RenderResonse, error) {
+func (UnimplementedZonemgrPluginServer) Render(context.Context, *RenderRequest) (*RenderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Render not implemented")
 }
 func (UnimplementedZonemgrPluginServer) testEmbeddedByValue() {}

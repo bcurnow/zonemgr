@@ -26,6 +26,7 @@ import (
 
 	"github.com/bcurnow/zonemgr/internal/plugins/builtin"
 	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/bcurnow/zonemgr/plugins/grpc_plugins"
 	"github.com/bcurnow/zonemgr/utils"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
@@ -126,7 +127,7 @@ func (pm *pluginManager) buildClient(pluginName string, pluginCmd string) *goplu
 	clientConfig := &goplugin.ClientConfig{
 		HandshakeConfig: plugins.HandshakeConfig,
 		Plugins: map[string]goplugin.Plugin{
-			pluginName: &plugins.GRPCPlugin{},
+			pluginName: &grpc_plugins.GRPCPlugin{},
 		},
 		Managed:          true,                                       // Allow the plugin runtime to manage this plugin
 		SyncStdout:       PluginStdout(),                             // Print any extra output to Stdout from the plugin to the host processes Stdout

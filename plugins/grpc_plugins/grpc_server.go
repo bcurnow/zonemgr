@@ -17,17 +17,18 @@
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package plugins
+package grpc_plugins
 
 import (
 	"context"
 
-	"github.com/bcurnow/zonemgr/plugins/grpc"
+	"github.com/bcurnow/zonemgr/models/grpc"
+	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/proto"
 )
 
 type GRPCServer struct {
-	Impl ZoneMgrPlugin
+	Impl plugins.ZoneMgrPlugin
 }
 
 func (s *GRPCServer) PluginVersion(ctx context.Context, req *proto.Empty) (*proto.PluginVersionResponse, error) {
@@ -66,9 +67,9 @@ func (s *GRPCServer) ValidateZone(ctx context.Context, req *proto.ValidateZoneRe
 	return &proto.Empty{}, err
 }
 
-func (s *GRPCServer) Render(ctx context.Context, req *proto.RenderRequest) (*proto.RenderResonse, error) {
+func (s *GRPCServer) Render(ctx context.Context, req *proto.RenderRequest) (*proto.RenderResponse, error) {
 	renderedRecord, err := s.Impl.Render(req.Identifier, grpc.ResourceRecordFromProtoBuf(req.ResourceRecord))
-	return &proto.RenderResonse{Content: renderedRecord}, err
+	return &proto.RenderResponse{Content: renderedRecord}, err
 }
 
 var _ proto.ZonemgrPluginServer = &GRPCServer{}

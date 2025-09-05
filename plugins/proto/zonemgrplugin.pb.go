@@ -724,27 +724,27 @@ func (x *RenderRequest) GetResourceRecord() *ResourceRecord {
 	return nil
 }
 
-type RenderResonse struct {
+type RenderResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *RenderResonse) Reset() {
-	*x = RenderResonse{}
+func (x *RenderResponse) Reset() {
+	*x = RenderResponse{}
 	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RenderResonse) String() string {
+func (x *RenderResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RenderResonse) ProtoMessage() {}
+func (*RenderResponse) ProtoMessage() {}
 
-func (x *RenderResonse) ProtoReflect() protoreflect.Message {
+func (x *RenderResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_plugins_proto_zonemgrplugin_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -756,12 +756,12 @@ func (x *RenderResonse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RenderResonse.ProtoReflect.Descriptor instead.
-func (*RenderResonse) Descriptor() ([]byte, []int) {
+// Deprecated: Use RenderResponse.ProtoReflect.Descriptor instead.
+func (*RenderResponse) Descriptor() ([]byte, []int) {
 	return file_plugins_proto_zonemgrplugin_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *RenderResonse) GetContent() string {
+func (x *RenderResponse) GetContent() string {
 	if x != nil {
 		return x.Content
 	}
@@ -823,16 +823,16 @@ const file_plugins_proto_zonemgrplugin_proto_rawDesc = "" +
 	"\n" +
 	"identifier\x18\x01 \x01(\tR\n" +
 	"identifier\x128\n" +
-	"\x0fresource_record\x18\x02 \x01(\v2\x0f.ResourceRecordR\x0eresourceRecord\")\n" +
-	"\rRenderResonse\x12\x18\n" +
-	"\acontent\x18\x01 \x01(\tR\acontent2\xa1\x02\n" +
+	"\x0fresource_record\x18\x02 \x01(\v2\x0f.ResourceRecordR\x0eresourceRecord\"*\n" +
+	"\x0eRenderResponse\x12\x18\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent2\xa2\x02\n" +
 	"\rZonemgrPlugin\x12/\n" +
 	"\rPluginVersion\x12\x06.Empty\x1a\x16.PluginVersionResponse\x12+\n" +
 	"\vPluginTypes\x12\x06.Empty\x1a\x14.PluginTypesResponse\x12&\n" +
 	"\tConfigure\x12\x11.ConfigureRequest\x1a\x06.Empty\x122\n" +
 	"\tNormalize\x12\x11.NormalizeRequest\x1a\x12.NormalizeResponse\x12,\n" +
-	"\fValidateZone\x12\x14.ValidateZoneRequest\x1a\x06.Empty\x12(\n" +
-	"\x06Render\x12\x0e.RenderRequest\x1a\x0e.RenderResonseB\x11Z\x0f./plugins/protob\x06proto3"
+	"\fValidateZone\x12\x14.ValidateZoneRequest\x1a\x06.Empty\x12)\n" +
+	"\x06Render\x12\x0e.RenderRequest\x1a\x0f.RenderResponseB\x11Z\x0f./plugins/protob\x06proto3"
 
 var (
 	file_plugins_proto_zonemgrplugin_proto_rawDescOnce sync.Once
@@ -861,7 +861,7 @@ var file_plugins_proto_zonemgrplugin_proto_goTypes = []any{
 	(*NormalizeResponse)(nil),     // 10: NormalizeResponse
 	(*ValidateZoneRequest)(nil),   // 11: ValidateZoneRequest
 	(*RenderRequest)(nil),         // 12: RenderRequest
-	(*RenderResonse)(nil),         // 13: RenderResonse
+	(*RenderResponse)(nil),        // 13: RenderResponse
 	nil,                           // 14: Zone.ResourceRecordsEntry
 }
 var file_plugins_proto_zonemgrplugin_proto_depIdxs = []int32{
@@ -886,7 +886,7 @@ var file_plugins_proto_zonemgrplugin_proto_depIdxs = []int32{
 	5,  // 18: ZonemgrPlugin.Configure:output_type -> Empty
 	10, // 19: ZonemgrPlugin.Normalize:output_type -> NormalizeResponse
 	5,  // 20: ZonemgrPlugin.ValidateZone:output_type -> Empty
-	13, // 21: ZonemgrPlugin.Render:output_type -> RenderResonse
+	13, // 21: ZonemgrPlugin.Render:output_type -> RenderResponse
 	16, // [16:22] is the sub-list for method output_type
 	10, // [10:16] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name

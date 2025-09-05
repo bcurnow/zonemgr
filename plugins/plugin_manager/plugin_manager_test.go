@@ -30,6 +30,7 @@ import (
 
 	"github.com/bcurnow/zonemgr/internal/plugins/builtin"
 	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/bcurnow/zonemgr/plugins/grpc_plugins"
 	"github.com/bcurnow/zonemgr/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/go-hclog"
@@ -281,7 +282,7 @@ func TestPluginInstance_DispenseError(t *testing.T) {
 	clientConfig := &goplugin.ClientConfig{
 		HandshakeConfig: plugins.HandshakeConfig,
 		Plugins: map[string]goplugin.Plugin{
-			"does-not-exist": &plugins.GRPCPlugin{},
+			"does-not-exist": &grpc_plugins.GRPCPlugin{},
 		},
 		AllowedProtocols: []goplugin.Protocol{goplugin.ProtocolGRPC}, // We only support plugins of type grpc
 		Cmd:              exec.Command(filepath.Join(exampleDir, "bin", "comment-override/zonemgr-a-record-comment-override-plugin")),

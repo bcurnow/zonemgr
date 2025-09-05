@@ -84,7 +84,7 @@ message RenderRequest {
   ResourceRecord resource_record = 2;
 }
 
-message RenderResonse {
+message RenderResponse {
   string content = 1;
 }
 
@@ -94,5 +94,5 @@ service ZonemgrPlugin {
   rpc Configure(ConfigureRequest) returns (Empty);
   rpc Normalize(NormalizeRequest) returns (NormalizeResponse);
   rpc ValidateZone(ValidateZoneRequest) returns (Empty);
-  rpc Render(RenderRequest) returns (RenderResonse);
+  rpc Render(RenderRequest) returns (RenderResponse);
 }

@@ -27,6 +27,9 @@ func ZoneToProtoBuf(z *models.Zone) *proto.Zone {
 }
 
 func UpdateResourceRecordsFromProtoBuf(p map[string]*proto.ResourceRecord, rrs map[string]*models.ResourceRecord) {
+	if p == nil {
+		return
+	}
 	for identifier, rr := range p {
 		UpdateResourceRecordFromProtoBuf(rr, rrs[identifier])
 	}
@@ -45,6 +48,10 @@ func ResoureRecordsFromProtoBuf(p map[string]*proto.ResourceRecord) map[string]*
 
 func ResourceRecordsToProtoBuf(rrs map[string]*models.ResourceRecord) map[string]*proto.ResourceRecord {
 	protoRRS := make(map[string]*proto.ResourceRecord, len(rrs))
+	if rrs == nil {
+		return protoRRS
+	}
+
 	for identifier, rr := range rrs {
 		protoRRS[identifier] = ResourceRecordToProtoBuf(rr)
 	}

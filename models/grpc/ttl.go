@@ -6,6 +6,9 @@ import (
 )
 
 func UpdateTTLFromProtoBuf(p *proto.TTL, ttl *models.TTL) {
+	if ttl == nil {
+		return
+	}
 	ttl.Value = p.Ttl
 	ttl.Comment = p.Comment
 }
@@ -17,5 +20,9 @@ func TTLFromProtoBuf(p *proto.TTL) *models.TTL {
 }
 
 func TTLToProtoBuf(ttl *models.TTL) *proto.TTL {
+	if ttl == nil {
+		return &proto.TTL{}
+	}
+
 	return &proto.TTL{Ttl: ttl.Value, Comment: ttl.Comment}
 }
