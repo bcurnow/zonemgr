@@ -117,7 +117,7 @@ func TestConfigure_Server(t *testing.T) {
 			call.Return(nil)
 		}
 
-		req := &proto.ConfigureRequest{Config: grpc.ConfigToProtoBufTo(c)}
+		req := &proto.ConfigureRequest{Config: grpc.ConfigToProtoBuf(c)}
 		resp, err := grpcServer.Configure(context.Background(), req)
 		handleError(t, err, tc.err)
 		if tc.err == nil {

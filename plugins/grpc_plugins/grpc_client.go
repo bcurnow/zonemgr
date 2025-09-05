@@ -55,7 +55,7 @@ func (c *GRPCClient) PluginTypes() ([]plugins.PluginType, error) {
 }
 
 func (c *GRPCClient) Configure(config *models.Config) error {
-	_, err := c.client.Configure(context.Background(), &proto.ConfigureRequest{Config: grpc.ConfigToProtoBufTo(config)})
+	_, err := c.client.Configure(context.Background(), &proto.ConfigureRequest{Config: grpc.ConfigToProtoBuf(config)})
 	if err != nil {
 		return err
 	}

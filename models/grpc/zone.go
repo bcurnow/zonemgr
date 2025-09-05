@@ -20,7 +20,7 @@ func ZoneFromProtoBuf(p *proto.Zone) *models.Zone {
 
 func ZoneToProtoBuf(z *models.Zone) *proto.Zone {
 	return &proto.Zone{
-		Config:          ConfigToProtoBufTo(z.Config),
+		Config:          ConfigToProtoBuf(z.Config),
 		ResourceRecords: ResourceRecordsToProtoBuf(z.ResourceRecords),
 		Ttl:             TTLToProtoBuf(z.TTL),
 	}

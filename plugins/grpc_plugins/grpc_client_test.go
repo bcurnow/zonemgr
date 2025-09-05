@@ -103,7 +103,7 @@ func TestConfigure_Client(t *testing.T) {
 
 	for _, tc := range testCases {
 		c := &models.Config{}
-		call := mockClient.EXPECT().Configure(context.Background(), &proto.ConfigureRequest{Config: grpc.ConfigToProtoBufTo(c)})
+		call := mockClient.EXPECT().Configure(context.Background(), &proto.ConfigureRequest{Config: grpc.ConfigToProtoBuf(c)})
 		if tc.err != nil {
 			call.Return(nil, tc.err)
 		} else {
