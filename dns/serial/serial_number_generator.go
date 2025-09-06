@@ -25,6 +25,11 @@ import (
 	"time"
 )
 
+var (
+	sprintf   = fmt.Sprintf
+	parseUint = strconv.ParseUint
+)
+
 type Generator interface {
 	GenerateBase() (*uint32, error)
 	Generate(index uint32) (*uint32, error)
@@ -38,7 +43,7 @@ var _ Generator = &TimeBasedGenerator{}
 // Generates a time-based serial number in the format YYYYMMDD
 func (g *TimeBasedGenerator) GenerateBase() (*uint32, error) {
 	t := time.Now()
-	serialString := fmt.Sprintf("%04d%02d%02d", t.Year(), t.Month(), t.Day())
+	serialString := sprintf("%04d%02d%02d", t.Year(), t.Month(), t.Day())
 	return g.FromString(serialString)
 }
 
@@ -48,13 +53,14 @@ func (g *TimeBasedGenerator) Generate(index uint32) (*uint32, error) {
 	if err != nil {
 		return nil, err
 	}
-	serialString := fmt.Sprintf("%d%02d", *baseSerial, index)
+	serialString := sprintf("%d%02d", *baseSerial, index)
+	fmt.Println(serialString)
 	return g.FromString(serialString)
 }
 
 // Validates that the serialString contains a uint32 value in string form
 func (g *TimeBasedGenerator) FromString(serialString string) (*uint32, error) {
-	parsedSerial, err := strconv.ParseUint(serialString, 10, 32)
+	parsedSerial, err := parseUint(serialString, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate a serial number from string '%s': %w", serialString, err)
 	}
