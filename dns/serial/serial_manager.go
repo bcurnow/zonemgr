@@ -28,13 +28,14 @@ import (
 	"github.com/hashicorp/go-hclog"
 )
 
-const changeIndexFileExtension = "serial"
+const (
+	changeIndexFileExtension        = "serial"
+	initialChangeIndex       uint32 = 1
+)
 
 type SerialManager interface {
 	Next(zoneName string) (string, error)
 }
-
-const initialChangeIndex uint32 = 1
 
 var (
 	generator Generator                  = &TimeBasedGenerator{}
@@ -58,20 +59,23 @@ func (m *fileSerialManager) Next(zoneName string) (string, error) {
 	path := filepath.Join(m.changeIndexDirectory, fmt.Sprintf("%s.%s", zoneName, changeIndexFileExtension))
 
 	// Make sure the file exists
+	var serialIndex *models.SerialIndex
 	if fs.Exists(path) {
 		hclog.L().Trace("Serial change index file exists, processing", "file", path)
-		serial, err := m.incrementAndUpdate(path)
+		si, err := m.incrementAndUpdate(path)
 		if err != nil {
 			return "", err
 		}
-		return serial, nil
+		serialIndex = si
+	} else {
+		hclog.L().Trace("Serial change index file does not exist, creating new one", "file", path)
+		si, err := m.initFile(path)
+		if err != nil {
+			return "", err
+		}
+		serialIndex = si
 	}
 
-	hclog.L().Trace("Serial change index file does not exist, creating new one", "file", path)
-	serialIndex, err := m.initFile(path)
-	if err != nil {
-		return "", err
-	}
 	serialNumber, err := generator.FromSerialIndex(serialIndex)
 	if err != nil {
 		return "", err
@@ -106,24 +110,24 @@ func (m *fileSerialManager) initFile(path string) (*models.SerialIndex, error) {
 	return serialIndex, nil
 }
 
-func (m *fileSerialManager) incrementAndUpdate(path string) (string, error) {
+func (m *fileSerialManager) incrementAndUpdate(path string) (*models.SerialIndex, error) {
 	//Lock the file so no other process modifies it while we're updating
 	fileLock, err := fs.Flock(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer fileLock.Unlock()
 
 	serialIndex, err := m.indexFile.Read(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	//Generate a new base serial number and compare to the base in the file, if they aren't the same, it's a different day
 	//and we should start back at initialChangeIndex
 	newBase, err := generator.GenerateBase()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	hclog.L().Trace("Comparing base serial numbers", "current", *serialIndex.Base, "new", *newBase)
@@ -137,14 +141,11 @@ func (m *fileSerialManager) incrementAndUpdate(path string) (string, error) {
 	}
 
 	hclog.L().Trace("Writing updated serial change index file", "file", path, "baseSerialNumber", *serialIndex.Base, "changeIndex", *serialIndex.ChangeIndex)
-
 	// Write the updated values back to the file
-	m.indexFile.Write(path, serialIndex)
-
-	serialNumber, err := generator.FromSerialIndex(serialIndex)
+	err = m.indexFile.Write(path, serialIndex)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	hclog.L().Trace("Returning next serial number", "serialNumber", serialNumber)
-	return serialNumber, nil
+
+	return serialIndex, nil
 }
