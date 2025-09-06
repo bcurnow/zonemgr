@@ -34,23 +34,23 @@ type SerialManager interface {
 	Next(zoneName string) (string, error)
 }
 
-const initalChangeIndex uint32 = 1
+const initialChangeIndex uint32 = 1
 
 var (
-	generator Generator = &TimeBasedGenerator{}
-	fs                  = &utils.FileSystem{}
+	generator Generator                  = &TimeBasedGenerator{}
+	fs        utils.FileSystemOperations = &utils.FileSystem{}
 )
 
-type fileSerialmanager struct {
+type fileSerialManager struct {
 	changeIndexDirectory string
-	indexFile            *utils.SerialIndexYamlFile
+	indexFile            utils.YamlFile[*models.SerialIndex]
 }
 
 func FileSerialManager(changeIndexDirectory string) SerialManager {
-	return &fileSerialmanager{changeIndexDirectory: changeIndexDirectory, indexFile: &utils.SerialIndexYamlFile{}}
+	return &fileSerialManager{changeIndexDirectory: changeIndexDirectory, indexFile: &utils.SerialIndexYamlFile{}}
 }
 
-func (m *fileSerialmanager) Next(zoneName string) (string, error) {
+func (m *fileSerialManager) Next(zoneName string) (string, error) {
 	if err := fs.MkdirAll(m.changeIndexDirectory, 0750); err != nil {
 		return "", err
 	}
@@ -72,11 +72,15 @@ func (m *fileSerialmanager) Next(zoneName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	hclog.L().Trace("Returning next serial number", "serialNumber", serialIndex.Serial())
-	return serialIndex.Serial(), nil
+	serialNumber, err := generator.FromSerialIndex(serialIndex)
+	if err != nil {
+		return "", err
+	}
+	hclog.L().Trace("Returning next serial number", "serialNumber", serialNumber)
+	return serialNumber, nil
 }
 
-func (m *fileSerialmanager) initFile(path string) (*models.SerialIndex, error) {
+func (m *fileSerialManager) initFile(path string) (*models.SerialIndex, error) {
 	hclog.L().Debug("Creating new serial file", "file", path)
 	//Lock the file so no other process modifies it while we're updating
 	fileLock, err := fs.Flock(path)
@@ -92,7 +96,7 @@ func (m *fileSerialmanager) initFile(path string) (*models.SerialIndex, error) {
 
 	// This is a bit strange, however, I don't want an initial value that can be changed
 	// Since you can't get a pointer to a constant, this is the work around
-	changeIndex := initalChangeIndex
+	changeIndex := initialChangeIndex
 	// Create a new SerialIndex structure. We hardcode 1 as this is a new file
 	serialIndex := &models.SerialIndex{Base: base, ChangeIndex: &changeIndex}
 	if err := m.indexFile.Write(path, serialIndex); err != nil {
@@ -102,7 +106,7 @@ func (m *fileSerialmanager) initFile(path string) (*models.SerialIndex, error) {
 	return serialIndex, nil
 }
 
-func (m *fileSerialmanager) incrementAndUpdate(path string) (string, error) {
+func (m *fileSerialManager) incrementAndUpdate(path string) (string, error) {
 	//Lock the file so no other process modifies it while we're updating
 	fileLock, err := fs.Flock(path)
 	if err != nil {
@@ -126,7 +130,7 @@ func (m *fileSerialmanager) incrementAndUpdate(path string) (string, error) {
 	if *serialIndex.Base != *newBase {
 		serialIndex.Base = newBase
 		// Again with the constant/pointer workaround
-		changeIndex := initalChangeIndex
+		changeIndex := initialChangeIndex
 		serialIndex.ChangeIndex = &changeIndex
 	} else {
 		*serialIndex.ChangeIndex++
@@ -137,6 +141,10 @@ func (m *fileSerialmanager) incrementAndUpdate(path string) (string, error) {
 	// Write the updated values back to the file
 	m.indexFile.Write(path, serialIndex)
 
-	hclog.L().Trace("Returning next serial number", "serialNumber", serialIndex.Serial())
-	return serialIndex.Serial(), nil
+	serialNumber, err := generator.FromSerialIndex(serialIndex)
+	if err != nil {
+		return "", err
+	}
+	hclog.L().Trace("Returning next serial number", "serialNumber", serialNumber)
+	return serialNumber, nil
 }
