@@ -19,16 +19,7 @@
 
 package models
 
-import "strconv"
-
 type SerialIndex struct {
 	Base        *uint32 `yaml:"base_serial_number"`
 	ChangeIndex *uint32 `yaml:"change_index"`
-}
-
-func (si *SerialIndex) Serial() string {
-	if nil == si.Base || nil == si.ChangeIndex {
-		return ""
-	}
-	return strconv.Itoa(int(*si.Base)) + strconv.Itoa(int(*si.ChangeIndex))
 }

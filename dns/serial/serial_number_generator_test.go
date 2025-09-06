@@ -20,11 +20,11 @@
 package serial
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"testing"
 
+	"github.com/bcurnow/zonemgr/models"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -61,48 +61,6 @@ func TestGenerateBase(t *testing.T) {
 	}
 }
 
-func TestGenerate(t *testing.T) {
-	setup_SerialNumberGenerator(t)
-	defer teardown_SerialNumberGenerator(t)
-	testCases := []struct {
-		index uint32
-		want  *uint32
-	}{
-		{index: uint32(32), want: toUint32Ptr(1234567832)},
-		{index: uint32(1), want: toUint32Ptr(1234567801)},
-	}
-
-	for _, tc := range testCases {
-
-		serial, err := (&TimeBasedGenerator{}).Generate(tc.index)
-
-		if err != nil {
-			t.Errorf("unexpected error: %s", err)
-		}
-
-		if !cmp.Equal(serial, tc.want) {
-			t.Errorf("incorrect result: %d, want: %d", *serial, *tc.want)
-		}
-	}
-}
-
-func TestGenerate_Error(t *testing.T) {
-	setup_SerialNumberGenerator(t)
-	defer teardown_SerialNumberGenerator(t)
-	parseUint = func(_ string, _, _ int) (uint64, error) {
-		return uint64(0), errors.New("testing")
-	}
-	_, err := (&TimeBasedGenerator{}).Generate(uint32(1))
-	if err == nil {
-		t.Error("expected an error, found none")
-	} else {
-		want := "unable to generate a serial number from string '12345678': testing"
-		if err.Error() != want {
-			t.Errorf("incorrect error: '%s', want: '%s'", err, want)
-		}
-	}
-}
-
 func TestFromString(t *testing.T) {
 	setup_SerialNumberGenerator(t)
 	defer teardown_SerialNumberGenerator(t)
@@ -135,6 +93,46 @@ func TestFromString(t *testing.T) {
 			} else {
 				if *serial != *testSerial {
 					t.Errorf("incorrect result: %d, want: %d", *serial, *testSerial)
+				}
+			}
+		}
+	}
+}
+
+func TestFromSerialIndex(t *testing.T) {
+	setup_SerialNumberGenerator(t)
+	defer teardown_SerialNumberGenerator(t)
+	testCases := []struct {
+		si   *models.SerialIndex
+		want string
+		err  bool
+	}{
+		{si: nil, err: true},
+		{si: &models.SerialIndex{}, err: true},
+		{si: &models.SerialIndex{Base: toUint32Ptr(12345678)}, err: true},
+		{si: &models.SerialIndex{ChangeIndex: toUint32Ptr(1)}, err: true},
+		{want: "1234567800", si: &models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(0)}},
+		{want: "1234567801", si: &models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(1)}},
+		{want: "1234567832", si: &models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(32)}},
+	}
+
+	for _, tc := range testCases {
+		serial, err := (&TimeBasedGenerator{}).FromSerialIndex(tc.si)
+		if err != nil {
+			if tc.err {
+				want := fmt.Sprintf("unable to convert SerialIndex to a serial number: '%v'", tc.si)
+				if err.Error() != want {
+					t.Errorf("incorrect error: '%s', want: '%s'", err, want)
+				}
+			} else {
+				t.Errorf("unexpected error: %s", err)
+			}
+		} else {
+			if tc.err {
+				t.Error("expected an error, found none")
+			} else {
+				if serial != tc.want {
+					t.Errorf("incorrect serial: '%s', want: '%s'", serial, tc.want)
 				}
 			}
 		}

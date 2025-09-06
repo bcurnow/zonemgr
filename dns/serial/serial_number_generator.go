@@ -23,6 +23,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/bcurnow/zonemgr/models"
 )
 
 var (
@@ -32,8 +34,8 @@ var (
 
 type Generator interface {
 	GenerateBase() (*uint32, error)
-	Generate(index uint32) (*uint32, error)
 	FromString(serialString string) (*uint32, error)
+	FromSerialIndex(si *models.SerialIndex) (string, error)
 }
 
 type TimeBasedGenerator struct{}
@@ -44,17 +46,6 @@ var _ Generator = &TimeBasedGenerator{}
 func (g *TimeBasedGenerator) GenerateBase() (*uint32, error) {
 	t := time.Now()
 	serialString := sprintf("%04d%02d%02d", t.Year(), t.Month(), t.Day())
-	return g.FromString(serialString)
-}
-
-// Generates a time-based serial number plus a numeric index
-func (g *TimeBasedGenerator) Generate(index uint32) (*uint32, error) {
-	baseSerial, err := g.GenerateBase()
-	if err != nil {
-		return nil, err
-	}
-	serialString := sprintf("%d%02d", *baseSerial, index)
-	fmt.Println(serialString)
 	return g.FromString(serialString)
 }
 
@@ -70,4 +61,13 @@ func (g *TimeBasedGenerator) FromString(serialString string) (*uint32, error) {
 	// we'll convert the parsed serial back into an int32
 	serial := uint32(parsedSerial)
 	return &serial, nil
+}
+
+func (g *TimeBasedGenerator) FromSerialIndex(si *models.SerialIndex) (string, error) {
+	if si == nil || si.Base == nil || si.ChangeIndex == nil {
+		return "", fmt.Errorf("unable to convert SerialIndex to a serial number: '%v'", si)
+	}
+	serialString := fmt.Sprintf("%d%02d", *si.Base, *si.ChangeIndex)
+
+	return serialString, nil
 }
