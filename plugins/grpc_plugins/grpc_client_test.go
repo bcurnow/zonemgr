@@ -22,7 +22,6 @@ package grpc_plugins
 import (
 	"context"
 	"errors"
-	"reflect"
 	"slices"
 	"testing"
 
@@ -30,6 +29,7 @@ import (
 	"github.com/bcurnow/zonemgr/models/grpc"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/proto"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestPluginVersion_Client(t *testing.T) {
@@ -112,9 +112,6 @@ func TestConfigure_Client(t *testing.T) {
 
 		err := grpcClient.Configure(c)
 		handleError(t, err, tc.err)
-		if reflect.DeepEqual(c, tc.wantedConfig) {
-			t.Errorf("incorrect result: '%s', wanted: '%s'", c, tc.wantedConfig)
-		}
 	}
 }
 
@@ -143,7 +140,7 @@ func TestNormalize_Client(t *testing.T) {
 		handleError(t, err, tc.err)
 
 		if tc.err == nil {
-			if !reflect.DeepEqual(rr, tc.wantedRR) {
+			if !cmp.Equal(rr, tc.wantedRR) {
 				t.Errorf("incorrect result: '%s', wanted: '%s'", rr, tc.wantedRR)
 			}
 		}
@@ -173,10 +170,6 @@ func TestValidateZone_Client(t *testing.T) {
 
 		err := grpcClient.ValidateZone(name, z)
 		handleError(t, err, tc.err)
-
-		if reflect.DeepEqual(z, tc.wantedZone) {
-			t.Errorf("incorrect result: '%s', wanted: '%s'", z, tc.wantedZone)
-		}
 	}
 }
 

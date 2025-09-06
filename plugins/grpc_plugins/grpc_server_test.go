@@ -22,7 +22,6 @@ package grpc_plugins
 import (
 	"context"
 	"errors"
-	"reflect"
 	"slices"
 	"testing"
 
@@ -30,6 +29,8 @@ import (
 	"github.com/bcurnow/zonemgr/models/grpc"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/proto"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestPluginVersion_Server(t *testing.T) {
@@ -121,7 +122,7 @@ func TestConfigure_Server(t *testing.T) {
 		resp, err := grpcServer.Configure(context.Background(), req)
 		handleError(t, err, tc.err)
 		if tc.err == nil {
-			if !reflect.DeepEqual(resp, emptyMessage) {
+			if !cmp.Equal(resp, emptyMessage, cmpopts.IgnoreUnexported(proto.Empty{})) {
 				t.Errorf("incorrect response: '%v', want: '%v'", resp, emptyMessage)
 			}
 		}
@@ -153,7 +154,7 @@ func TestNormalize_Server(t *testing.T) {
 		handleError(t, err, tc.err)
 		if tc.err == nil {
 			wantResp := &proto.NormalizeResponse{ResourceRecord: grpc.ResourceRecordToProtoBuf(rr)}
-			if !reflect.DeepEqual(resp, wantResp) {
+			if !cmp.Equal(resp, wantResp, cmpopts.IgnoreUnexported(proto.NormalizeResponse{}, proto.ResourceRecord{}, proto.ResourceRecordValue{})) {
 				t.Errorf("incorrect response: '%v', want: '%v'", resp, wantResp)
 			}
 		}
@@ -172,7 +173,7 @@ func TestValidateZone_Server(t *testing.T) {
 
 	for _, tc := range testCases {
 		name := "testing"
-		zone := &models.Zone{}
+		zone := &models.Zone{ResourceRecords: make(map[string]*models.ResourceRecord)}
 		call := mockImpl.EXPECT().ValidateZone(name, zone)
 		if tc.err != nil {
 			call.Return(tc.err)
@@ -184,7 +185,7 @@ func TestValidateZone_Server(t *testing.T) {
 		resp, err := grpcServer.ValidateZone(context.Background(), req)
 		handleError(t, err, tc.err)
 		if tc.err == nil {
-			if !reflect.DeepEqual(resp, emptyMessage) {
+			if !cmp.Equal(resp, emptyMessage, cmpopts.IgnoreUnexported(proto.Empty{})) {
 				t.Errorf("incorrect response: '%v', want: '%v'", resp, emptyMessage)
 			}
 		}
@@ -215,7 +216,7 @@ func TestRender_Server(t *testing.T) {
 		handleError(t, err, tc.err)
 		if tc.err == nil {
 			wantResp := &proto.RenderResponse{Content: "rendered"}
-			if !reflect.DeepEqual(resp, wantResp) {
+			if !cmp.Equal(resp, wantResp, cmpopts.IgnoreUnexported(proto.RenderResponse{})) {
 				t.Errorf("incorrect response: '%v', want: '%v'", resp, wantResp)
 			}
 		}

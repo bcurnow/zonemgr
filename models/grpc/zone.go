@@ -6,54 +6,48 @@ import (
 )
 
 // Updates the passed in zone with values from the protocol buff
-func UpdateZoneFromProtoBuf(p *proto.Zone, zone *models.Zone) {
-	ConfigFromProtoBuf(p.Config, zone.Config)
-	UpdateResourceRecordsFromProtoBuf(p.ResourceRecords, zone.ResourceRecords)
-	TTLFromProtoBuf(p.Ttl, zone.TTL)
-}
-
-func ZoneFromProtoBuf(p *proto.Zone) *models.Zone {
-	zone := &models.Zone{}
-	UpdateZoneFromProtoBuf(p, zone)
-	return zone
+func ZoneFromProtoBuf(p *proto.Zone, z *models.Zone) {
+	if p == nil || z == nil {
+		return
+	}
+	ConfigFromProtoBuf(p.Config, z.Config)
+	resourceRecordsFromProtoBuf(p, z)
+	TTLFromProtoBuf(p.Ttl, z.TTL)
 }
 
 func ZoneToProtoBuf(z *models.Zone) *proto.Zone {
-	return &proto.Zone{
-		Config:          ConfigToProtoBuf(z.Config),
-		ResourceRecords: ResourceRecordsToProtoBuf(z.ResourceRecords),
-		Ttl:             TTLToProtoBuf(z.TTL),
+	if z == nil {
+		return nil
 	}
+	proto :=
+		&proto.Zone{
+			Config:          ConfigToProtoBuf(z.Config),
+			ResourceRecords: resourceRecordsToProtoBuf(z),
+			Ttl:             TTLToProtoBuf(z.TTL),
+		}
+	return proto
 }
 
-func UpdateResourceRecordsFromProtoBuf(p map[string]*proto.ResourceRecord, rrs map[string]*models.ResourceRecord) {
-	if p == nil {
-		return
-	}
-	for identifier, rr := range p {
-		ResourceRecordFromProtoBuf(rr, rrs[identifier])
-	}
-}
-
-func ResoureRecordsFromProtoBuf(p map[string]*proto.ResourceRecord) map[string]*models.ResourceRecord {
-	rrs := make(map[string]*models.ResourceRecord, len(p))
-	for identifier, prr := range p {
+func resourceRecordsFromProtoBuf(p *proto.Zone, z *models.Zone) {
+	rrs := make(map[string]*models.ResourceRecord, len(p.ResourceRecords))
+	z.ResourceRecords = rrs
+	for identifier, prr := range p.ResourceRecords {
 		rr := &models.ResourceRecord{}
 		ResourceRecordFromProtoBuf(prr, rr)
 		rrs[identifier] = rr
 	}
-
-	return rrs
 }
 
-func ResourceRecordsToProtoBuf(rrs map[string]*models.ResourceRecord) map[string]*proto.ResourceRecord {
-	protoRRS := make(map[string]*proto.ResourceRecord, len(rrs))
-	if rrs == nil {
-		return protoRRS
+func resourceRecordsToProtoBuf(z *models.Zone) map[string]*proto.ResourceRecord {
+	if z.ResourceRecords == nil {
+		rrs := make(map[string]*proto.ResourceRecord, 0)
+		return rrs
+	}
+	rrs := make(map[string]*proto.ResourceRecord, len(z.ResourceRecords))
+
+	for identifier, rr := range z.ResourceRecords {
+		rrs[identifier] = ResourceRecordToProtoBuf(rr)
 	}
 
-	for identifier, rr := range rrs {
-		protoRRS[identifier] = ResourceRecordToProtoBuf(rr)
-	}
-	return protoRRS
+	return rrs
 }

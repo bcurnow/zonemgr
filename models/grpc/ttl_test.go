@@ -19,11 +19,12 @@
 package grpc
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins/proto"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestTTLFromProtoBuf(t *testing.T) {
@@ -43,14 +44,13 @@ func TestTTLFromProtoBuf(t *testing.T) {
 	for _, tc := range testCases {
 		input := &models.TTL{}
 		want := tc.ttl
-
 		if tc.ttl == nil || tc.proto == nil {
 			input = nil
 			want = nil
 		}
 		TTLFromProtoBuf(tc.proto, input)
 
-		if !reflect.DeepEqual(input, want) {
+		if !cmp.Equal(input, want) {
 			t.Errorf("incorrect result: %s, want: %s", input, want)
 		}
 	}
@@ -71,7 +71,7 @@ func TestTTLToProtoBuf(t *testing.T) {
 	for _, tc := range testCases {
 		result := TTLToProtoBuf(tc.ttl)
 
-		if !reflect.DeepEqual(result, tc.proto) {
+		if !cmp.Equal(result, tc.proto, cmpopts.IgnoreUnexported(proto.TTL{})) {
 			t.Errorf("incorrect result: %s, want: %s", result, tc.proto)
 		}
 	}

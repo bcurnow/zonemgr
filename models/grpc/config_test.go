@@ -20,11 +20,12 @@
 package grpc
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins/proto"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestConfigFromProtoBuf(t *testing.T) {
@@ -33,6 +34,7 @@ func TestConfigFromProtoBuf(t *testing.T) {
 		proto  *proto.Config
 	}{
 		{config: nil, proto: nil},
+		{config: nil, proto: &proto.Config{}},
 		{config: &models.Config{}, proto: nil},
 		{config: &models.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing"}, proto: &proto.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing"}},
 	}
@@ -44,14 +46,8 @@ func TestConfigFromProtoBuf(t *testing.T) {
 		}
 		ConfigFromProtoBuf(tc.proto, inputConfig)
 
-		if tc.config == nil {
-			if inputConfig != nil {
-				t.Errorf("expected nil config input to return nil")
-			}
-		} else {
-			if !reflect.DeepEqual(inputConfig, tc.config) {
-				t.Errorf("incorrect result: %s, want: %s", inputConfig, tc.config)
-			}
+		if !cmp.Equal(inputConfig, tc.config) {
+			t.Errorf("incorrect result: %s, want: %s", inputConfig, tc.config)
 		}
 	}
 }
@@ -79,7 +75,7 @@ func TestConfigToProtoBuf(t *testing.T) {
 	for _, tc := range testCases {
 		result := ConfigToProtoBuf(tc.config)
 
-		if !reflect.DeepEqual(result, tc.proto) {
+		if !cmp.Equal(result, tc.proto, cmpopts.IgnoreUnexported(proto.Config{})) {
 			t.Errorf("incorrect result: %s, want: %s", result, tc.proto)
 		}
 	}

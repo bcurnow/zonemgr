@@ -20,14 +20,15 @@
 package grpc
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins/proto"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestUpdateResourceRecordFromProtoBuf(t *testing.T) {
+func TestResourceRecordFromProtoBuf(t *testing.T) {
 	testCases := []struct {
 		rr    *models.ResourceRecord
 		proto *proto.ResourceRecord
@@ -35,6 +36,7 @@ func TestUpdateResourceRecordFromProtoBuf(t *testing.T) {
 		{rr: nil, proto: nil},
 		{rr: nil, proto: &proto.ResourceRecord{}},
 		{rr: &models.ResourceRecord{}, proto: nil},
+		{rr: &models.ResourceRecord{}, proto: &proto.ResourceRecord{}},
 		{
 			rr: &models.ResourceRecord{
 				Type:    models.A,
@@ -65,7 +67,7 @@ func TestUpdateResourceRecordFromProtoBuf(t *testing.T) {
 
 		ResourceRecordFromProtoBuf(tc.proto, input)
 
-		if !reflect.DeepEqual(input, tc.rr) {
+		if !cmp.Equal(input, tc.rr) {
 			t.Errorf("incorrect result: %s, want: %s", input, tc.rr)
 		}
 	}
@@ -97,12 +99,31 @@ func TestUpdateResourceRecordToProtoBuf(t *testing.T) {
 				Comment: "test-comment",
 			},
 		},
+		{
+			rr: &models.ResourceRecord{
+				Type:    models.A,
+				Name:    "testing",
+				Class:   models.INTERNET,
+				TTL:     toInt32Ptr(99),
+				Values:  make([]*models.ResourceRecordValue, 0),
+				Value:   "test-value",
+				Comment: "test-comment",
+			},
+			proto: &proto.ResourceRecord{
+				Type:    "A",
+				Name:    "testing",
+				Class:   "IN",
+				Ttl:     toInt32Ptr(99),
+				Value:   "test-value",
+				Comment: "test-comment",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		result := ResourceRecordToProtoBuf(tc.rr)
 
-		if !reflect.DeepEqual(result, tc.proto) {
+		if !cmp.Equal(result, tc.proto, cmpopts.IgnoreTypes(proto.ResourceRecord{}, proto.ResourceRecordValue{})) {
 			t.Errorf("incorrect result: %s, want: %s", result, tc.proto)
 		}
 	}

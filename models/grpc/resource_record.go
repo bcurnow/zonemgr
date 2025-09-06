@@ -36,7 +36,7 @@ func ResourceRecordToProtoBuf(rr *models.ResourceRecord) *proto.ResourceRecord {
 }
 
 func resourceRecordValuesFromProtoBuf(p *proto.ResourceRecord, rr *models.ResourceRecord) {
-	if p == nil || rr == nil {
+	if p == nil || rr == nil || p.Values == nil {
 		return
 	}
 

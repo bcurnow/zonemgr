@@ -67,7 +67,9 @@ func (s *GRPCServer) Normalize(ctx context.Context, req *proto.NormalizeRequest)
 }
 
 func (s *GRPCServer) ValidateZone(ctx context.Context, req *proto.ValidateZoneRequest) (*proto.Empty, error) {
-	err := s.Impl.ValidateZone(req.Name, grpc.ZoneFromProtoBuf(req.Zone))
+	zone := &models.Zone{}
+	grpc.ZoneFromProtoBuf(req.Zone, zone)
+	err := s.Impl.ValidateZone(req.Name, zone)
 	return &proto.Empty{}, err
 }
 
