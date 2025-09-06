@@ -1,6 +1,7 @@
 	github.com/bcurnow/zonemgr/main.go
 	github.com/bcurnow/zonemgr/dns/mock_normalizer.go
 	github.com/bcurnow/zonemgr/dns/serial/mock_serial_manager.go
+	github.com/bcurnow/zonemgr/dns/serial/mock_serial_number_generator.go
 	github.com/bcurnow/zonemgr/plugins/plugin_manager/mock_plugin_manager.go
 	github.com/bcurnow/zonemgr/plugins/mock_soa_values_normalizer.go
 	github.com/bcurnow/zonemgr/plugins/mock_validator.go
