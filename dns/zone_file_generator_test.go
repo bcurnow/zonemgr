@@ -36,7 +36,7 @@ func TestPluginZoneFileGenerator(t *testing.T) {
 	res2 := PluginZoneFileGenerator(mockPlugins, mockMetadata)
 
 	if res1 == res2 {
-		t.Errorf(expected a new instance on each call, got same instance")
+		t.Errorf("expected a new instance on each call, got same instance")
 	}
 }
 
