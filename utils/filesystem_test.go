@@ -128,7 +128,7 @@ func TestCreateFile(t *testing.T) {
 			} else {
 				content, err := os.ReadFile(testFile.Name())
 				if err != nil {
-					t.Errorf("Unable to read test file '%s': %s", testFile.Name(), err)
+					t.Errorf("unable to read test file '%s': %s", testFile.Name(), err)
 				} else {
 					if !slices.Equal(content, []byte("content")) {
 						t.Errorf("incorrect content in test file '%s': '%s', want '%s'", testFile.Name(), content, "content")

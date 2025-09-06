@@ -45,7 +45,7 @@ func TestConfigureLogging(t *testing.T) {
 
 		ConfigureLogging(tc.want.Level, tc.want.JSONFormat, tc.want.DisableTime, toLogColor(tc.want.Color))
 		if diff := cmp.Diff(hclog.DefaultOptions, tc.want, loggerOptsCompare()); diff != "" {
-			t.Errorf("Incorrect DefaultOptions:\n%s", diff)
+			t.Errorf("incorrect DefaultOptions:\n%s", diff)
 		}
 
 	}
@@ -65,7 +65,7 @@ func TestDefaultLogging(t *testing.T) {
 	want.Output = os.Stderr
 
 	if diff := cmp.Diff(hclog.DefaultOptions, want, loggerOptsCompare()); diff != "" {
-		t.Errorf("Incorrect DefaultOptions:\n%s", diff)
+		t.Errorf("incorrect DefaultOptions:\n%s", diff)
 	}
 
 }

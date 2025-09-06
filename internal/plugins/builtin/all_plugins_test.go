@@ -91,14 +91,14 @@ func TestConfigure(t *testing.T) {
 			value = value.Elem()
 		}
 		if value.Kind() != reflect.Struct {
-			t.Errorf("Unable to use reflection to get config value for %s", pluginType)
+			t.Errorf("unable to use reflection to get config value for %s", pluginType)
 		}
 		configField := value.FieldByName("config")
 		if configField.IsValid() {
 			// This plugin stores configuration
 			actualConfig := reflect.NewAt(configField.Type(), unsafe.Pointer(configField.UnsafeAddr())).Elem().Interface().(*models.Config)
 			if !cmp.Equal(pluginTest.expectedConfig, actualConfig) {
-				t.Errorf("Unexpected config value for %s:\n%s", pluginType, cmp.Diff(pluginTest.expectedConfig, actualConfig))
+				t.Errorf("unexpected config value for %s:\n%s", pluginType, cmp.Diff(pluginTest.expectedConfig, actualConfig))
 			}
 		}
 	}

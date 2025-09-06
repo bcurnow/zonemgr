@@ -44,7 +44,7 @@ func TestLastOctet(t *testing.T) {
 		res := (&zoneReverser{}).lastOctet(tc.value)
 
 		if res != tc.want {
-			t.Errorf("Unexpected result: '%s', want '%s'", res, tc.want)
+			t.Errorf("unexpected result: '%s', want '%s'", res, tc.want)
 		}
 	}
 }
@@ -67,7 +67,7 @@ func TestReverseZoneName(t *testing.T) {
 		res := (&zoneReverser{}).reverseZoneName(tc.value)
 
 		if res != tc.want {
-			t.Errorf("Unexpected result: '%s', want '%s'", res, tc.want)
+			t.Errorf("unexpected result: '%s', want '%s'", res, tc.want)
 		}
 	}
 }
@@ -107,7 +107,7 @@ func TestToPTR(t *testing.T) {
 		ptr := (&zoneReverser{}).toPTR("example.com", tc.rr)
 
 		if !cmp.Equal(ptr, tc.want) {
-			t.Errorf("Unexpected result for %s:\n%s", tc.name, cmp.Diff(ptr, tc.want))
+			t.Errorf("unexpected result for %s:\n%s", tc.name, cmp.Diff(ptr, tc.want))
 		}
 	}
 }
@@ -148,17 +148,17 @@ func TestReverseZone(t *testing.T) {
 
 	reverseZones := (&zoneReverser{}).ReverseZone("testing.example.com.", zone)
 	if len(reverseZones) != 2 {
-		t.Errorf("Expected 2 reverse zones, got %d", len(reverseZones))
+		t.Errorf("expected 2 reverse zones, got %d", len(reverseZones))
 	}
 
 	for zoneName, wantedReverseZone := range wantedReverseZones {
 		reverseZone, ok := reverseZones[zoneName]
 		if !ok {
-			t.Errorf("Expected to find zone '%s' but was missing", zoneName)
+			t.Errorf("expected to find zone '%s' but was missing", zoneName)
 		}
 
 		if !cmp.Equal(reverseZone, wantedReverseZone, cmpopts.IgnoreUnexported(models.Zone{})) {
-			t.Errorf("Incorrect reverse zone:\n%s", cmp.Diff(reverseZone, wantedReverseZone, cmpopts.IgnoreUnexported(models.Zone{})))
+			t.Errorf("incorrect reverse zone:\n%s", cmp.Diff(reverseZone, wantedReverseZone, cmpopts.IgnoreUnexported(models.Zone{})))
 		}
 	}
 }
@@ -175,7 +175,7 @@ func TestReverseZone_NoResourceRecords(t *testing.T) {
 
 	reverseZones := (&zoneReverser{}).ReverseZone("testing.example.com.", zone)
 	if len(reverseZones) != 0 {
-		t.Errorf("Expected no zones but found %d", len(reverseZones))
+		t.Errorf("expected no zones but found %d", len(reverseZones))
 	}
 }
 
@@ -187,6 +187,6 @@ func TestReverser(t *testing.T) {
 	two := Reverser()
 
 	if one == two {
-		t.Error("Expected two different instances")
+		t.Error("expected two different instances")
 	}
 }

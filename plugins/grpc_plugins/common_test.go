@@ -53,7 +53,7 @@ func handleError(t *testing.T, err error, wanted error) {
 		t.Errorf("expected error")
 	} else if wanted != nil && err != nil {
 		if err.Error() != wanted.Error() {
-			t.Errorf("Unexpected error:\n'%s'\nwant\n'%s'", err, wanted)
+			t.Errorf("unexpected error:\n'%s'\nwant\n'%s'", err, wanted)
 		}
 	} else if wanted == nil && err != nil {
 		t.Errorf("unexpected error:\n'%s'", err)

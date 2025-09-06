@@ -204,13 +204,13 @@ func (fs *FileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 func determineHomeDir() {
 	dir, err := userHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to retrieve current user's home directory: %s\n", err)
+		fmt.Fprintf(os.Stderr, "unable to retrieve current user's home directory: %s\n", err)
 		workingDir, err := getWd()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Could not determine current working directory, returning empty string")
+			fmt.Fprintln(os.Stderr, "could not determine current working directory, returning empty string")
 			dir = ""
 		} else {
-			fmt.Fprintf(os.Stderr, "Defaulting to current working directory: %s\n", workingDir)
+			fmt.Fprintf(os.Stderr, "defaulting to current working directory: %s\n", workingDir)
 			dir = workingDir
 		}
 	}
