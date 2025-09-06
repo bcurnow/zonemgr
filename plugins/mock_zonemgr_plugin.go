@@ -63,10 +63,10 @@ func (mr *MockZoneMgrPluginMockRecorder) Normalize(identifier, rr interface{}) *
 }
 
 // PluginTypes mocks base method.
-func (m *MockZoneMgrPlugin) PluginTypes() ([]PluginType, error) {
+func (m *MockZoneMgrPlugin) PluginTypes() ([]Type, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PluginTypes")
-	ret0, _ := ret[0].([]PluginType)
+	ret0, _ := ret[0].([]Type)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

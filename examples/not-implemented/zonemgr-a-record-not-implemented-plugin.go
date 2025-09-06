@@ -38,7 +38,7 @@ func (th *Plugin) PluginVersion() (string, error) {
 	return "", errors.New("testing Plugin - Not Implemented")
 }
 
-func (th *Plugin) PluginTypes() ([]plugins.PluginType, error) {
+func (th *Plugin) PluginTypes() ([]plugins.Type, error) {
 	return nil, errors.New("testing Plugin - Not Implemented")
 }
 

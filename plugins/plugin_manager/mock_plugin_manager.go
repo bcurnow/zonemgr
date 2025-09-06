@@ -49,10 +49,10 @@ func (mr *MockPluginManagerMockRecorder) LoadPlugins(pluginDir interface{}) *gom
 }
 
 // Metadata mocks base method.
-func (m *MockPluginManager) Metadata() map[plugins.PluginType]*plugins.Metadata {
+func (m *MockPluginManager) Metadata() map[plugins.Type]*plugins.Metadata {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Metadata")
-	ret0, _ := ret[0].(map[plugins.PluginType]*plugins.Metadata)
+	ret0, _ := ret[0].(map[plugins.Type]*plugins.Metadata)
 	return ret0
 }
 
@@ -63,10 +63,10 @@ func (mr *MockPluginManagerMockRecorder) Metadata() *gomock.Call {
 }
 
 // Plugins mocks base method.
-func (m *MockPluginManager) Plugins() map[plugins.PluginType]plugins.ZoneMgrPlugin {
+func (m *MockPluginManager) Plugins() map[plugins.Type]plugins.ZoneMgrPlugin {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Plugins")
-	ret0, _ := ret[0].(map[plugins.PluginType]plugins.ZoneMgrPlugin)
+	ret0, _ := ret[0].(map[plugins.Type]plugins.ZoneMgrPlugin)
 	return ret0
 }
 

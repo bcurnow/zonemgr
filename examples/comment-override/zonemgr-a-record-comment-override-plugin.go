@@ -38,7 +38,7 @@ func (th *Plugin) PluginVersion() (string, error) {
 	return "1.0.0", nil
 }
 
-func (th *Plugin) PluginTypes() ([]plugins.PluginType, error) {
+func (th *Plugin) PluginTypes() ([]plugins.Type, error) {
 	return plugins.PluginTypes(plugins.A), nil
 }
 

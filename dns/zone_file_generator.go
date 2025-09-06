@@ -34,11 +34,11 @@ type ZoneFileGenerator interface {
 }
 type pluginZoneFileGenerator struct {
 	ZoneFileGenerator
-	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
-	metadata map[plugins.PluginType]*plugins.Metadata
+	plugins  map[plugins.Type]plugins.ZoneMgrPlugin
+	metadata map[plugins.Type]*plugins.Metadata
 }
 
-func PluginZoneFileGenerator(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.Metadata) ZoneFileGenerator {
+func PluginZoneFileGenerator(plugins map[plugins.Type]plugins.ZoneMgrPlugin, metadata map[plugins.Type]*plugins.Metadata) ZoneFileGenerator {
 	return &pluginZoneFileGenerator{plugins: plugins, metadata: metadata}
 }
 
@@ -60,7 +60,7 @@ func (zfg *pluginZoneFileGenerator) generate(name string, zone *models.Zone) ([]
 		content.WriteString("\n")
 	}
 
-	if err := plugins.WithSortedPlugins(zfg.plugins, zfg.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
+	if err := plugins.WithSortedPlugins(zfg.plugins, zfg.metadata, func(pluginType plugins.Type, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
 		p.Configure(zone.Config)
 		return nil
 	}); err != nil {
@@ -70,7 +70,7 @@ func (zfg *pluginZoneFileGenerator) generate(name string, zone *models.Zone) ([]
 	if err := zone.WithSortedResourceRecords(func(identifier string, rr *models.ResourceRecord) error {
 		// We're takiing advantage of the fact that we have plugin types that match standard resource record types
 		// so we can cast directly
-		plugin := zfg.plugins[plugins.PluginType(rr.Type)]
+		plugin := zfg.plugins[plugins.Type(rr.Type)]
 		if nil == plugin {
 			return fmt.Errorf("unable to write zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}

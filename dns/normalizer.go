@@ -33,11 +33,11 @@ type Normalizer interface {
 
 type pluginNormalizer struct {
 	Normalizer
-	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
-	metadata map[plugins.PluginType]*plugins.Metadata
+	plugins  map[plugins.Type]plugins.ZoneMgrPlugin
+	metadata map[plugins.Type]*plugins.Metadata
 }
 
-func PluginNormalizer(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, metadata map[plugins.PluginType]*plugins.Metadata) Normalizer {
+func PluginNormalizer(plugins map[plugins.Type]plugins.ZoneMgrPlugin, metadata map[plugins.Type]*plugins.Metadata) Normalizer {
 	return &pluginNormalizer{plugins: plugins, metadata: metadata}
 }
 
@@ -58,7 +58,7 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 		// Then all the normalization done
 		// Then all the zone validation
 		// If we do this in a single loop, we'd end up calling ValidateZone before all the normalization for the zone is complete
-		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
+		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.Type, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
 			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", metadata.Name)
 			p.Configure(zone.Config)
 			return nil
@@ -71,7 +71,7 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 		}
 
 		// Now perform any validations on the zone itself
-		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
+		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.Type, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
 			hclog.L().Debug("Calling Validatemodels.Zone", "zoneName", name, "pluginName", metadata.Name)
 			if err := p.ValidateZone(name, zone); err != nil {
 				return err
@@ -105,7 +105,7 @@ func (n *pluginNormalizer) normalizeZone(name string, zone *models.Zone) error {
 	if err := zone.WithSortedResourceRecords(func(identifier string, rr *models.ResourceRecord) error {
 		hclog.L().Trace("Normalizing record", "identifier", identifier, "zoneName", name)
 		// We only call normalize on the resource record types we have plugins for, no need to loop
-		plugin := n.plugins[plugins.PluginType(rr.Type)]
+		plugin := n.plugins[plugins.Type(rr.Type)]
 		if nil == plugin {
 			return fmt.Errorf("unable to normalize zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}

@@ -32,7 +32,7 @@ import (
 
 type testConfig struct {
 	plugin     plugins.ZoneMgrPlugin
-	pluginType plugins.PluginType
+	pluginType plugins.Type
 	rrType     models.ResourceRecordType
 	expects    func(identifier string, rr *models.ResourceRecord, err bool)
 }

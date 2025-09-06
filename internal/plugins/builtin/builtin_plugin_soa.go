@@ -43,7 +43,7 @@ func (p *BuiltinPluginSOA) PluginVersion() (string, error) {
 	return utils.Version(), nil
 }
 
-func (p *BuiltinPluginSOA) PluginTypes() ([]plugins.PluginType, error) {
+func (p *BuiltinPluginSOA) PluginTypes() ([]plugins.Type, error) {
 	return plugins.PluginTypes(plugins.SOA), nil
 }
 

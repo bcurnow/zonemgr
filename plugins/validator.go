@@ -42,9 +42,9 @@ type Validator interface {
 	//   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsiblity of the individual plugins
 	//   - Validation that only Value or Values is populated
 	//   - Validation that only Comment or Values is populated
-	CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error
+	CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...Type) error
 	// Checks if the supplied resource record matches one of the support plugin types
-	EnsureSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error
+	EnsureSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...Type) error
 	// Validates that the name provided matches the RFC1035 regex for valid names according to RFC1035
 	// and is less then or equal to 255 total characters
 	EnsureValidRFC1035Name(identifier string, name string, rrType models.ResourceRecordType) error
@@ -79,7 +79,7 @@ func V() Validator {
 //   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsiblity of the individual plugins
 //   - Validation that only Value or Values is populated
 //   - Validation that only Comment or Values is populated
-func (v *validator) CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error {
+func (v *validator) CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...Type) error {
 	// Validate that this resource record is of the supported type
 	if err := v.EnsureSupportedPluginType(identifier, rr.Type, supportedTypes...); err != nil {
 		return err
@@ -104,8 +104,8 @@ func (v *validator) CommonValidations(identifier string, rr *models.ResourceReco
 }
 
 // Checks if the supplied resource record matches one of the support plugin types
-func (v *validator) EnsureSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error {
-	if !slices.Contains(supportedTypes, PluginType(rrType)) {
+func (v *validator) EnsureSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...Type) error {
+	if !slices.Contains(supportedTypes, Type(rrType)) {
 		return fmt.Errorf("this plugin does not handle resource records of type '%s' only '%s', identifier: '%s'", rrType, supportedTypes, identifier)
 	}
 	return nil

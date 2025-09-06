@@ -60,15 +60,15 @@ func TestWithSortedPlugins(t *testing.T) {
 	mockZoneMgrPluginMetadata := &Metadata{Name: "mock", Command: "testing", BuiltIn: false}
 
 	for _, tc := range testCases {
-		mockPlugins := make(map[PluginType]ZoneMgrPlugin)
+		mockPlugins := make(map[Type]ZoneMgrPlugin)
 		mockPlugins[A] = mockZoneMgrPlugin
 		mockPlugins[CNAME] = mockZoneMgrPlugin
-		mockMetadata := make(map[PluginType]*Metadata)
+		mockMetadata := make(map[Type]*Metadata)
 		mockMetadata[A] = mockZoneMgrPluginMetadata
 		mockMetadata[CNAME] = mockZoneMgrPluginMetadata
 
 		first := true
-		testFn := func(pluginType PluginType, p ZoneMgrPlugin, metadata *Metadata) error {
+		testFn := func(pluginType Type, p ZoneMgrPlugin, metadata *Metadata) error {
 			if first {
 				first = false
 				if pluginType != A {
@@ -79,13 +79,13 @@ func TestWithSortedPlugins(t *testing.T) {
 		}
 
 		if tc.functionErr {
-			testFn = func(pluginType PluginType, p ZoneMgrPlugin, metadata *Metadata) error {
+			testFn = func(pluginType Type, p ZoneMgrPlugin, metadata *Metadata) error {
 				return errors.New("functionErr")
 			}
 		}
 
 		if tc.missingMetadata {
-			mockMetadata = make(map[PluginType]*Metadata)
+			mockMetadata = make(map[Type]*Metadata)
 		}
 
 		if err := WithSortedPlugins(mockPlugins, mockMetadata, testFn); err != nil {

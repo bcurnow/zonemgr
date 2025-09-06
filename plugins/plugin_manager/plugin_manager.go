@@ -33,19 +33,19 @@ import (
 )
 
 type PluginManager interface {
-	Plugins() map[plugins.PluginType]plugins.ZoneMgrPlugin
-	Metadata() map[plugins.PluginType]*plugins.Metadata
+	Plugins() map[plugins.Type]plugins.ZoneMgrPlugin
+	Metadata() map[plugins.Type]*plugins.Metadata
 	LoadPlugins(pluginDir string) error
 }
 
 type pluginManager struct {
 	PluginManager
-	plugins  map[plugins.PluginType]plugins.ZoneMgrPlugin
-	metadata map[plugins.PluginType]*plugins.Metadata
+	plugins  map[plugins.Type]plugins.ZoneMgrPlugin
+	metadata map[plugins.Type]*plugins.Metadata
 }
 
 var (
-	instance                            = &pluginManager{plugins: make(map[plugins.PluginType]plugins.ZoneMgrPlugin), metadata: make(map[plugins.PluginType]*plugins.Metadata)}
+	instance                            = &pluginManager{plugins: make(map[plugins.Type]plugins.ZoneMgrPlugin), metadata: make(map[plugins.Type]*plugins.Metadata)}
 	fs       utils.FileSystemOperations = &utils.FileSystem{}
 )
 
@@ -53,11 +53,11 @@ func Manager() PluginManager {
 	return instance
 }
 
-func (pm *pluginManager) Plugins() map[plugins.PluginType]plugins.ZoneMgrPlugin {
+func (pm *pluginManager) Plugins() map[plugins.Type]plugins.ZoneMgrPlugin {
 	return pm.plugins
 }
 
-func (pm *pluginManager) Metadata() map[plugins.PluginType]*plugins.Metadata {
+func (pm *pluginManager) Metadata() map[plugins.Type]*plugins.Metadata {
 	return pm.metadata
 }
 
@@ -107,7 +107,7 @@ func (pm *pluginManager) loadExternalPlugins(pluginDir string) error {
 	return nil
 }
 
-func (pm *pluginManager) handleOverride(pluginType plugins.PluginType, existingMetadata *plugins.Metadata, newMetadata *plugins.Metadata) {
+func (pm *pluginManager) handleOverride(pluginType plugins.Type, existingMetadata *plugins.Metadata, newMetadata *plugins.Metadata) {
 	// Check to see if we already have a plugin for this ResourceRecord Type
 	_, ok := pm.plugins[pluginType]
 	if ok {

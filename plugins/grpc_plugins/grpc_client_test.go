@@ -82,7 +82,7 @@ func TestPluginTypes_Client(t *testing.T) {
 		resp, err := grpcClient.PluginTypes()
 		handleError(t, err, tc.err)
 		if tc.err == nil {
-			wanted := []plugins.PluginType{plugins.A, plugins.NS}
+			wanted := []plugins.Type{plugins.A, plugins.NS}
 			if !slices.Equal(resp, wanted) {
 				t.Errorf("incorrect version: '%s', wanted: '%s'", resp, wanted)
 			}

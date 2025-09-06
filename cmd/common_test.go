@@ -37,8 +37,8 @@ var (
 	mockZoneFileGenerator *dns.MockZoneFileGenerator
 	mockNormalizer        *dns.MockNormalizer
 	testPlugin            *plugins.MockZoneMgrPlugin
-	testPlugins           map[plugins.PluginType]plugins.ZoneMgrPlugin
-	testMetadata          map[plugins.PluginType]*plugins.Metadata
+	testPlugins           map[plugins.Type]plugins.ZoneMgrPlugin
+	testMetadata          map[plugins.Type]*plugins.Metadata
 )
 
 func setup(t *testing.T) {
@@ -62,8 +62,8 @@ func setup(t *testing.T) {
 	normalizer = mockNormalizer
 
 	testPlugin = plugins.NewMockZoneMgrPlugin(mockController)
-	testPlugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
-	testMetadata = make(map[plugins.PluginType]*plugins.Metadata)
+	testPlugins = make(map[plugins.Type]plugins.ZoneMgrPlugin)
+	testMetadata = make(map[plugins.Type]*plugins.Metadata)
 
 	testPlugins[plugins.A] = testPlugin
 	testPlugins[plugins.NS] = testPlugin

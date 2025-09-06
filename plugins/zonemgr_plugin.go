@@ -25,7 +25,7 @@ type ZoneMgrPlugin interface {
 	// Returns the version of plugin
 	PluginVersion() (string, error)
 	// Returns the set of plugin types that this plugin supports
-	PluginTypes() ([]PluginType, error)
+	PluginTypes() ([]Type, error)
 	// Allows for configuration of the plugin, this will be called once for each zone in the file
 	Configure(config *models.Config) error
 	// Allows for validation and normalization/defaulting for the resource record

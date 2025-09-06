@@ -69,8 +69,8 @@ func TestRunE_Plugins_PluginVersionError(t *testing.T) {
 
 	testPlugin := plugins.NewMockZoneMgrPlugin(mockController)
 	// var testPlugin *plugins.MockZoneMgrPlugin
-	testPlugins := make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
-	testMetadata := make(map[plugins.PluginType]*plugins.Metadata)
+	testPlugins := make(map[plugins.Type]plugins.ZoneMgrPlugin)
+	testMetadata := make(map[plugins.Type]*plugins.Metadata)
 
 	testPlugins[plugins.A] = testPlugin
 	testPlugins[plugins.NS] = testPlugin

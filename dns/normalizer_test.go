@@ -124,12 +124,12 @@ func TestNormalize(t *testing.T) {
 
 		thePlugins := mockPlugins
 		if tc.missingPluginErr {
-			thePlugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
+			thePlugins = make(map[plugins.Type]plugins.ZoneMgrPlugin)
 		}
 
 		theMetadata := mockMetadata
 		if tc.missingPluginMetadataErr {
-			theMetadata = make(map[plugins.PluginType]*plugins.Metadata)
+			theMetadata = make(map[plugins.Type]*plugins.Metadata)
 		}
 
 		if err := PluginNormalizer(thePlugins, theMetadata).Normalize(tc.zones); err != nil {

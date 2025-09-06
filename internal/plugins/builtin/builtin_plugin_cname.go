@@ -37,7 +37,7 @@ func (p *BuiltinPluginCNAME) PluginVersion() (string, error) {
 	return utils.Version(), nil
 }
 
-func (p *BuiltinPluginCNAME) PluginTypes() ([]plugins.PluginType, error) {
+func (p *BuiltinPluginCNAME) PluginTypes() ([]plugins.Type, error) {
 	return plugins.PluginTypes(plugins.CNAME), nil
 }
 

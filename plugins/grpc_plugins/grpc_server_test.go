@@ -68,7 +68,7 @@ func TestPluginTypes_Server(t *testing.T) {
 	defer teardown_grpc(t)
 
 	testCases := []struct {
-		wantTypes []plugins.PluginType
+		wantTypes []plugins.Type
 		err       error
 	}{
 		{wantTypes: plugins.PluginTypes(plugins.NS, plugins.A)},

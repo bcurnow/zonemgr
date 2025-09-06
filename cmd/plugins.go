@@ -39,7 +39,7 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Printf(pluginHeaderFormatString, pluginHeaders...)
 
-			if err := plugins.WithSortedPlugins(pluginManager.Plugins(), pluginManager.Metadata(), func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
+			if err := plugins.WithSortedPlugins(pluginManager.Plugins(), pluginManager.Metadata(), func(pluginType plugins.Type, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
 				pluginVersion, err := p.PluginVersion()
 				if err != nil {
 					return err

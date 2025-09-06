@@ -50,8 +50,8 @@ func pluginManagerSetup(t *testing.T) {
 	fs = mockFs
 
 	// Make sure that the metadata and plugins maps are empty before we start
-	instance.plugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
-	instance.metadata = make(map[plugins.PluginType]*plugins.Metadata)
+	instance.plugins = make(map[plugins.Type]plugins.ZoneMgrPlugin)
+	instance.metadata = make(map[plugins.Type]*plugins.Metadata)
 
 	//Create a temp directory for testing
 	tempDir, err := os.MkdirTemp("", t.Name())
@@ -91,7 +91,7 @@ func TestPlugins(t *testing.T) {
 	defer pluginManagerTearDown(t)
 	pm := &pluginManager{}
 
-	pm.plugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
+	pm.plugins = make(map[plugins.Type]plugins.ZoneMgrPlugin)
 	wanted := &builtin.BuiltinPluginPTR{}
 	pm.plugins["custom key"] = wanted
 
@@ -244,7 +244,7 @@ func TestHandleOverride(t *testing.T) {
 		//Create a pipe for logging, all we're actually testing here is the logging
 		r, w, originalLogger := captureLogging(t)
 		// Setup the plugins map
-		instance.plugins = make(map[plugins.PluginType]plugins.ZoneMgrPlugin)
+		instance.plugins = make(map[plugins.Type]plugins.ZoneMgrPlugin)
 		if tc.havePlugin {
 			// This doesn't matter except to have value
 			instance.plugins[plugins.A] = &builtin.BuiltinPluginA{}

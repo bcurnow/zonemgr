@@ -35,7 +35,7 @@ func (p *BuiltinPluginPTR) PluginVersion() (string, error) {
 	return utils.Version(), nil
 }
 
-func (p *BuiltinPluginPTR) PluginTypes() ([]plugins.PluginType, error) {
+func (p *BuiltinPluginPTR) PluginTypes() ([]plugins.Type, error) {
 	return plugins.PluginTypes(plugins.PTR), nil
 }
 

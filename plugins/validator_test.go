@@ -60,11 +60,11 @@ func TestCommonValidations(t *testing.T) {
 func TestEnsureSupportedPluginType(t *testing.T) {
 	testCases := []struct {
 		rrType         models.ResourceRecordType
-		supportedTypes []PluginType
+		supportedTypes []Type
 		err            string
 	}{
-		{rrType: models.A, supportedTypes: []PluginType{A}},
-		{rrType: models.A, supportedTypes: []PluginType{CNAME, NS}, err: "this plugin does not handle resource records of type 'A' only '[CNAME NS]', identifier: 'testing'"},
+		{rrType: models.A, supportedTypes: []Type{A}},
+		{rrType: models.A, supportedTypes: []Type{CNAME, NS}, err: "this plugin does not handle resource records of type 'A' only '[CNAME NS]', identifier: 'testing'"},
 	}
 
 	for _, tc := range testCases {

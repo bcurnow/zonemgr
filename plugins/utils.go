@@ -24,11 +24,11 @@ import (
 	"sort"
 )
 
-func PluginTypes(pluginTypes ...PluginType) []PluginType {
+func PluginTypes(pluginTypes ...Type) []Type {
 	return pluginTypes
 }
 
-func WithSortedPlugins(p map[PluginType]ZoneMgrPlugin, pluginMetadata map[PluginType]*Metadata, fn func(pluginType PluginType, p ZoneMgrPlugin, metadata *Metadata) error) error {
+func WithSortedPlugins(p map[Type]ZoneMgrPlugin, pluginMetadata map[Type]*Metadata, fn func(pluginType Type, p ZoneMgrPlugin, metadata *Metadata) error) error {
 	for _, pluginType := range sortedPluginKeys(p) {
 		metadata, ok := pluginMetadata[pluginType]
 		if !ok {
@@ -41,8 +41,8 @@ func WithSortedPlugins(p map[PluginType]ZoneMgrPlugin, pluginMetadata map[Plugin
 	return nil
 }
 
-func sortedPluginKeys(p map[PluginType]ZoneMgrPlugin) []PluginType {
-	keys := make([]PluginType, 0, len(p))
+func sortedPluginKeys(p map[Type]ZoneMgrPlugin) []Type {
+	keys := make([]Type, 0, len(p))
 	for pluginType := range p {
 		keys = append(keys, pluginType)
 	}

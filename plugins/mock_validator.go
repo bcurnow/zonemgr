@@ -35,7 +35,7 @@ func (m *MockValidator) EXPECT() *MockValidatorMockRecorder {
 }
 
 // CommonValidations mocks base method.
-func (m *MockValidator) CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...PluginType) error {
+func (m *MockValidator) CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...Type) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{identifier, rr}
 	for _, a := range supportedTypes {
@@ -110,7 +110,7 @@ func (mr *MockValidatorMockRecorder) EnsurePositive(identifier, s, fieldName, rr
 }
 
 // EnsureSupportedPluginType mocks base method.
-func (m *MockValidator) EnsureSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...PluginType) error {
+func (m *MockValidator) EnsureSupportedPluginType(identifier string, rrType models.ResourceRecordType, supportedTypes ...Type) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{identifier, rrType}
 	for _, a := range supportedTypes {

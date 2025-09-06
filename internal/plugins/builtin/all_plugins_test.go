@@ -30,7 +30,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-var allPlugins = map[plugins.PluginType]plugins.ZoneMgrPlugin{
+var allPlugins = map[plugins.Type]plugins.ZoneMgrPlugin{
 	plugins.A:     &BuiltinPluginA{},
 	plugins.CNAME: &BuiltinPluginCNAME{},
 	plugins.NS:    &BuiltinPluginNS{},
@@ -59,7 +59,7 @@ func TestPluginTypes(t *testing.T) {
 			t.Errorf("unexpected error: %s, for plugin %s", err, pluginType)
 		}
 
-		want := []plugins.PluginType{pluginType}
+		want := []plugins.Type{pluginType}
 		if !cmp.Equal(actual, want) {
 			t.Errorf("unexpected plugin types %s, want %s, for plugin %s", actual, want, pluginType)
 		}
@@ -68,7 +68,7 @@ func TestPluginTypes(t *testing.T) {
 
 func TestConfigure(t *testing.T) {
 	config := &models.Config{}
-	var pluginsToTest = map[plugins.PluginType]struct {
+	var pluginsToTest = map[plugins.Type]struct {
 		plugin         plugins.ZoneMgrPlugin
 		expectedConfig *models.Config
 	}{
@@ -106,7 +106,7 @@ func TestConfigure(t *testing.T) {
 
 func TestValidateZone(t *testing.T) {
 	// NOTE: CNAME and SOA are not in this list because they actually have a ValidateZone implementation
-	pluginsToTest := map[plugins.PluginType]plugins.ZoneMgrPlugin{
+	pluginsToTest := map[plugins.Type]plugins.ZoneMgrPlugin{
 		plugins.A:   &BuiltinPluginA{},
 		plugins.NS:  &BuiltinPluginNS{},
 		plugins.PTR: &BuiltinPluginPTR{},

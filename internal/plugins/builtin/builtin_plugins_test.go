@@ -36,7 +36,7 @@ func TestBuiltinPlugins(t *testing.T) {
 	}
 
 	testCases := []struct {
-		pluginType        plugins.PluginType
+		pluginType        plugins.Type
 		expectedInterface interface{}
 	}{
 		{pluginType: plugins.A, expectedInterface: &BuiltinPluginA{}},
@@ -68,7 +68,7 @@ func TestBuiltinMetadata(t *testing.T) {
 	}
 
 	testCases := []struct {
-		pluginType       plugins.PluginType
+		pluginType       plugins.Type
 		expectedMetadata *plugins.Metadata
 	}{
 		{pluginType: plugins.A, expectedMetadata: &plugins.Metadata{Name: string(plugins.A), Command: "Built In", BuiltIn: true}},

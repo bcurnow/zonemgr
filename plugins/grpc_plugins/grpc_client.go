@@ -40,15 +40,15 @@ func (c *GRPCClient) PluginVersion() (string, error) {
 	return resp.Version, nil
 }
 
-func (c *GRPCClient) PluginTypes() ([]plugins.PluginType, error) {
+func (c *GRPCClient) PluginTypes() ([]plugins.Type, error) {
 	resp, err := c.client.PluginTypes(context.Background(), &proto.Empty{})
 
 	if err != nil {
 		return nil, err
 	}
-	supportedPluginTypes := make([]plugins.PluginType, len(resp.SupportedTypes))
+	supportedPluginTypes := make([]plugins.Type, len(resp.SupportedTypes))
 	for i, pluginTypeString := range resp.SupportedTypes {
-		supportedPluginTypes[i] = plugins.PluginType(pluginTypeString)
+		supportedPluginTypes[i] = plugins.Type(pluginTypeString)
 	}
 
 	return supportedPluginTypes, nil
