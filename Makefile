@@ -36,6 +36,9 @@ mocks: proto mocks-gen
 
 mocks-gen:
 	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_normalizer.go
+	mockgen -source=dns/parser.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_parser.go
+	mockgen -source=dns/zone_file_generator.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_zone_file_generator.go
+	mockgen -source=dns/zone_reverser.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_zone_reverser.go
 	mockgen -source=dns/serial/serial_manager.go -package serial -self_package "github.com/bcurnow/zonemgr/dns/serial">dns/serial/mock_serial_manager.go
 	mockgen -source=dns/serial/serial_number_generator.go -package serial -self_package "github.com/bcurnow/zonemgr/dns/serial">dns/serial/mock_serial_number_generator.go
 	mockgen -source=plugins/plugin_manager/plugin_manager.go -package plugin_manager -self_package "github.com/bcurnow/zonemgr/plugins/plugin_manager">plugins/plugin_manager/mock_plugin_manager.go
