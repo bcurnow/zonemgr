@@ -73,7 +73,7 @@ func (c *GRPCClient) Normalize(identifier string, rr *models.ResourceRecord) err
 	}
 	// The expectation is that the Normalize method will make modifications to the ResourceRecord
 	// Take the values from the respons and apply them to the original ResourceRecord pointer we received
-	grpc.UpdateResourceRecordFromProtoBuf(resp.ResourceRecord, rr)
+	grpc.ResourceRecordFromProtoBuf(resp.ResourceRecord, rr)
 	return nil
 }
 

@@ -61,8 +61,19 @@ func TestConfigToProtoBuf(t *testing.T) {
 		proto  *proto.Config
 		config *models.Config
 	}{
-		{config: nil, proto: &proto.Config{}},
-		{config: &models.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing"}, proto: &proto.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing"}},
+		{config: nil, proto: nil},
+		{
+			config: &models.Config{
+				GenerateSerial:             true,
+				GenerateReverseLookupZones: true,
+				SerialChangeIndexDirectory: "testing",
+			},
+			proto: &proto.Config{
+				GenerateSerial:             true,
+				GenerateReverseLookupZones: true,
+				SerialChangeIndexDirectory: "testing",
+			},
+		},
 	}
 
 	for _, tc := range testCases {

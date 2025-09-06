@@ -17,7 +17,7 @@ func ConfigFromProtoBuf(p *proto.Config, c *models.Config) {
 
 func ConfigToProtoBuf(c *models.Config) *proto.Config {
 	if nil == c {
-		return &proto.Config{}
+		return nil
 	}
 
 	return &proto.Config{

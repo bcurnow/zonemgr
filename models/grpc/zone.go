@@ -31,7 +31,7 @@ func UpdateResourceRecordsFromProtoBuf(p map[string]*proto.ResourceRecord, rrs m
 		return
 	}
 	for identifier, rr := range p {
-		UpdateResourceRecordFromProtoBuf(rr, rrs[identifier])
+		ResourceRecordFromProtoBuf(rr, rrs[identifier])
 	}
 }
 
@@ -39,7 +39,7 @@ func ResoureRecordsFromProtoBuf(p map[string]*proto.ResourceRecord) map[string]*
 	rrs := make(map[string]*models.ResourceRecord, len(p))
 	for identifier, prr := range p {
 		rr := &models.ResourceRecord{}
-		UpdateResourceRecordFromProtoBuf(prr, rr)
+		ResourceRecordFromProtoBuf(prr, rr)
 		rrs[identifier] = rr
 	}
 

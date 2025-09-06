@@ -60,7 +60,8 @@ func (s *GRPCServer) Configure(ctx context.Context, req *proto.ConfigureRequest)
 }
 
 func (s *GRPCServer) Normalize(ctx context.Context, req *proto.NormalizeRequest) (*proto.NormalizeResponse, error) {
-	rr := grpc.ResourceRecordFromProtoBuf(req.ResourceRecord)
+	rr := &models.ResourceRecord{}
+	grpc.ResourceRecordFromProtoBuf(req.ResourceRecord, rr)
 	err := s.Impl.Normalize(req.Identifier, rr)
 	return &proto.NormalizeResponse{ResourceRecord: grpc.ResourceRecordToProtoBuf(rr)}, err
 }
@@ -71,8 +72,10 @@ func (s *GRPCServer) ValidateZone(ctx context.Context, req *proto.ValidateZoneRe
 }
 
 func (s *GRPCServer) Render(ctx context.Context, req *proto.RenderRequest) (*proto.RenderResponse, error) {
-	renderedRecord, err := s.Impl.Render(req.Identifier, grpc.ResourceRecordFromProtoBuf(req.ResourceRecord))
-	return &proto.RenderResponse{Content: renderedRecord}, err
+	rr := &models.ResourceRecord{}
+	grpc.ResourceRecordFromProtoBuf(req.ResourceRecord, rr)
+	content, err := s.Impl.Render(req.Identifier, rr)
+	return &proto.RenderResponse{Content: content}, err
 }
 
 var _ proto.ZonemgrPluginServer = &GRPCServer{}
