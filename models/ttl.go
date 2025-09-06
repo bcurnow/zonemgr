@@ -29,7 +29,7 @@ type TTL struct {
 }
 
 func (ttl *TTL) String() string {
-	return fmt.Sprintf("TTL{ Value: %s, Comment: %s }", nilSafeString(ttl.Value), ttl.Comment)
+	return fmt.Sprintf("TTL{ Value: %s, Comment: %s }", int32ToString(ttl.Value), ttl.Comment)
 }
 
 func (t *TTL) Render() string {

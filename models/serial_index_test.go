@@ -19,13 +19,8 @@
 
 package models
 
-import "fmt"
+import "testing"
 
-type SerialIndex struct {
-	Base        *uint32 `yaml:"base_serial_number"`
-	ChangeIndex *uint32 `yaml:"change_index"`
-}
+func TestString_SerialIndex(t *testing.T) {
 
-func (si *SerialIndex) String() string {
-	return fmt.Sprintf("SerialIndex{ Base: %s, ChangeIndex: %s}", uint32ToString(si.Base), uint32ToString(si.ChangeIndex))
 }

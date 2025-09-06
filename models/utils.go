@@ -43,7 +43,14 @@ func sortedZoneKeys(zones map[string]*Zone) []string {
 	return keys
 }
 
-func nilSafeString(i *int32) string {
+func int32ToString(i *int32) string {
+	if nil == i {
+		return "<nil>"
+	}
+	return fmt.Sprintf("%d", *i)
+}
+
+func uint32ToString(i *uint32) string {
 	if nil == i {
 		return "<nil>"
 	}

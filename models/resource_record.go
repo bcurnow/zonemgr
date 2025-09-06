@@ -46,7 +46,7 @@ func (rr *ResourceRecord) String() string {
 		fmt.Sprintf("       Name: %s\n", rr.Name) +
 		fmt.Sprintf("       Type: %s\n", rr.Type) +
 		fmt.Sprintf("       Class: %s\n", rr.Class) +
-		fmt.Sprintf("       TTL: %s\n", nilSafeString(rr.TTL)) +
+		fmt.Sprintf("       TTL: %s\n", int32ToString(rr.TTL)) +
 		fmt.Sprintf("       Values: %s\n", rr.Values) +
 		fmt.Sprintf("       Value: %s\n", rr.Value) +
 		fmt.Sprintf("       Comment: %s\n", rr.Comment) +
