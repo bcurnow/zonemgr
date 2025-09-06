@@ -20,10 +20,11 @@
 package builtin
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestBuiltinPlugins(t *testing.T) {
@@ -50,7 +51,7 @@ func TestBuiltinPlugins(t *testing.T) {
 		if !ok {
 			t.Errorf("expected to find plugin of type %s", tc.pluginType)
 		} else {
-			if !reflect.DeepEqual(p, tc.expectedInterface) {
+			if !cmp.Equal(p, tc.expectedInterface, cmpopts.IgnoreUnexported(BuiltinPluginSOA{})) {
 				t.Errorf("expected plugin of type %s to implement %T, but was %T instead", tc.pluginType, tc.expectedInterface, p)
 			}
 
@@ -82,7 +83,7 @@ func TestBuiltinMetadata(t *testing.T) {
 		if !ok {
 			t.Errorf("expected to find metadata of type %s", tc.pluginType)
 		} else {
-			if !reflect.DeepEqual(m, tc.expectedMetadata) {
+			if !cmp.Equal(m, tc.expectedMetadata) {
 				t.Errorf("incorrect metadata for plugin of type %s: %v, want %v", tc.pluginType, m, tc.expectedMetadata)
 			}
 

@@ -20,7 +20,6 @@
 package models
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -80,7 +79,7 @@ func TestSOARecord(t *testing.T) {
 			delete(z.ResourceRecords, "one")
 		}
 		actual := z.SOARecord()
-		if !reflect.DeepEqual(actual, tc.want) {
+		if !cmp.Equal(actual, tc.want) {
 			t.Errorf("incorrect record: '%s', want: '%s'", actual, tc.want)
 		}
 	}
