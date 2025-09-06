@@ -24,7 +24,7 @@ import (
 )
 
 type ZoneParser interface {
-	Parse(inputFile string, globalConfig *models.Config) (map[string]*models.Zone, error)
+	Parse(inputFile string) (map[string]*models.Zone, error)
 }
 
 type yamlZoneParser struct {
@@ -37,7 +37,7 @@ func YamlZoneParser(normalizer Normalizer) ZoneParser {
 	return &yamlZoneParser{normalizer: normalizer, reader: &utils.ZoneYamlFile{}}
 }
 
-func (p *yamlZoneParser) Parse(inputFile string, globalConfig *models.Config) (map[string]*models.Zone, error) {
+func (p *yamlZoneParser) Parse(inputFile string) (map[string]*models.Zone, error) {
 	zones, err := p.reader.Read(inputFile)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (p *yamlZoneParser) Parse(inputFile string, globalConfig *models.Config) (m
 	}
 
 	// Normalize the zones
-	if err = p.normalizer.Normalize(zones, globalConfig); err != nil {
+	if err = p.normalizer.Normalize(zones); err != nil {
 		return nil, fmt.Errorf("failed to normalize zones: %w", err)
 	}
 	return zones, nil

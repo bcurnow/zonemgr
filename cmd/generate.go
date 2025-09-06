@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/bcurnow/zonemgr/dns"
 	"github.com/bcurnow/zonemgr/models"
@@ -49,72 +48,68 @@ var (
 
 			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins(), pluginManager.Metadata())
 			normalizer = dns.PluginNormalizer(pluginManager.Plugins(), pluginManager.Metadata())
-			zoneYamlParser = dns.YamlZoneParser(normalizer)
+			parser = dns.YamlZoneParser(normalizer)
 
-			// ensure that the serial-change-index-directory is an absolute file path
-			absSerialChangeIndexDirectory, err := fs.ToAbsoluteFilePath(v.GetString("serial-change-index-directory"))
-			if err != nil {
-				return err
-			}
-			v.Set("serial-change-index-directory", absSerialChangeIndexDirectory)
-
-			globalConfig = &models.Config{}
-			globalConfig.GenerateReverseLookupZones = v.GetBool("generate-reverse-lookup-zones")
-			globalConfig.GenerateSerial = v.GetBool("generate-serial")
-			globalConfig.SerialChangeIndexDirectory = v.GetString("serial-change-index-directory")
 			return nil
 		},
 	}
 
-	inputFile                  string
-	outputDir                  string
-	generateReverseLookupZones bool
-	generateSerial             bool
-	serialChangeIndexDirectory string
-	zoneReverser               dns.ZoneReverser = dns.Reverser()
-	zoneFileGenerator          dns.ZoneFileGenerator
-	zoneYamlParser             dns.ZoneParser
-	normalizer                 dns.Normalizer
-	globalConfig               *models.Config
+	inputFile         string
+	outputDir         string
+	zoneReverser      dns.ZoneReverser = dns.Reverser()
+	zoneFileGenerator dns.ZoneFileGenerator
+	normalizer        dns.Normalizer
 )
 
 func generateZoneFile() error {
 	hclog.L().Info("Generating BIND zone file(s)", "outputDir", outputDir, "inputFile", inputFile)
-	zones, err := zoneYamlParser.Parse(inputFile, globalConfig)
+	zones, err := parser.Parse(inputFile)
 	if err != nil {
 		return fmt.Errorf("failed to parse input file %s: %w", inputFile, err)
-
 	}
 
-	for name, zone := range zones {
+	if err := models.WithSortedZones(zones, func(name string, zone *models.Zone) error {
 		if err := zoneFileGenerator.GenerateZone(name, zone, outputDir); err != nil {
 			return err
 		}
+		if err := generateReverseLookupZones(name, zone); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	return nil
+}
 
-		if zone.Config.GenerateReverseLookupZones {
-			hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
-			reverseLookupZones := zoneReverser.ReverseZone(name, zone)
-			if err := normalizer.Normalize(reverseLookupZones, globalConfig); err != nil {
+func generateReverseLookupZones(name string, zone *models.Zone) error {
+	if !zone.Config.GenerateReverseLookupZones {
+		return nil
+	}
+
+	if zone.Config.GenerateReverseLookupZones {
+		hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
+		reverseLookupZones := zoneReverser.ReverseZone(name, zone)
+		if err := normalizer.Normalize(reverseLookupZones); err != nil {
+			return err
+		}
+
+		if err := models.WithSortedZones(reverseLookupZones, func(name string, zone *models.Zone) error {
+			if err := zoneFileGenerator.GenerateZone(name, zone, outputDir); err != nil {
 				return err
 			}
-
-			for name, zone := range reverseLookupZones {
-				if err := zoneFileGenerator.GenerateZone(name, zone, outputDir); err != nil {
-					return err
-				}
-			}
+			return nil
+		}); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
 func init() {
-	generateCmd.Flags().StringVarP(&inputFile, "input-file", "", "zones.yaml", "Input YAML file")
+	generateCmd.Flags().StringVar(&inputFile, "input-file", "zones.yaml", "Input YAML file")
 	generateCmd.MarkFlagRequired("input")
-	generateCmd.Flags().StringVarP(&outputDir, "output-dir", "", ".", "Directory to output the BIND zone file(s) to")
-	generateCmd.Flags().BoolVarP(&generateReverseLookupZones, "generate-reverse-lookup-zones", "", false, "If true, reverse lookup zones will be generated as well")
-	generateCmd.Flags().BoolVarP(&generateSerial, "generate-serial", "", false, "If true, the serial number on the SOA record will be automatically generated")
-	generateCmd.Flags().StringVarP(&serialChangeIndexDirectory, "serial-change-index-directory", "", filepath.Join(homeDir, ".local", "share", "zonemgr", "serial"), "The directory to write the serial change index files to, these files keep track of the index portion of the serial number")
+	generateCmd.Flags().StringVar(&outputDir, "output-dir", ".", "Directory to output the BIND zone file(s) to")
 
 	rootCmd.AddCommand(generateCmd)
 

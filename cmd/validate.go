@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/bcurnow/zonemgr/dns"
-	"github.com/bcurnow/zonemgr/models"
 	"github.com/spf13/cobra"
 )
 
@@ -33,11 +32,11 @@ var (
 				rootCmd.PersistentPreRun(cmd, args)
 			}
 
-			absInput, err := fs.ToAbsoluteFilePath(input)
+			absInput, err := fs.ToAbsoluteFilePath(inputFile)
 			if err != nil {
 				return err
 			}
-			input = absInput
+			inputFile = absInput
 
 			parser = dns.YamlZoneParser(dns.PluginNormalizer(pluginManager.Plugins(), pluginManager.Metadata()))
 
@@ -49,22 +48,21 @@ var (
 		Use:   "yaml",
 		Short: "Validates the YAML input file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := parser.Parse(input, &models.Config{})
+			_, err := parser.Parse(inputFile)
 			if err != nil {
-				return fmt.Errorf("failed to parse input file %s: %w", input, err)
+				return fmt.Errorf("failed to parse input file %s: %w", inputFile, err)
 
 			}
-			fmt.Printf("%s is valid\n", input)
+			fmt.Printf("%s is valid\n", inputFile)
 			return nil
 		},
 	}
 
-	input  string
 	parser dns.ZoneParser
 )
 
 func init() {
-	validateCmd.PersistentFlags().StringVarP(&input, "input", "", "", "The input file to validate")
+	validateCmd.PersistentFlags().StringVar(&inputFile, "input", "", "The input file to validate")
 	validateCmd.MarkPersistentFlagRequired("input")
 	validateCmd.AddCommand(validateYamlCmd)
 	rootCmd.AddCommand(validateCmd)

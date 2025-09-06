@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bcurnow/zonemgr/models"
 	"github.com/golang/mock/gomock"
 )
 
@@ -52,10 +51,10 @@ func TestParse(t *testing.T) {
 		{5, "missing.zones.yaml", "failed to open 'missing.zones.yaml': open missing.zones.yaml: no such file or directory"},
 	}
 
-	mockNormalizer.EXPECT().Normalize(gomock.Any(), globalConfig).MaxTimes(len(testCases))
+	mockNormalizer.EXPECT().Normalize(gomock.Any()).MaxTimes(len(testCases))
 
 	for _, tc := range testCases {
-		zones, err := YamlZoneParser(mockNormalizer).Parse(tc.inputFile, &models.Config{})
+		zones, err := YamlZoneParser(mockNormalizer).Parse(tc.inputFile)
 
 		if err != nil {
 			if tc.err == "" {
@@ -83,9 +82,9 @@ func TestParse_NormalizerError(t *testing.T) {
 	testZoneYamlParserSetup(t)
 	defer dnsTeardown(t)
 
-	mockNormalizer.EXPECT().Normalize(gomock.Any(), globalConfig).Return(fmt.Errorf("testing normalizer error"))
+	mockNormalizer.EXPECT().Normalize(gomock.Any()).Return(fmt.Errorf("testing normalizer error"))
 
-	_, err := YamlZoneParser(mockNormalizer).Parse("minimal.zones.yaml", &models.Config{})
+	_, err := YamlZoneParser(mockNormalizer).Parse("minimal.zones.yaml")
 	if err == nil {
 		t.Errorf("expected error")
 	} else {

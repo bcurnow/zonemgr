@@ -55,11 +55,10 @@ var (
 		},
 	}
 
-	pluginManager = plugin_manager.Manager()
-	fs            = &utils.FileSystem{}
-
-	v       *viper.Viper
-	homeDir string
+	pluginManager  plugin_manager.PluginManager = plugin_manager.Manager()
+	fs             utils.FileSystemOperations   = &utils.FileSystem{}
+	v              *viper.Viper
+	cleanupClients = goplugin.CleanupClients
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -75,7 +74,6 @@ func init() {
 	rootCmd.PersistentFlags().Bool("log-color", false, "If set, prints the log messages in color where possible")
 	rootCmd.PersistentFlags().Bool("plugin-debug", false, "If set, will including plugin stdout/stderr in the log messages")
 	rootCmd.PersistentFlags().String("plugin-dir", filepath.Join(fs.HomeDir(), ".local", "share", "zonemgr", "plugins"), "The directory to find Zonemgr plugins")
-
 }
 
 func initConfig(cmd *cobra.Command) error {
@@ -84,9 +82,10 @@ func initConfig(cmd *cobra.Command) error {
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
 	// Bind all the cobra flags to viper
-	if err := v.BindPFlags(cmd.Flags()); err != nil {
-		return err
-	}
+	// This only way this errors out is if you call v.BindPFlag directly
+	// with a nil flag. Since we aren't do that, this method really can't error out
+	// so we're not going to handle the error
+	v.BindPFlags(cmd.Flags())
 
 	v.AutomaticEnv()
 
@@ -114,5 +113,5 @@ func setupLogging() {
 // Ensures that any created plugin clients are properly cleaned up
 func cleanup() {
 	hclog.L().Trace("Cleaning up the clients...")
-	goplugin.CleanupClients()
+	cleanupClients()
 }

@@ -28,7 +28,7 @@ import (
 )
 
 type Normalizer interface {
-	Normalize(zones map[string]*models.Zone, globalConfig *models.Config) error
+	Normalize(zones map[string]*models.Zone) error
 }
 
 type pluginNormalizer struct {
@@ -41,7 +41,7 @@ func PluginNormalizer(plugins map[plugins.PluginType]plugins.ZoneMgrPlugin, meta
 	return &pluginNormalizer{plugins: plugins, metadata: metadata}
 }
 
-func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone, globalConfig *models.Config) error {
+func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 	hclog.L().Trace("Normalizing zones", "count", len(zones))
 	if len(zones) == 0 {
 		return fmt.Errorf("no zones found")
@@ -49,7 +49,7 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone, globalConfig
 
 	return models.WithSortedZones(zones, func(name string, zone *models.Zone) error {
 		// Normalize the config if necessary
-		if err := n.normalizeConfig(name, zone, globalConfig); err != nil {
+		if err := n.normalizeConfig(name, zone); err != nil {
 			return err
 		}
 
@@ -84,10 +84,10 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone, globalConfig
 	})
 }
 
-func (n *pluginNormalizer) normalizeConfig(name string, zone *models.Zone, globalConfig *models.Config) error {
+func (n *pluginNormalizer) normalizeConfig(name string, zone *models.Zone) error {
 	if nil == zone.Config {
-		hclog.L().Debug("Zone missing config, setting to global config", "zoneName", name, "globalConfig", globalConfig)
-		zone.Config = globalConfig
+		hclog.L().Debug("Zone missing config, setting to default values", "zoneName", name, "defaults", &models.Config{})
+		zone.Config = &models.Config{}
 	}
 
 	// Ensure that the serial change index directory is an absolute path

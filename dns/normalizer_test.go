@@ -132,7 +132,7 @@ func TestNormalize(t *testing.T) {
 			theMetadata = make(map[plugins.PluginType]*plugins.Metadata)
 		}
 
-		if err := PluginNormalizer(thePlugins, theMetadata).Normalize(tc.zones, tc.expectedConfig); err != nil {
+		if err := PluginNormalizer(thePlugins, theMetadata).Normalize(tc.zones); err != nil {
 			// Determine which error we want
 			want := ""
 			if tc.absPathErr {

@@ -25,24 +25,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	pluginFormatBase         = "%-6s %-60s %-20s %s"
+	pluginFormatString       = pluginFormatBase + "\n"
+	pluginHeaderFormatString = "\033[4m" + pluginFormatBase + "\033[24m\n"
+)
+
 var (
-	pluginsCmd = &cobra.Command{
+	pluginHeaders = []any{"Type", "Name", "Version", "Command"}
+	pluginsCmd    = &cobra.Command{
 		Use:   "plugins",
 		Short: "Prints information about the current plugins",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			formatString := "%-6s %-60s %-20s %s\n"
-			// Turn on underline mode
-			fmt.Println("\033[4m")
-			fmt.Printf(formatString, "Type", "Name", "Version", "Plugin Command")
-			// Turn off underline mode
-			fmt.Print("\033[24m")
+			fmt.Printf(pluginHeaderFormatString, pluginHeaders...)
 
 			if err := plugins.WithSortedPlugins(pluginManager.Plugins(), pluginManager.Metadata(), func(pluginType plugins.PluginType, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
 				pluginVersion, err := p.PluginVersion()
 				if err != nil {
 					return err
 				}
-				fmt.Printf(formatString, pluginType, metadata.Name, pluginVersion, metadata.Command)
+				fmt.Printf(pluginFormatString, pluginType, metadata.Name, pluginVersion, metadata.Command)
 				return nil
 			}); err != nil {
 				return err
