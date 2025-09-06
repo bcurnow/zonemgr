@@ -72,7 +72,7 @@ func TestGRPCClient(t *testing.T) {
 
 	newZonemgrPluginClient = func(cc grpc.ClientConnInterface) proto.ZonemgrPluginClient {
 		if !reflect.ValueOf(cc).IsNil() {
-			t.Errorf("wrong call: cc: %v, want: cc:%v", cc, nil)
+			t.Errorf("incorrect call: cc: %v, want: cc:%v", cc, nil)
 		}
 		return mockClient
 	}

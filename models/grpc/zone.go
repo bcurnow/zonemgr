@@ -10,6 +10,16 @@ func ZoneFromProtoBuf(p *proto.Zone, z *models.Zone) {
 	if p == nil || z == nil {
 		return
 	}
+	// Make sure to default the Config and TTL if necessary otherwise we
+	// can end up with a p that has a valid config but return a z that has it set to nil (because it came in nil)
+	if z.Config == nil && p.Config != nil {
+		z.Config = &models.Config{}
+	}
+
+	if z.TTL == nil && p.Ttl != nil {
+		z.TTL = &models.TTL{}
+	}
+
 	ConfigFromProtoBuf(p.Config, z.Config)
 	resourceRecordsFromProtoBuf(p, z)
 	TTLFromProtoBuf(p.Ttl, z.TTL)
@@ -19,13 +29,11 @@ func ZoneToProtoBuf(z *models.Zone) *proto.Zone {
 	if z == nil {
 		return nil
 	}
-	proto :=
-		&proto.Zone{
-			Config:          ConfigToProtoBuf(z.Config),
-			ResourceRecords: resourceRecordsToProtoBuf(z),
-			Ttl:             TTLToProtoBuf(z.TTL),
-		}
-	return proto
+	return &proto.Zone{
+		Config:          ConfigToProtoBuf(z.Config),
+		ResourceRecords: resourceRecordsToProtoBuf(z.ResourceRecords),
+		Ttl:             TTLToProtoBuf(z.TTL),
+	}
 }
 
 func resourceRecordsFromProtoBuf(p *proto.Zone, z *models.Zone) {
@@ -38,16 +46,12 @@ func resourceRecordsFromProtoBuf(p *proto.Zone, z *models.Zone) {
 	}
 }
 
-func resourceRecordsToProtoBuf(z *models.Zone) map[string]*proto.ResourceRecord {
-	if z.ResourceRecords == nil {
-		rrs := make(map[string]*proto.ResourceRecord, 0)
-		return rrs
-	}
-	rrs := make(map[string]*proto.ResourceRecord, len(z.ResourceRecords))
+func resourceRecordsToProtoBuf(rrs map[string]*models.ResourceRecord) map[string]*proto.ResourceRecord {
+	protoRRs := make(map[string]*proto.ResourceRecord, len(rrs))
 
-	for identifier, rr := range z.ResourceRecords {
-		rrs[identifier] = ResourceRecordToProtoBuf(rr)
+	for identifier, rr := range rrs {
+		protoRRs[identifier] = ResourceRecordToProtoBuf(rr)
 	}
 
-	return rrs
+	return protoRRs
 }

@@ -1,11 +1,14 @@
 package grpc
 
 import (
+	"fmt"
+
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins/proto"
 )
 
 func ConfigFromProtoBuf(p *proto.Config, c *models.Config) {
+	fmt.Printf("p=%s, c=%s\n", p, c)
 	if nil == p || nil == c {
 		return
 	}

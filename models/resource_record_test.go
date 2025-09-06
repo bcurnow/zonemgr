@@ -49,6 +49,21 @@ func TestString_ResourceRecord(t *testing.T) {
 	if cmp.Diff(rr.String(), want) != "" {
 		t.Errorf("incorrect string:\n%s", cmp.Diff(rr.String(), want))
 	}
+
+	rr = ResourceRecord{}
+	want = "ResourceRecord{\n" +
+		"       Name: \n" +
+		"       Type: \n" +
+		"       Class: \n" +
+		"       TTL: <nil>\n" +
+		"       Values: []\n" +
+		"       Value: \n" +
+		"       Comment: \n" +
+		"     }"
+
+	if cmp.Diff(rr.String(), want) != "" {
+		t.Errorf("incorrect string:\n%s", cmp.Diff(rr.String(), want))
+	}
 }
 
 func TestRetrieveSingleValue(t *testing.T) {

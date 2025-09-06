@@ -61,6 +61,17 @@ func TestString_Zone(t *testing.T) {
 	if cmp.Diff(zone.String(), want) != "" {
 		t.Errorf("incorrect string:\n%s", cmp.Diff(zone.String(), want))
 	}
+
+	zone = &Zone{}
+	want = "Zone{\n" +
+		"   Config: <nil>\n" +
+		"   ResourceRecords:\n" +
+		"   TTL: <nil>\n" +
+		"}"
+
+	if cmp.Diff(zone.String(), want) != "" {
+		t.Errorf("incorrect string:\n%s", cmp.Diff(zone.String(), want))
+	}
 }
 
 func TestSOARecord(t *testing.T) {

@@ -33,19 +33,21 @@ type Zone struct {
 func (z *Zone) String() string {
 	var rrString strings.Builder
 
-	z.WithSortedResourceRecords(func(identifier string, rr *ResourceRecord) error {
-		rrString.WriteString("     ")
-		rrString.WriteString(identifier)
-		rrString.WriteString(" -> ")
-		rrString.WriteString(rr.String())
-		rrString.WriteString("\n")
-		return nil
-	})
+	if len(z.ResourceRecords) > 0 {
+		z.WithSortedResourceRecords(func(identifier string, rr *ResourceRecord) error {
+			rrString.WriteString("     ")
+			rrString.WriteString(identifier)
+			rrString.WriteString(" -> ")
+			rrString.WriteString(rr.String())
+			rrString.WriteString("\n")
+			return nil
+		})
+	}
 
 	return "Zone{\n" +
 		fmt.Sprintf("   Config: %s\n", z.Config) +
 		"   ResourceRecords:\n" +
-		fmt.Sprintf("%s\n", rrString.String()[:len(rrString.String())-1]) +
+		rrString.String() +
 		fmt.Sprintf("   TTL: %s\n", z.TTL) +
 		"}"
 }

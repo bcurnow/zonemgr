@@ -28,6 +28,13 @@ func TestString_TTL(t *testing.T) {
 	if ttl.String() != want {
 		t.Errorf("incorrect string: '%s', want: '%s'", ttl.String(), want)
 	}
+
+	ttl = &TTL{}
+	want = "TTL{ Value: <nil>, Comment:  }"
+
+	if ttl.String() != want {
+		t.Errorf("incorrect string: '%s', want: '%s'", ttl.String(), want)
+	}
 }
 
 func TestRender_TTL(t *testing.T) {

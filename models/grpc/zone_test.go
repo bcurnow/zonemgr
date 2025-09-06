@@ -40,6 +40,24 @@ func TestZoneFromProtoBuf(t *testing.T) {
 		{
 			zone: &models.Zone{
 				Config: &models.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing-scid"},
+				ResourceRecords: map[string]*models.ResourceRecord{
+					"one": {Type: models.A, Name: "one"},
+					"two": {Type: models.NS, Name: "ns.example.com."},
+				},
+				TTL: &models.TTL{Value: toInt32Ptr(99), Comment: "testing-ttl-comment"},
+			},
+			proto: &proto.Zone{
+				Config: &proto.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing-scid"},
+				ResourceRecords: map[string]*proto.ResourceRecord{
+					"one": {Type: "A", Name: "one"},
+					"two": {Type: "NS", Name: "ns.example.com."},
+				},
+				Ttl: &proto.TTL{Ttl: toInt32Ptr(99), Comment: "testing-ttl-comment"},
+			},
+		},
+		{
+			zone: &models.Zone{
+				Config: &models.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing-scid"},
 				TTL:    &models.TTL{Value: toInt32Ptr(99), Comment: "testing-ttl-comment"},
 			},
 			proto: &proto.Zone{
@@ -59,8 +77,8 @@ func TestZoneFromProtoBuf(t *testing.T) {
 
 		ZoneFromProtoBuf(tc.proto, input)
 
-		if !cmp.Equal(input, want) {
-			t.Errorf("incorrect result: %v, want: %v", input, want)
+		if !cmp.Equal(input, want, cmpopts.IgnoreUnexported(models.Zone{})) {
+			t.Errorf("incorrect result:\n%s", cmp.Diff(input, want, cmpopts.IgnoreUnexported(models.Zone{})))
 		}
 	}
 }
@@ -82,36 +100,43 @@ func TestZoneToProtoBuf(t *testing.T) {
 				Ttl:             &proto.TTL{Ttl: toInt32Ptr(99), Comment: "testing-ttl-comment"},
 			},
 		},
-		// {
-		// 	zone: &models.Zone{
-		// 		Config: &models.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing-scid"},
-		// 		ResourceRecords: map[string]*models.ResourceRecord{
-		// 			"one": {Type: models.A, Name: "one"},
-		// 			"two": {Type: models.NS, Name: "ns.example.com."},
-		// 		},
-		// 		TTL: &models.TTL{Value: toInt32Ptr(99), Comment: "testing-ttl-comment"},
-		// 	},
-		// 	proto: &proto.Zone{
-		// 		Config: &proto.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing-scid"},
-		// 		ResourceRecords: map[string]*proto.ResourceRecord{
-		// 			"one": {Type: "A", Name: "one"},
-		// 			"two": {Type: "NS", Name: "ns.example.com."},
-		// 		},
-		// 		Ttl: &proto.TTL{Ttl: toInt32Ptr(99), Comment: "testing-ttl-comment"},
-		// 	},
-		// },
+		{
+			zone: &models.Zone{
+				Config: &models.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing-scid"},
+				ResourceRecords: map[string]*models.ResourceRecord{
+					"one": {Type: models.A, Name: "one"},
+					"two": {Type: models.NS, Name: "ns.example.com."},
+				},
+				TTL: &models.TTL{Value: toInt32Ptr(99), Comment: "testing-ttl-comment"},
+			},
+			proto: &proto.Zone{
+				Config: &proto.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing-scid"},
+				ResourceRecords: map[string]*proto.ResourceRecord{
+					"one": {Type: "A", Name: "one", Values: make([]*proto.ResourceRecordValue, 0)},
+					"two": {Type: "NS", Name: "ns.example.com.", Values: make([]*proto.ResourceRecordValue, 0)},
+				},
+				Ttl: &proto.TTL{Ttl: toInt32Ptr(99), Comment: "testing-ttl-comment"},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		result := ZoneToProtoBuf(tc.zone)
 
 		if !cmp.Equal(result, tc.proto, cmpopts.IgnoreUnexported(
-			proto.Zone{}, proto.Config{},
+			proto.Zone{},
+			proto.Config{},
 			proto.ResourceRecord{},
 			proto.ResourceRecordValue{},
 			proto.TTL{},
 		)) {
-			t.Errorf("incorrect result: %v, want: %v", result, tc.proto)
+			t.Errorf("incorrect result:\n%s", cmp.Diff(result, tc.proto, cmpopts.IgnoreUnexported(
+				proto.Zone{},
+				proto.Config{},
+				proto.ResourceRecord{},
+				proto.ResourceRecordValue{},
+				proto.TTL{},
+			)))
 		}
 	}
 }

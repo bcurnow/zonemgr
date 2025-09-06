@@ -27,4 +27,11 @@ func TestString_ResourceRecordValue(t *testing.T) {
 	if rrv.String() != want {
 		t.Errorf("incorrect string: '%s', want: '%s'", rrv.String(), want)
 	}
+
+	rrv = &ResourceRecordValue{}
+	want = "ResourceRecordValue{ Value: , Comment:  }"
+
+	if rrv.String() != want {
+		t.Errorf("incorrect string: '%s', want: '%s'", rrv.String(), want)
+	}
 }

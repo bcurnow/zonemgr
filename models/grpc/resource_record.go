@@ -50,9 +50,9 @@ func resourceRecordValuesFromProtoBuf(p *proto.ResourceRecord, rr *models.Resour
 }
 
 func resourceRecordValuesToProtoBuf(rrvs []*models.ResourceRecordValue) []*proto.ResourceRecordValue {
-	protoValues := make([]*proto.ResourceRecordValue, len(rrvs))
+	protoRRVs := make([]*proto.ResourceRecordValue, len(rrvs))
 	for i, rrv := range rrvs {
-		protoValues[i] = &proto.ResourceRecordValue{Value: rrv.Value, Comment: rrv.Comment}
+		protoRRVs[i] = &proto.ResourceRecordValue{Value: rrv.Value, Comment: rrv.Comment}
 	}
-	return protoValues
+	return protoRRVs
 }

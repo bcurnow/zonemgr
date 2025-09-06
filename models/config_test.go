@@ -32,4 +32,10 @@ func TestString_Config(t *testing.T) {
 	if c.String() != want {
 		t.Errorf("incorrect string:\n%s\nwant:\n%s", c.String(), want)
 	}
+
+	c = &Config{}
+	want = "Config{ GenerateSerial: false, GenerateReverseLookupZones: false, SerialChangeIndexDirectory:  }"
+	if c.String() != want {
+		t.Errorf("incorrect string:\n%s\nwant:\n%s", c.String(), want)
+	}
 }
