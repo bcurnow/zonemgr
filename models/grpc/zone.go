@@ -9,7 +9,7 @@ import (
 func UpdateZoneFromProtoBuf(p *proto.Zone, zone *models.Zone) {
 	ConfigFromProtoBuf(p.Config, zone.Config)
 	UpdateResourceRecordsFromProtoBuf(p.ResourceRecords, zone.ResourceRecords)
-	UpdateTTLFromProtoBuf(p.Ttl, zone.TTL)
+	TTLFromProtoBuf(p.Ttl, zone.TTL)
 }
 
 func ZoneFromProtoBuf(p *proto.Zone) *models.Zone {

@@ -5,23 +5,17 @@ import (
 	"github.com/bcurnow/zonemgr/plugins/proto"
 )
 
-func UpdateTTLFromProtoBuf(p *proto.TTL, ttl *models.TTL) {
-	if ttl == nil {
+func TTLFromProtoBuf(p *proto.TTL, ttl *models.TTL) {
+	if p == nil || ttl == nil {
 		return
 	}
 	ttl.Value = p.Ttl
 	ttl.Comment = p.Comment
 }
 
-func TTLFromProtoBuf(p *proto.TTL) *models.TTL {
-	ttl := &models.TTL{}
-	UpdateTTLFromProtoBuf(p, ttl)
-	return ttl
-}
-
 func TTLToProtoBuf(ttl *models.TTL) *proto.TTL {
 	if ttl == nil {
-		return &proto.TTL{}
+		return nil
 	}
 
 	return &proto.TTL{Ttl: ttl.Value, Comment: ttl.Comment}
