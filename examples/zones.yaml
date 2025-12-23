@@ -29,9 +29,14 @@ example.com.: # The origin, each origin in the file will receive it's own zone f
       type: NS
     ns2.example.com.: # another authoritative nameserver for this zone
       type: NS
-    www:
+    www-IPv4:
+      name: www
       type: A
       value: 1.2.3.4
+    www-IPv6:
+      name: www
+      type: AAAA
+      value: ::ffff:1.2.3.4
     base:
       type: CNAME
       value: www
