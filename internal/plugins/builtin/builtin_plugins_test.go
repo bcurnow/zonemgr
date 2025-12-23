@@ -31,8 +31,8 @@ func TestBuiltinPlugins(t *testing.T) {
 
 	builtins := BuiltinPlugins()
 
-	if len(builtins) != 5 {
-		t.Errorf("expected all 5 builtin plugins to have registered")
+	if len(builtins) != BuiltinPluginCount {
+		t.Errorf("expected all %d builtin plugins to have registered", BuiltinPluginCount)
 	}
 
 	testCases := []struct {
@@ -40,6 +40,7 @@ func TestBuiltinPlugins(t *testing.T) {
 		expectedInterface interface{}
 	}{
 		{pluginType: plugins.A, expectedInterface: &BuiltinPluginA{}},
+		{pluginType: plugins.AAAA, expectedInterface: &BuiltinPluginAAAA{}},
 		{pluginType: plugins.CNAME, expectedInterface: &BuiltinPluginCNAME{}},
 		{pluginType: plugins.NS, expectedInterface: &BuiltinPluginNS{}},
 		{pluginType: plugins.PTR, expectedInterface: &BuiltinPluginPTR{}},
@@ -63,8 +64,8 @@ func TestBuiltinMetadata(t *testing.T) {
 
 	metadata := BuiltinMetadata()
 
-	if len(metadata) != 5 {
-		t.Errorf("expected all 5 builtin plugins to have registered")
+	if len(metadata) != BuiltinPluginCount {
+		t.Errorf("expected all %d builtin plugins to have registered", BuiltinPluginCount)
 	}
 
 	testCases := []struct {
@@ -72,6 +73,7 @@ func TestBuiltinMetadata(t *testing.T) {
 		expectedMetadata *plugins.Metadata
 	}{
 		{pluginType: plugins.A, expectedMetadata: &plugins.Metadata{Name: string(plugins.A), Command: "Built In", BuiltIn: true}},
+		{pluginType: plugins.AAAA, expectedMetadata: &plugins.Metadata{Name: string(plugins.AAAA), Command: "Built In", BuiltIn: true}},
 		{pluginType: plugins.CNAME, expectedMetadata: &plugins.Metadata{Name: string(plugins.CNAME), Command: "Built In", BuiltIn: true}},
 		{pluginType: plugins.NS, expectedMetadata: &plugins.Metadata{Name: string(plugins.NS), Command: "Built In", BuiltIn: true}},
 		{pluginType: plugins.PTR, expectedMetadata: &plugins.Metadata{Name: string(plugins.PTR), Command: "Built In", BuiltIn: true}},

@@ -32,6 +32,7 @@ import (
 
 var allPlugins = map[plugins.Type]plugins.ZoneMgrPlugin{
 	plugins.A:     &BuiltinPluginA{},
+	plugins.AAAA:  &BuiltinPluginAAAA{},
 	plugins.CNAME: &BuiltinPluginCNAME{},
 	plugins.NS:    &BuiltinPluginNS{},
 	plugins.PTR:   &BuiltinPluginPTR{},
@@ -73,6 +74,7 @@ func TestConfigure(t *testing.T) {
 		expectedConfig *models.Config
 	}{
 		plugins.A:     {plugin: &BuiltinPluginA{}, expectedConfig: nil},
+		plugins.AAAA:  {plugin: &BuiltinPluginAAAA{}, expectedConfig: nil},
 		plugins.CNAME: {plugin: &BuiltinPluginCNAME{}, expectedConfig: nil},
 		plugins.NS:    {plugin: &BuiltinPluginNS{}, expectedConfig: nil},
 		plugins.PTR:   {plugin: &BuiltinPluginPTR{}, expectedConfig: nil},

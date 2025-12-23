@@ -166,11 +166,11 @@ func TestLoadPlugins(t *testing.T) {
 				t.Errorf("expected error, found none")
 			} else {
 				// Make sure that we only have the builtins in the maps
-				if len(Manager().Plugins()) != 5 {
+				if len(Manager().Plugins()) != builtin.BuiltinPluginCount {
 					t.Errorf("expected only builtins to be loaded, found %d plugins", len(Manager().Plugins()))
 				}
 
-				if len(Manager().Metadata()) != 5 {
+				if len(Manager().Metadata()) != builtin.BuiltinPluginCount {
 					t.Errorf("expected only builtins to be loaded, found %d metadata", len(Manager().Plugins()))
 				}
 			}
