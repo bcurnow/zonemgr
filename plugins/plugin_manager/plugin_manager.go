@@ -63,6 +63,7 @@ func (pm *pluginManager) Metadata() map[plugins.Type]*plugins.Metadata {
 
 func (pm *pluginManager) LoadPlugins(pluginDir string) error {
 	maps.Copy(pm.plugins, builtin.BuiltinPlugins())
+	hclog.L().Debug("Loaded built-in plugins", "plugin-count", len(pm.plugins))
 	maps.Copy(pm.metadata, builtin.BuiltinMetadata())
 
 	if err := pm.loadExternalPlugins(pluginDir); err != nil {
