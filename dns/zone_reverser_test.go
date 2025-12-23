@@ -26,52 +26,6 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestLastOctet(t *testing.T) {
-	dnsSetup(t)
-	defer dnsTeardown(t)
-
-	testCases := []struct {
-		value string
-		want  string
-	}{
-		{value: "4.3.2.1", want: "1"},
-		{value: "255.255.255.0", want: "0"},
-		{value: "1.2.3", want: "3"},
-		{value: "bogus", want: "bogus"},
-	}
-
-	for _, tc := range testCases {
-		res := (&zoneReverser{}).lastOctet(tc.value)
-
-		if res != tc.want {
-			t.Errorf("unexpected result: '%s', want '%s'", res, tc.want)
-		}
-	}
-}
-
-func TestReverseZoneName(t *testing.T) {
-	dnsSetup(t)
-	defer dnsTeardown(t)
-
-	testCases := []struct {
-		value string
-		want  string
-	}{
-		{value: "4.3.2.1", want: "2.3.4.in-addr.arpa."},
-		{value: "255.255.255.0", want: "255.255.255.in-addr.arpa."},
-		{value: "1.2.3", want: "2.1.in-addr.arpa."},
-		{value: "bogus", want: ".in-addr.arpa."},
-	}
-
-	for _, tc := range testCases {
-		res := (&zoneReverser{}).reverseZoneName(tc.value)
-
-		if res != tc.want {
-			t.Errorf("unexpected result: '%s', want '%s'", res, tc.want)
-		}
-	}
-}
-
 func TestToPTR(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)
@@ -122,8 +76,9 @@ func TestReverseZone(t *testing.T) {
 		ResourceRecords: map[string]*models.ResourceRecord{
 			"record1": {Type: models.A, Name: "one", Value: "1.2.3.4"},
 			"record2": {Type: models.A, Name: "two", Value: "10.2.2.5"},
-			"record3": {Type: models.NS, Name: "doesn't matter", Value: "also doesn't matter"},
-			"record4": {Type: models.SOA, Name: "SOA", Value: "SOA"},
+			"record3": {Type: models.AAAA, Name: "three", Value: "fdda:5cc1:23:4::1f"},
+			"record4": {Type: models.NS, Name: "doesn't matter", Value: "also doesn't matter"},
+			"record5": {Type: models.SOA, Name: "SOA", Value: "SOA"},
 		},
 	}
 
@@ -144,11 +99,20 @@ func TestReverseZone(t *testing.T) {
 				"5":                    {Type: models.PTR, Name: "5", Value: "two.testing.example.com.", Values: []*models.ResourceRecordValue{}},
 			},
 		},
+		"f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.": {
+			Config: zone.Config,
+			TTL:    zone.TTL,
+			ResourceRecords: map[string]*models.ResourceRecord{
+				"f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.": {Type: models.SOA, Name: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.", Value: "SOA"},
+				"4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f":           {Type: models.PTR, Name: "4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f", Value: "three.testing.example.com.", Values: []*models.ResourceRecordValue{}},
+			},
+		},
 	}
 
 	reverseZones := (&zoneReverser{}).ReverseZone("testing.example.com.", zone)
-	if len(reverseZones) != 2 {
-		t.Errorf("expected 2 reverse zones, got %d", len(reverseZones))
+	t.Log(reverseZones)
+	if len(reverseZones) != len(wantedReverseZones) {
+		t.Errorf("expected %d reverse zones, got %d", len(wantedReverseZones), len(reverseZones))
 	}
 
 	for zoneName, wantedReverseZone := range wantedReverseZones {

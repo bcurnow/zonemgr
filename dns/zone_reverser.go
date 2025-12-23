@@ -20,10 +20,9 @@
 package dns
 
 import (
-	"strings"
-
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
+	"github.com/bcurnow/zonemgr/utils"
 )
 
 var validations = plugins.V()
@@ -44,10 +43,10 @@ func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) ma
 	reverseLookupZones := make(map[string]*models.Zone)
 
 	for _, rr := range zone.ResourceRecords {
-		// We only care about A records as they're the ones we're trying to reverse
-		// TODO should we also reverse CNAMEs?
-		if rr.Type == models.A {
-			zoneName := zr.reverseZoneName(rr.Value)
+		// We only care about A and AAAA records as they're the ones we're trying to reverse
+		if rr.Type == models.A || rr.Type == models.AAAA {
+			ip, _ := utils.ParseIP(rr.Value)
+			zoneName := ip.ReverseZoneName()
 			reverseZone, ok := reverseLookupZones[zoneName]
 			if !ok {
 				reverseZone = &models.Zone{
@@ -80,13 +79,16 @@ func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) ma
 }
 
 func (zr *zoneReverser) toPTR(sourceZoneName string, rr *models.ResourceRecord) *models.ResourceRecord {
+	ip, _ := utils.ParseIP(rr.Value)
+
+	// The PTR record must be fully qualified
 	ptrName := rr.Name
 	if err := validations.EnsureFullyQualified("generated record", ptrName, rr.Type); err != nil {
 		ptrName = validations.EnsureTrailingDot(ptrName + "." + sourceZoneName)
 	}
 
 	return &models.ResourceRecord{
-		Name:   zr.lastOctet(rr.Value), //An A records Name/identifier should be an IP, the name of the PTR record is just the last octet
+		Name:   ip.PTRRecordValue(),
 		Type:   models.PTR,
 		Class:  rr.Class,
 		TTL:    rr.TTL,
@@ -95,27 +97,4 @@ func (zr *zoneReverser) toPTR(sourceZoneName string, rr *models.ResourceRecord) 
 		Value:   ptrName,
 		Comment: rr.Comment,
 	}
-}
-
-func (zr *zoneReverser) reverseZoneName(ip string) string {
-	// Reverse zones are named based on the reverse of the first three octets of an IP
-	// For example, if the IP is 10.2.2.10 the reverse zone name would be 2.2.10-in-addr.arpa
-	// Get the last three octets
-	octets := strings.Split(ip, ".")
-	octets = octets[:len(octets)-1]
-
-	// Reverse the octets
-	for i, j := 0, len(octets)-1; i < j; i, j = i+1, j-1 {
-		octets[i], octets[j] = octets[j], octets[i] // Swapping elements
-	}
-
-	// NOTE the zone must end with a dot (.) or it won't actually work, ORIGINs must be fully qualified!
-	return strings.Join(octets, ".") + ".in-addr.arpa."
-}
-
-// Retrieves the last octet of an IPv4 address
-// Given 10.2.2.76, this function would return 76
-func (zr *zoneReverser) lastOctet(ip string) string {
-	octets := strings.Split(ip, ".")
-	return octets[len(octets)-1]
 }
