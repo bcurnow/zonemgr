@@ -116,6 +116,22 @@ func TestValidateZone_CNAMEPlugin(t *testing.T) {
 				},
 			},
 		},
+		{
+			zone: &models.Zone{
+				ResourceRecords: map[string]*models.ResourceRecord{
+					"differentidentifier": {
+						Name:  "arecord",
+						Type:  models.A,
+						Value: "1.2.3.4",
+					},
+					"cname": {
+						Name:  "cname",
+						Type:  models.CNAME,
+						Value: "arecord",
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

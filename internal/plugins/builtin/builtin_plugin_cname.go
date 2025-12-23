@@ -70,6 +70,7 @@ func (p *BuiltinPluginCNAME) Normalize(identifier string, rr *models.ResourceRec
 func (p *BuiltinPluginCNAME) ValidateZone(name string, zone *models.Zone) error {
 	resourceRecordsByType := zone.ResourceRecordsByType()
 	aRecords := resourceRecordsByType[models.A]
+	aRecords = p.convertToNameMap(aRecords)
 	cnameRecords := resourceRecordsByType[models.CNAME]
 
 	if len(cnameRecords) > 0 && len(aRecords) == 0 {
@@ -91,6 +92,14 @@ func (p *BuiltinPluginCNAME) Render(identifier string, rr *models.ResourceRecord
 		return "", err
 	}
 	return rr.RenderSingleValueResource(), nil
+}
+
+func (p *BuiltinPluginCNAME) convertToNameMap(idMap map[string]*models.ResourceRecord) map[string]*models.ResourceRecord {
+	nameMap := make(map[string]*models.ResourceRecord)
+	for _, rr := range idMap {
+		nameMap[rr.Name] = rr
+	}
+	return nameMap
 }
 
 func init() {
