@@ -3,6 +3,11 @@
 SHELL := /bin/bash
 binaryName := zonemgr
 
+install-deps:
+	brew install bufbuild/buf/buf
+	go install github.com/golang/mock/mockgen@v1.6.0
+	go mod download
+
 zonemgr:
 	go build -o bin/${binaryName}
 
@@ -32,7 +37,7 @@ format:
 tidy:
 	go mod tidy
 
-mocks: proto mocks-gen
+mocks: mocks-gen
 
 mocks-gen:
 	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_normalizer.go
@@ -49,6 +54,7 @@ mocks-gen:
 	mockgen -source=utils/filesystem.go  -package utils -self_package "github.com/bcurnow/zonemgr/utils">utils/mock_filesystem.go
 
 proto:
+	# The Buf Schema Registry (BSR) limits the number of request. Don't gen every time.
 	buf generate
 
 setup: format tidy mocks
