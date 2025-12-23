@@ -28,8 +28,11 @@ var (
 		Use:   "validate",
 		Short: "Validates the various files used by zonemgr",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			if rootCmd.PersistentPreRun != nil {
-				rootCmd.PersistentPreRun(cmd, args)
+			if rootCmd.PersistentPreRunE != nil {
+				err := rootCmd.PersistentPreRunE(cmd, args)
+				if err != nil {
+					return err
+				}
 			}
 
 			absInput, err := fs.ToAbsoluteFilePath(inputFile)

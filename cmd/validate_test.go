@@ -31,10 +31,10 @@ import (
 func TestPersistentPreRunE_Validate(t *testing.T) {
 	setup(t)
 	defer teardown(t)
-	// We don't want to both with the rootCmd persistentPreRun so
+	// We don't want to bother with the rootCmd persistentPreRunE so
 	// we're just going to make sure it is called
-	originalRootPPR := rootCmd.PersistentPreRun
-	defer func() { rootCmd.PersistentPreRun = originalRootPPR }()
+	originalRootPPRE := rootCmd.PersistentPreRunE
+	defer func() { rootCmd.PersistentPreRunE = originalRootPPRE }()
 
 	testCases := []struct {
 		absErr bool
@@ -44,9 +44,10 @@ func TestPersistentPreRunE_Validate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		rootPPRCalled := false
-		rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-			rootPPRCalled = true
+		rootPPRECalled := false
+		rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+			rootPPRECalled = true
+			return nil
 		}
 
 		call := mockFs.EXPECT().ToAbsoluteFilePath("testing")
@@ -68,8 +69,8 @@ func TestPersistentPreRunE_Validate(t *testing.T) {
 				}
 			}
 		} else {
-			if !rootPPRCalled {
-				t.Errorf("expected rootCmd PersistentPreRun to be called, was not")
+			if !rootPPRECalled {
+				t.Errorf("expected rootCmd PersistentPreRunE to be called, was not")
 			}
 
 			if inputFile != "testing" {
