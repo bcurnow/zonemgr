@@ -18,7 +18,6 @@ package plugins
 
 import (
 	"fmt"
-	"net"
 	"net/mail"
 	"regexp"
 	"slices"
@@ -26,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/utils"
 )
 
 // This regex is based on RFC1035 and allows for:
@@ -199,7 +199,8 @@ func (v *validator) EnsureTrailingDot(name string) string {
 
 // Ensure that the string is a valid IP
 func (v *validator) EnsureIP(identifier string, s string, rrType models.ResourceRecordType) error {
-	if net.ParseIP(s) == nil {
+	_, err := utils.ParseIP(s)
+	if err != nil {
 		return fmt.Errorf("invalid %s record, '%s' must be a valid IP address, identifier: '%s'", rrType, s, identifier)
 	}
 	return nil
@@ -207,7 +208,8 @@ func (v *validator) EnsureIP(identifier string, s string, rrType models.Resource
 
 // Ensure that the string is NOT a valid  IP
 func (v *validator) EnsureNotIP(identifier string, s string, rrType models.ResourceRecordType) error {
-	if net.ParseIP(s) != nil {
+	_, err := utils.ParseIP(s)
+	if err == nil {
 		return fmt.Errorf("invalid %s record, '%s' must not be an IP address, identifier: '%s'", rrType, s, identifier)
 	}
 	return nil
