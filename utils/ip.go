@@ -44,7 +44,7 @@ func (i IP) ReverseZoneName() string {
 	if i.ip.Is4() {
 		octets := i.ip.AsSlice()
 		// Reverse zone names for ipv4 are the first three octets in reverse order.
-		return fmt.Sprintf("%d.%d.%d.in-addr.arpa", octets[3], octets[2], octets[1])
+		return fmt.Sprintf("%d.%d.%d.in-addr.arpa.", octets[2], octets[1], octets[0])
 	}
 
 	// Reverse zone names for ipv6 are the first 64 bytes reversed and with a dot in between each value. For example:
@@ -54,7 +54,7 @@ func (i IP) ReverseZoneName() string {
 	// Dotted notation: f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f
 	// Reverse Zone Name: f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa
 	// PTR Record Value: 4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f
-	return i.toReverseDottedNotation()[0:32] + "ip6.arpa"
+	return i.toReverseDottedNotation()[0:32] + "ip6.arpa."
 }
 
 func (i IP) PTRRecordValue() string {

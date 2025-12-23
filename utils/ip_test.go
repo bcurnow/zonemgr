@@ -50,9 +50,9 @@ func TestReverseZoneName(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{input: "1.2.3.4", expected: "4.3.2.in-addr.arpa"},
-		{input: "fdda:5cc1:23:4::1f", expected: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"},
-		{input: "fdda:5cc1:0023:0004:0000:0000:0000:001f", expected: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"},
+		{input: "1.2.3.4", expected: "3.2.1.in-addr.arpa."},
+		{input: "fdda:5cc1:23:4::1f", expected: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa."},
+		{input: "fdda:5cc1:0023:0004:0000:0000:0000:001f", expected: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa."},
 	}
 
 	for _, tc := range testCases {
