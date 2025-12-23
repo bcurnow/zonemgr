@@ -15,6 +15,7 @@
 	* [YAML Examples](#YAMLExamples)
 		* [NS record](#NSrecord)
 		* [A record](#Arecord)
+		* [AAAA record](#AAAArecord)
 		* [CNAME Record](#CNAMERecord)
 		* [SOA Record](#SOARecord)
 		* [PTR Record](#PTRRecord)
@@ -203,6 +204,29 @@ www:
   value: 1.2.3.4
 ```
 
+#### <a name='AAAArecord'></a>AAAA record
+
+Full example:
+
+```yaml
+www:
+  name: www
+  type: AAAA
+  class: IN
+  ttl: 14400
+  values:
+    - value: ::ffff:1.2.3.4
+      comment: The web server
+```
+
+Minimal Example:
+
+```yaml
+www:
+  type: AAAA
+  value: ::ffff:1.2.3.4
+```
+
 #### <a name='CNAMERecord'></a>CNAME Record
 
 Full Example:
@@ -295,6 +319,7 @@ Minimal Example:
 The following are the built-in plugins, these plugins may be overridden:
 
 * A
+* AAAA
 * NS
 * CNAME
 * SOA
