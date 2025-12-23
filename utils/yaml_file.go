@@ -47,7 +47,7 @@ var (
 	unmarshal                                         = yaml.Unmarshal
 	marshal                                           = yaml.Marshal
 	openFile                                          = os.OpenFile
-	marshalFileMode                                   = os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	marshalFileMode                                   = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 )
 
 func (yr *ZoneYamlFile) Read(path string) (map[string]*models.Zone, error) {
