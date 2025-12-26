@@ -51,8 +51,9 @@ func TestReverseZoneName(t *testing.T) {
 		expected string
 	}{
 		{input: "1.2.3.4", expected: "3.2.1.in-addr.arpa."},
-		{input: "fdda:5cc1:23:4::1f", expected: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa."},
-		{input: "fdda:5cc1:0023:0004:0000:0000:0000:001f", expected: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa."},
+		{input: "fdda:5cc1:23:4::1f", expected: "4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f.ip6.arpa."},
+		{input: "fdda:5cc1:0023:0004:0000:0000:0000:001f", expected: "4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f.ip6.arpa."},
+		{input: "fdc1:e344:ba0a:0:10::3", expected: "0.0.0.0.a.0.a.b.4.4.3.e.1.c.d.f.ip6.arpa."},
 	}
 
 	for _, tc := range testCases {
@@ -73,8 +74,9 @@ func TestPTRRecordValue(t *testing.T) {
 		expected string
 	}{
 		{input: "1.2.3.4", expected: "4"},
-		{input: "fdda:5cc1:23:4::1f", expected: "4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f"},
-		{input: "fdda:5cc1:0023:0004:0000:0000:0000:001f", expected: "4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f"},
+		{input: "fdda:5cc1:23:4::1f", expected: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0"},
+		{input: "fdda:5cc1:0023:0004:0000:0000:0000:001f", expected: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0"},
+		{input: "fdc1:e344:ba0a:0:10::3", expected: "3.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0"},
 	}
 
 	for _, tc := range testCases {

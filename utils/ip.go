@@ -52,9 +52,9 @@ func (i IP) ReverseZoneName() string {
 	// Without zero compression: fdda:5cc1:0023:0004:0000:0000:0000:001f
 	// Reversed: f100:0000:0000:0000:4000:3200:1cc5:addf
 	// Dotted notation: f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f
-	// Reverse Zone Name: f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa
-	// PTR Record Value: 4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f
-	return i.toReverseDottedNotation()[0:32] + "ip6.arpa."
+	// Reverse Zone Name: 4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f.ip6.arpa
+	// PTR Record Value: f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0
+	return i.toReverseDottedNotation()[32:] + ".ip6.arpa."
 }
 
 func (i IP) PTRRecordValue() string {
@@ -69,9 +69,9 @@ func (i IP) PTRRecordValue() string {
 	// Without zero compression: fdda:5cc1:0023:0004:0000:0000:0000:001f
 	// Reversed: f100:0000:0000:0000:4000:3200:1cc5:addf
 	// Dotted notation: f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f
-	// Reverse Zone Name: f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa
-	// PTR Record Value: 4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f
-	return i.toReverseDottedNotation()[32:]
+	// Reverse Zone Name: 4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f.ip6.arpa
+	// PTR Record Value: f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0
+	return i.toReverseDottedNotation()[0:31]
 }
 
 func (i IP) StringExpanded() string {

@@ -99,12 +99,12 @@ func TestReverseZone(t *testing.T) {
 				"5":                    {Type: models.PTR, Name: "5", Value: "two.testing.example.com.", Values: []*models.ResourceRecordValue{}},
 			},
 		},
-		"f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.": {
+		"4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f.ip6.arpa.": {
 			Config: zone.Config,
 			TTL:    zone.TTL,
 			ResourceRecords: map[string]*models.ResourceRecord{
-				"f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.": {Type: models.SOA, Name: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.", Value: "SOA"},
-				"4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f":           {Type: models.PTR, Name: "4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f", Value: "three.testing.example.com.", Values: []*models.ResourceRecordValue{}},
+				"4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f.ip6.arpa.": {Type: models.SOA, Name: "4.0.0.0.3.2.0.0.1.c.c.5.a.d.d.f.ip6.arpa.", Value: "SOA"},
+				"f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0":           {Type: models.PTR, Name: "f.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0", Value: "three.testing.example.com.", Values: []*models.ResourceRecordValue{}},
 			},
 		},
 	}
