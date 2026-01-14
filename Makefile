@@ -5,6 +5,7 @@ binaryName := zonemgr
 
 install-deps:
 	brew install bufbuild/buf/buf
+        brew install --cask goreleaser/tap/goreleaser
 	go install github.com/golang/mock/mockgen@v1.6.0
 	go mod download
 
@@ -72,3 +73,6 @@ coverage: build-all run-test-with-coverage html-coverage
 
 run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
 	ZONEMGR_PLUGIN_DIR=examples/bin/comment-override ./bin/zonemgr plugins --log-level trace
+
+release:
+	goreleaser release --clean
