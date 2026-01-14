@@ -5,7 +5,7 @@ binaryName := zonemgr
 
 install-deps:
 	brew install bufbuild/buf/buf
-        brew install --cask goreleaser/tap/goreleaser
+	brew install --cask goreleaser/tap/goreleaser
 	go install github.com/golang/mock/mockgen@v1.6.0
 	go mod download
 
