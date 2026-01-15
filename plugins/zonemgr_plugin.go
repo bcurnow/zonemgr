@@ -34,6 +34,6 @@ type ZoneMgrPlugin interface {
 	// This enables checks such as all CNAME records properly referencing a defined A record
 	// This allows validation only, no defaulting
 	ValidateZone(name string, zone *models.Zone) error
-	// Converts the resource record into a string to be writting out to a file
+	// Converts the resource record into a string to be written out to a file
 	Render(identifier string, rr *models.ResourceRecord) (string, error)
 }

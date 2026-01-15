@@ -39,7 +39,7 @@ type Validator interface {
 	// Performs the standard validations for resource records
 	// This includes:
 	//   - Validation that the resource record is of the specified type - This is not case insensitive but the the type will be normalized to uppercase
-	//   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsiblity of the individual plugins
+	//   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsibility of the individual plugins
 	//   - Validation that only Value or Values is populated
 	//   - Validation that only Comment or Values is populated
 	CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...Type) error
@@ -76,7 +76,7 @@ func V() Validator {
 // Performs the standard validations for resource records
 // This includes:
 //   - Validation that the resource record is of the specified type - This is not case insensitive but the the type will be normalized to uppercase
-//   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsiblity of the individual plugins
+//   - Validation of the class - An empty class will be considered valid, any defaulting or enforcement beyond that is the responsibility of the individual plugins
 //   - Validation that only Value or Values is populated
 //   - Validation that only Comment or Values is populated
 func (v *validator) CommonValidations(identifier string, rr *models.ResourceRecord, supportedTypes ...Type) error {

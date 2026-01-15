@@ -32,7 +32,7 @@ type ValuesNormalizer interface {
 	// Will take a SOA record and normalize the values
 	// generateSerial indicates if we should be generating the serial number
 	// serial is the next serial number to use, will be "" if generateSerial is false
-	Normalize(identifer string, rr *models.ResourceRecord, validations Validator, generateSerial bool, serial string) error
+	Normalize(identifier string, rr *models.ResourceRecord, validations Validator, generateSerial bool, serial string) error
 }
 
 var _ ValuesNormalizer = &SOAValuesNormalizer{}

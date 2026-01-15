@@ -199,7 +199,7 @@ func (fs *FileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 	return executables, err
 }
 
-// This will exit the entire program if we can't get this but this generaly shouldn't happen
+// This will exit the entire program if we can't get this but this generally shouldn't happen
 // unless we're being run in a very strange way
 func determineHomeDir() {
 	dir, err := userHomeDir()
