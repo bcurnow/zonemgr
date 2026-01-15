@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/go-playground/validator/v10 v10.30.1
-	github.com/gofrs/flock v0.12.1
+	github.com/gofrs/flock v0.13.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.6.0
 	github.com/spf13/cobra v1.8.0
