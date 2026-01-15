@@ -108,7 +108,9 @@ func generateReverseLookupZones(name string, zone *models.Zone) error {
 
 func init() {
 	generateCmd.Flags().StringVar(&inputFile, "input-file", "zones.yaml", "Input YAML file")
-	generateCmd.MarkFlagRequired("input")
+	if err := generateCmd.MarkFlagRequired("input-file"); err != nil {
+		panic(err) // This should never happen in init
+	}
 	generateCmd.Flags().StringVar(&outputDir, "output-dir", ".", "Directory to output the BIND zone file(s) to")
 
 	rootCmd.AddCommand(generateCmd)

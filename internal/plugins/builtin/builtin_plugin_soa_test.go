@@ -70,7 +70,9 @@ func TestSOANoramlize2(t *testing.T) {
 			GenerateSerial: tc.testConfig.generateSerial,
 		}
 		// Make sure we call configure because we do use this in the SOA plugin
-		plugin.Configure(config)
+		if err := plugin.Configure(config); err != nil {
+			t.Fatalf("Configure failed: %v", err)
+		}
 		// Because we called config, several the objects will now have non-mock values
 		// Replace those with mocks
 		serialIndexManager = mockSerialIndexManager

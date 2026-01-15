@@ -60,8 +60,7 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 		// If we do this in a single loop, we'd end up calling ValidateZone before all the normalization for the zone is complete
 		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.Type, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
 			hclog.L().Debug("Calling Configure", "zoneName", name, "pluginName", metadata.Name)
-			p.Configure(zone.Config)
-			return nil
+			return p.Configure(zone.Config)
 		}); err != nil {
 			return err
 		}

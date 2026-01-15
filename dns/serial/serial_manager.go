@@ -91,7 +91,7 @@ func (m *fileSerialManager) initFile(path string) (*models.SerialIndex, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer fileLock.Unlock()
+	defer fileLock.Unlock() //nolint:errcheck // unlock errors are not critical in defer
 
 	base, err := generator.GenerateBase()
 	if err != nil {
@@ -116,7 +116,7 @@ func (m *fileSerialManager) incrementAndUpdate(path string) (*models.SerialIndex
 	if err != nil {
 		return nil, err
 	}
-	defer fileLock.Unlock()
+	defer fileLock.Unlock() //nolint:errcheck // unlock errors are not critical in defer
 
 	serialIndex, err := m.indexFile.Read(path)
 	if err != nil {

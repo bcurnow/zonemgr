@@ -25,6 +25,7 @@ import (
 	"os"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/go-playground/validator/v10"
 	"github.com/hashicorp/go-hclog"
 	"gopkg.in/yaml.v3"
 )
@@ -48,10 +49,26 @@ var (
 	marshal                                           = yaml.Marshal
 	openFile                                          = os.OpenFile
 	marshalFileMode                                   = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	validate                                          = validator.New()
 )
 
 func (yr *ZoneYamlFile) Read(path string) (map[string]*models.Zone, error) {
-	return unmarshalYaml[map[string]*models.Zone](path)
+	zones, err := unmarshalYaml[map[string]*models.Zone](path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate the zones
+	for zoneName, zone := range zones {
+		if zone == nil {
+			continue // Skip nil zones, they will be handled by the parser
+		}
+		if err := validate.Struct(zone); err != nil {
+			return nil, fmt.Errorf("validation failed for zone '%s': %w", zoneName, err)
+		}
+	}
+
+	return zones, nil
 }
 
 // We don't need to write out a Zone back to a file (or do we?)

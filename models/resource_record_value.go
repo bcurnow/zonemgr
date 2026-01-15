@@ -22,8 +22,8 @@ package models
 import "fmt"
 
 type ResourceRecordValue struct {
-	Value   string `yaml:"value"`
-	Comment string `yaml:"comment"`
+	Value   string `yaml:"value" validate:"required"`
+	Comment string `yaml:"comment" validate:"omitempty"`
 }
 
 func (rrv *ResourceRecordValue) String() string {

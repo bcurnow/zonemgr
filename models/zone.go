@@ -24,9 +24,9 @@ import (
 
 // Represents the overall Zone file structure, the YAML file is an array of these
 type Zone struct {
-	Config                *Config                    `yaml:"config"`
-	ResourceRecords       map[string]*ResourceRecord `yaml:"resource_records"`
-	TTL                   *TTL                       `yaml:"ttl"`
+	Config                *Config                    `yaml:"config" validate:"omitempty"`
+	ResourceRecords       map[string]*ResourceRecord `yaml:"resource_records" validate:"omitempty,dive"`
+	TTL                   *TTL                       `yaml:"ttl" validate:"omitempty"`
 	resourceRecordsByType map[ResourceRecordType]map[string]*ResourceRecord
 }
 
@@ -34,7 +34,7 @@ func (z *Zone) String() string {
 	var rrString strings.Builder
 
 	if len(z.ResourceRecords) > 0 {
-		z.WithSortedResourceRecords(func(identifier string, rr *ResourceRecord) error {
+		err := z.WithSortedResourceRecords(func(identifier string, rr *ResourceRecord) error {
 			rrString.WriteString("     ")
 			rrString.WriteString(identifier)
 			rrString.WriteString(" -> ")
@@ -42,6 +42,10 @@ func (z *Zone) String() string {
 			rrString.WriteString("\n")
 			return nil
 		})
+		if err != nil {
+			// This should never happen since our function returns nil
+			rrString.WriteString(fmt.Sprintf("Error iterating resource records: %v\n", err))
+		}
 	}
 
 	return "Zone{\n" +

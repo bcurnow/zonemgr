@@ -85,7 +85,9 @@ func initConfig(cmd *cobra.Command) error {
 	// This only way this errors out is if you call v.BindPFlag directly
 	// with a nil flag. Since we aren't do that, this method really can't error out
 	// so we're not going to handle the error
-	v.BindPFlags(cmd.Flags())
+	if err := v.BindPFlags(cmd.Flags()); err != nil {
+		return err
+	}
 
 	v.AutomaticEnv()
 

@@ -61,8 +61,7 @@ func (zfg *pluginZoneFileGenerator) generate(name string, zone *models.Zone) ([]
 	}
 
 	if err := plugins.WithSortedPlugins(zfg.plugins, zfg.metadata, func(pluginType plugins.Type, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
-		p.Configure(zone.Config)
-		return nil
+		return p.Configure(zone.Config)
 	}); err != nil {
 		return nil, err
 	}

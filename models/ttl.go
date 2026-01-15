@@ -24,8 +24,8 @@ import (
 )
 
 type TTL struct {
-	Value   *int32 `yaml:"value"` // The use of a pointer to an int32 allows us to handle missing (nil) values more easily
-	Comment string `yaml:"comment"`
+	Value   *int32 `yaml:"value" validate:"omitempty,min=0,max=2147483647"` // The use of a pointer to an int32 allows us to handle missing (nil) values more easily
+	Comment string `yaml:"comment" validate:"omitempty"`
 }
 
 func (ttl *TTL) String() string {

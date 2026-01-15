@@ -66,7 +66,9 @@ var (
 
 func init() {
 	validateCmd.PersistentFlags().StringVar(&inputFile, "input", "", "The input file to validate")
-	validateCmd.MarkPersistentFlagRequired("input")
+	if err := validateCmd.MarkPersistentFlagRequired("input"); err != nil {
+		panic(err) // This should never happen in init
+	}
 	validateCmd.AddCommand(validateYamlCmd)
 	rootCmd.AddCommand(validateCmd)
 }

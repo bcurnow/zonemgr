@@ -35,15 +35,15 @@ func (m *MockValuesNormalizer) EXPECT() *MockValuesNormalizerMockRecorder {
 }
 
 // Normalize mocks base method.
-func (m *MockValuesNormalizer) Normalize(identifer string, rr *models.ResourceRecord, validations Validator, generateSerial bool, serial string) error {
+func (m *MockValuesNormalizer) Normalize(identifier string, rr *models.ResourceRecord, validations Validator, generateSerial bool, serial string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Normalize", identifer, rr, validations, generateSerial, serial)
+	ret := m.ctrl.Call(m, "Normalize", identifier, rr, validations, generateSerial, serial)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Normalize indicates an expected call of Normalize.
-func (mr *MockValuesNormalizerMockRecorder) Normalize(identifer, rr, validations, generateSerial, serial interface{}) *gomock.Call {
+func (mr *MockValuesNormalizerMockRecorder) Normalize(identifier, rr, validations, generateSerial, serial interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Normalize", reflect.TypeOf((*MockValuesNormalizer)(nil).Normalize), identifer, rr, validations, generateSerial, serial)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Normalize", reflect.TypeOf((*MockValuesNormalizer)(nil).Normalize), identifier, rr, validations, generateSerial, serial)
 }

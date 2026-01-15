@@ -19,9 +19,9 @@ package models
 import "fmt"
 
 type Config struct {
-	GenerateSerial             bool   `yaml:"generate_serial"`
-	SerialChangeIndexDirectory string `yaml:"serial_change_index_directory"`
-	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones"`
+	GenerateSerial             bool   `yaml:"generate_serial" validate:"boolean"`
+	SerialChangeIndexDirectory string `yaml:"serial_change_index_directory" validate:"omitempty,dirpath"`
+	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones" validate:"boolean"`
 }
 
 func (c *Config) String() string {
