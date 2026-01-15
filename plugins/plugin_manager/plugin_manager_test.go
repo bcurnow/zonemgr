@@ -41,7 +41,7 @@ var (
 	pluginDir      string
 	mockController *gomock.Controller
 	mockFs         *utils.MockFileSystemOperations
-	exampleDir     = "../../examples"
+	tempDir        string
 )
 
 func pluginManagerSetup(t *testing.T) {
@@ -54,11 +54,29 @@ func pluginManagerSetup(t *testing.T) {
 	instance.metadata = make(map[plugins.Type]*plugins.Metadata)
 
 	//Create a temp directory for testing
-	tempDir, err := os.MkdirTemp("", t.Name())
+	var err error
+	tempDir, err = os.MkdirTemp("", t.Name())
 	if err != nil {
 		t.Errorf("unable to create temp directory for testing: %s", err)
 	}
-	pluginDir = tempDir
+
+	// Compile the example plugins so the tests can use them
+	exampleDir := "../../examples"
+	for plugin, pluginFile := range map[string]string{"not-implemented": "zonemgr-a-record-not-implemented-plugin", "comment-override": "zonemgr-a-record-comment-override-plugin"} {
+		pluginPath := filepath.Join(tempDir, plugin)
+		err = os.Mkdir(pluginPath, 0755)
+		if err != nil {
+			t.Errorf("unable to create %s plugin directory for testing: %s", plugin, err)
+		}
+
+		//Compile the plugin to the temp directory
+		cmd := exec.Command("go", "build", "-o", filepath.Join(tempDir, plugin, pluginFile), filepath.Join(exampleDir, plugin, pluginFile+".go"))
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		if err := cmd.Run(); err != nil {
+			t.Errorf("unable to compile %s plugin for testing: %s, %s", plugin, err, stderr.String())
+		}
+	}
 }
 
 func pluginManagerTearDown(t *testing.T) {
@@ -190,10 +208,10 @@ func TestLoadExternalPlugins(t *testing.T) {
 		realFs                bool
 		wantedPluginCount     int
 	}{
-		{pluginDir: filepath.Join(exampleDir, "bin", "comment-override"), realFs: true, wantedPluginCount: 1},
+		{pluginDir: filepath.Join(tempDir, "comment-override"), realFs: true, wantedPluginCount: 1},
 		{pluginDir: "walk-executable-error", walkExecutablesErr: true},
 		{pluginDir: "plugin-instance-error", walkExecutablesResult: map[string]string{"does-not-exist": "does-not-exist"}, wantErr: "exec: \"does-not-exist\": executable file not found in $PATH"},
-		{pluginDir: filepath.Join(exampleDir, "bin", "not-implemented"), realFs: true, wantErr: "rpc error: code = Unknown desc = testing Plugin - Not Implemented"},
+		{pluginDir: filepath.Join(tempDir, "not-implemented"), realFs: true, wantErr: "rpc error: code = Unknown desc = testing Plugin - Not Implemented"},
 	}
 
 	for _, tc := range testCases {
@@ -285,7 +303,7 @@ func TestPluginInstance_DispenseError(t *testing.T) {
 			"does-not-exist": &grpc_plugins.GRPCPlugin{},
 		},
 		AllowedProtocols: []goplugin.Protocol{goplugin.ProtocolGRPC}, // We only support plugins of type grpc
-		Cmd:              exec.Command(filepath.Join(exampleDir, "bin", "comment-override/zonemgr-a-record-comment-override-plugin")),
+		Cmd:              exec.Command(filepath.Join(tempDir, "comment-override/zonemgr-a-record-comment-override-plugin")),
 	}
 	client := goplugin.NewClient(clientConfig)
 
