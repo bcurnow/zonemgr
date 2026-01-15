@@ -7,6 +7,7 @@ install-deps:
 	brew install bufbuild/buf/buf
 	brew install --cask goreleaser/tap/goreleaser
 	go install github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go mod download
 
 zonemgr:
@@ -38,6 +39,12 @@ format:
 tidy:
 	go mod tidy
 
+lint:
+	golangci-lint run
+
+lint-fix:
+	golangci-lint run --fix
+
 mocks: mocks-gen
 
 mocks-gen:
@@ -58,16 +65,16 @@ proto:
 	# The Buf Schema Registry (BSR) limits the number of request. Don't gen every time.
 	buf generate
 
-setup: format tidy mocks
+setup: format tidy lint-fix mocks
 
 build:setup zonemgr
 
 build-all: build zonemgr-a-record-comment-override-plugin zonemgr-a-record-not-implemented-plugin
 
 
-test: build-all run-test
-	
-coverage: build-all run-test-with-coverage html-coverage
+ci: tidy lint test build-all
+
+.PHONY: ci
 
 .PHONY: run-with-plugins
 
