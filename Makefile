@@ -4,10 +4,6 @@ SHELL := /bin/bash
 binaryName := zonemgr
 
 install-deps:
-	brew install bufbuild/buf/buf
-	brew install --cask goreleaser/tap/goreleaser
-	go install github.com/golang/mock/mockgen@v1.6.0
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go mod download
 
 zonemgr:
@@ -40,14 +36,17 @@ tidy:
 	go mod tidy
 
 lint:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	golangci-lint run
 
 lint-fix:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	golangci-lint run --fix
 
 mocks: mocks-gen
 
 mocks-gen:
+	go install github.com/golang/mock/mockgen@v1.6.0
 	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_normalizer.go
 	mockgen -source=dns/parser.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_parser.go
 	mockgen -source=dns/zone_file_generator.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_zone_file_generator.go
@@ -62,6 +61,7 @@ mocks-gen:
 	mockgen -source=utils/filesystem.go  -package utils -self_package "github.com/bcurnow/zonemgr/utils">utils/mock_filesystem.go
 
 proto:
+	brew install bufbuild/buf/buf
 	# The Buf Schema Registry (BSR) limits the number of request. Don't gen every time.
 	buf generate
 
@@ -82,4 +82,5 @@ run-with-plugins: zonemgr zonemgr-a-record-comment-override-plugin
 	ZONEMGR_PLUGIN_DIR=examples/bin/comment-override ./bin/zonemgr plugins --log-level trace
 
 release:
+	brew install --cask goreleaser/tap/goreleaser
 	goreleaser release --clean
