@@ -3,9 +3,6 @@
 SHELL := /bin/bash
 binaryName := zonemgr
 
-install-deps:
-	go mod download
-
 zonemgr:
 	go build -o bin/${binaryName}
 
@@ -17,16 +14,15 @@ zonemgr-a-record-not-implemented-plugin:
 	mkdir -p examples/bin/not-implemented
 	go build -o examples/bin/not-implemented/zonemgr-a-record-not-implemented-plugin examples/not-implemented/zonemgr-a-record-not-implemented-plugin.go
 
-run-test:
+test:
 	go test ./...
 
-run-test-with-coverage:
-	$(eval COV_PKGS=$(shell go list ./... | grep -v examples | grep -v proto | tr '\n' ','))
-	go test ./... -cover -coverprofile=coverage.out -coverpkg $(COV_PKGS)
-	./exclude-from-coverage.sh
-	go tool cover -func coverage.out | grep "^total:"
+test-with-coverage:
+	go test ./... -cover -coverprofile=coverage.out
+	go tool cover -func coverage.out
 
-html-coverage:
+test-with-html-coverage:
+	go test ./... -cover -coverprofile=coverage.out
 	go tool cover -html=coverage.out
 
 format:
@@ -36,11 +32,11 @@ tidy:
 	go mod tidy
 
 lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 	golangci-lint run
 
 lint-fix:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 	golangci-lint run --fix
 
 mocks: mocks-gen
@@ -65,14 +61,11 @@ proto:
 	# The Buf Schema Registry (BSR) limits the number of request. Don't gen every time.
 	buf generate
 
-setup: format tidy lint-fix mocks
-
-build:setup zonemgr
+build: format tidy lint-fix mocks zonemgr
 
 build-all: build zonemgr-a-record-comment-override-plugin zonemgr-a-record-not-implemented-plugin
 
-
-ci: tidy lint run-test-with-coverage build
+ci: tidy test-with-coverage build
 
 .PHONY: ci
 
