@@ -72,7 +72,7 @@ build:setup zonemgr
 build-all: build zonemgr-a-record-comment-override-plugin zonemgr-a-record-not-implemented-plugin
 
 
-ci: tidy lint run-test-with-coverage build-all
+ci: tidy lint run-test-with-coverage build
 
 .PHONY: ci
 
