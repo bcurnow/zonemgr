@@ -29,4 +29,4 @@
   - Mock external dependencies; use `mockcons` for console interactions
 - Security: before finalizing any code, consider injection, path traversal, privilege escalation, secret exposure, and untrusted-input risks. Propose mitigations proactively; ask the user if the right approach is unclear.
 - Before creating build outputs, binaries, or temp files, verify the path is covered by `.gitignore`; add an entry if it is not.
-- Where possible, generate commit messages from your knowledge of the steps you took rather than reading the uncommited file diffs. You already know what you did.
+- Commits: do NOT run `git diff` or re-read files to construct the commit message. You performed the changes in this session and already know what they are. Use that knowledge directly. Only run `git status` to confirm which files to stage.
