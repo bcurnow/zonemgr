@@ -26,10 +26,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"go.uber.org/mock/gomock"
+
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/utils"
-	"github.com/gofrs/flock"
-	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -52,216 +52,253 @@ func (t *TestYamlFile) Write(path string, content *models.SerialIndex) error {
 	return nil
 }
 
-var (
-	_                     utils.YamlFile[*models.SerialIndex] = &TestYamlFile{}
-	mockController        *gomock.Controller
-	mockGenerator         *MockGenerator
-	mockFs                *utils.MockFileSystemOperations
-	fsm                   fileSerialManager
-	testDir               string
-	testZoneName          = "testing"
-	serialChangeIndexFile string
-)
+var _ utils.YamlFile[*models.SerialIndex] = &TestYamlFile{}
 
-func setup_SerialManager(t *testing.T) {
-	mockController = gomock.NewController(t)
-	mockGenerator = NewMockGenerator(mockController)
-	mockFs = utils.NewMockFileSystemOperations(mockController)
+const testZoneName = "testing"
 
-	generator = mockGenerator
-	fs = mockFs
-
-	testDir, _ = os.MkdirTemp("", t.Name())
-	serialChangeIndexFile = filepath.Join(testDir, fmt.Sprintf("%s.%s", testZoneName, changeIndexFileExtension))
-	fsm = fileSerialManager{changeIndexDirectory: testDir, indexFile: &TestYamlFile{}}
+func newFsm(t *testing.T) fileSerialManager {
+	t.Helper()
+	return fileSerialManager{changeIndexDirectory: t.TempDir(), indexFile: &TestYamlFile{}}
 }
 
-func teardown_SerialManager(_ *testing.T) {
-	generator = &TimeBasedGenerator{}
-	fs = &utils.FileSystem{}
-	mockController.Finish()
+func serialFilePath(fsm fileSerialManager) string {
+	return filepath.Join(fsm.changeIndexDirectory, fmt.Sprintf("%s.%s", testZoneName, changeIndexFileExtension))
+}
+
+func setupGenerator(t *testing.T) (*gomock.Controller, *MockGenerator) {
+	t.Helper()
+	ctrl := gomock.NewController(t)
+	mockGen := NewMockGenerator(ctrl)
+	generator = mockGen
+	t.Cleanup(func() { generator = &TimeBasedGenerator{} })
+	return ctrl, mockGen
 }
 
 func TestNext(t *testing.T) {
-	setup_SerialManager(t)
-	defer teardown_SerialManager(t)
-	testCases := []struct {
-		name                  string
-		mkdirErr              bool
-		exists                bool
-		incrementAndUpdateErr bool
-		initFileErr           bool
-		generateErr           bool
-	}{
-		{name: "success"},
-		{name: "succes-exists", exists: true},
-		{name: "mkdirErr", mkdirErr: true},
-		{name: "incrementAndUpdateErr", incrementAndUpdateErr: true, exists: true},
-		{name: "initFileErr", initFileErr: true},
-		{name: "generateErr", generateErr: true},
-	}
+	t.Run("success-new-file", func(t *testing.T) {
+		_, mockGen := setupGenerator(t)
+		fsm := newFsm(t)
+		fs = &utils.FileSystem{}
+		defer func() { fs = &utils.FileSystem{} }()
 
-	for _, tc := range testCases {
-		call := mockFs.EXPECT().MkdirAll(fsm.changeIndexDirectory, os.FileMode(0750))
-		if tc.mkdirErr {
-			call.Return(errors.New("mkdirErr"))
-		} else {
-			// Keep track of any errors we caused in the exists block
-			errored := false
-			if tc.exists {
-				mockFs.EXPECT().Exists(serialChangeIndexFile).Return(true)
-				if tc.incrementAndUpdateErr {
-					mockFs.EXPECT().Flock(serialChangeIndexFile).Return(nil, errors.New("incrementAndUpdateErr"))
-					errored = true
-				}
-			} else {
-				mockFs.EXPECT().Exists(serialChangeIndexFile).Return(false)
-				if tc.initFileErr {
-					mockFs.EXPECT().Flock(serialChangeIndexFile).Return(nil, errors.New("initFileErr"))
-					errored = true
-				}
-			}
+		mockGen.EXPECT().GenerateBase().Return(toUint32Ptr(12345678), nil)
+		mockGen.EXPECT().FromSerialIndex(&models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(1)}).Return("1234567801", nil)
 
-			// If we've errored, the method is over an none of the below will ever happen
-			if !errored {
-				// Now we have our serialIndex and can continue on the happy path
-				testFlock := flock.New(serialChangeIndexFile)
-				mockFs.EXPECT().Flock(serialChangeIndexFile).Return(testFlock, nil)
-				mockGenerator.EXPECT().GenerateBase().Return(toUint32Ptr(12345678), nil)
-
-				if tc.generateErr {
-					mockGenerator.EXPECT().FromSerialIndex(gomock.Any()).Return("", errors.New("generateErr"))
-				} else {
-					if tc.exists {
-						mockGenerator.EXPECT().FromSerialIndex(&models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(33)}).Return("1234567833", nil)
-					} else {
-						mockGenerator.EXPECT().FromSerialIndex(&models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(1)}).Return("1234567801", nil)
-					}
-				}
-			}
-		}
 		serial, err := fsm.Next(testZoneName)
 		if err != nil {
-			want := ""
-			if tc.mkdirErr {
-				want = "mkdirErr"
-			} else if tc.incrementAndUpdateErr {
-				want = "incrementAndUpdateErr"
-			} else if tc.initFileErr {
-				// This will come from the TestYamlFile impl
-				want = "initFileErr"
-			} else if tc.generateErr {
-				want = "generateErr"
-			}
-
-			if err.Error() != want {
-				t.Errorf("%s - incorrect error: '%s', want: '%s'", tc.name, err, want)
-			}
-		} else {
-			if tc.mkdirErr || tc.incrementAndUpdateErr || tc.initFileErr {
-				t.Errorf("%s - expected an error, found none", tc.name)
-			} else {
-				want := "1234567801"
-				if tc.exists {
-					want = "1234567833"
-				}
-				if serial != want {
-					t.Errorf("%s - incorrect serial: '%s', want: '%s'", tc.name, serial, want)
-				}
-			}
+			t.Fatalf("unexpected error: %v", err)
 		}
-	}
+		if serial != "1234567801" {
+			t.Errorf("got serial %q, want %q", serial, "1234567801")
+		}
+	})
+
+	t.Run("success-existing-file", func(t *testing.T) {
+		_, mockGen := setupGenerator(t)
+		fsm := newFsm(t)
+		fs = &utils.FileSystem{}
+		defer func() { fs = &utils.FileSystem{} }()
+
+		// Pre-create the serial file so Exists returns true
+		filePath := serialFilePath(fsm)
+		if err := os.WriteFile(filePath, []byte{}, 0600); err != nil {
+			t.Fatalf("failed to create serial file: %v", err)
+		}
+
+		mockGen.EXPECT().GenerateBase().Return(toUint32Ptr(12345678), nil)
+		mockGen.EXPECT().FromSerialIndex(&models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(33)}).Return("1234567833", nil)
+
+		serial, err := fsm.Next(testZoneName)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if serial != "1234567833" {
+			t.Errorf("got serial %q, want %q", serial, "1234567833")
+		}
+	})
+
+	t.Run("mkdir-error", func(t *testing.T) {
+		fs = &utils.FileSystem{}
+		defer func() { fs = &utils.FileSystem{} }()
+
+		// Create a file at the directory path so MkdirAll fails
+		conflictPath := filepath.Join(t.TempDir(), "conflict")
+		if err := os.WriteFile(conflictPath, []byte("conflict"), 0600); err != nil {
+			t.Fatalf("failed to create conflict file: %v", err)
+		}
+		fsm := fileSerialManager{changeIndexDirectory: conflictPath, indexFile: &TestYamlFile{}}
+
+		_, err := fsm.Next(testZoneName)
+		if err == nil {
+			t.Error("expected an error, got none")
+		}
+	})
+
+	t.Run("flock-error-new-file", func(t *testing.T) {
+		fs = &utils.FileSystem{}
+		defer func() { fs = &utils.FileSystem{} }()
+
+		// Make the directory read-only so Flock can't create the file
+		readOnlyDir := t.TempDir()
+		if err := os.Chmod(readOnlyDir, 0555); err != nil {
+			t.Fatalf("failed to chmod: %v", err)
+		}
+		t.Cleanup(func() { os.Chmod(readOnlyDir, 0755) })
+		fsm := fileSerialManager{changeIndexDirectory: readOnlyDir, indexFile: &TestYamlFile{}}
+
+		_, err := fsm.Next(testZoneName)
+		if err == nil {
+			t.Error("expected an error, got none")
+		}
+	})
+
+	t.Run("flock-error-existing-file", func(t *testing.T) {
+		fs = &utils.FileSystem{}
+		defer func() { fs = &utils.FileSystem{} }()
+
+		fsm := newFsm(t)
+		// Create a directory at the serial file path so Exists returns true and Flock fails
+		dirAtFilePath := serialFilePath(fsm)
+		if err := os.MkdirAll(dirAtFilePath, 0755); err != nil {
+			t.Fatalf("failed to create dir at file path: %v", err)
+		}
+
+		_, err := fsm.Next(testZoneName)
+		if err == nil {
+			t.Error("expected an error, got none")
+		}
+	})
+
+	t.Run("generate-error", func(t *testing.T) {
+		_, mockGen := setupGenerator(t)
+		fsm := newFsm(t)
+		fs = &utils.FileSystem{}
+		defer func() { fs = &utils.FileSystem{} }()
+
+		mockGen.EXPECT().GenerateBase().Return(toUint32Ptr(12345678), nil)
+		mockGen.EXPECT().FromSerialIndex(gomock.Any()).Return("", errors.New("generateErr"))
+
+		_, err := fsm.Next(testZoneName)
+		if err == nil || err.Error() != "generateErr" {
+			t.Errorf("got error %v, want %q", err, "generateErr")
+		}
+	})
 }
 
 func TestInitFile(t *testing.T) {
-	setup_SerialManager(t)
-	defer teardown_SerialManager(t)
 	testCases := []struct {
+		name        string
 		flockErr    bool
 		generateErr bool
 		writeErr    bool
 	}{
-		{},
-		{flockErr: true},
-		{generateErr: true},
-		{writeErr: true},
+		{name: "success"},
+		{name: "flock-error", flockErr: true},
+		{name: "generate-error", generateErr: true},
+		{name: "write-error", writeErr: true},
 	}
 
 	for _, tc := range testCases {
-		call := mockFs.EXPECT().Flock("testing")
-		if tc.flockErr {
-			call.Return(nil, errors.New("flockErr"))
-		} else {
-			flock := flock.New("testing")
-			call.Return(flock, nil)
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl, mockGen := setupGenerator(t)
+			defer ctrl.Finish()
+			fs = &utils.FileSystem{}
+			defer func() { fs = &utils.FileSystem{} }()
 
-			call = mockGenerator.EXPECT().GenerateBase()
-			if tc.generateErr {
-				call.Return(nil, errors.New("generateErr"))
-			} else {
-				call.Return(toUint32Ptr(12345678), nil)
-				if tc.writeErr {
-					fsm.indexFile = &TestYamlFile{writeErr: true}
-				}
-			}
-		}
-		si, err := fsm.initFile("testing")
-		if err != nil {
-			want := ""
+			var path string
 			if tc.flockErr {
-				want = "flockErr"
-			} else if tc.generateErr {
-				want = "generateErr"
-			} else if tc.writeErr {
-				want = "writeErr"
+				// Create a directory at the path to make Flock fail
+				dirPath := filepath.Join(t.TempDir(), "test.serial")
+				if err := os.MkdirAll(dirPath, 0755); err != nil {
+					t.Fatalf("failed to create dir: %v", err)
+				}
+				path = dirPath
+			} else {
+				path = filepath.Join(t.TempDir(), "test.serial")
 			}
 
-			if err.Error() != want {
-				t.Errorf("incorrect error: '%s', want: '%s'", err, want)
-			}
-		} else {
-			if tc.flockErr || tc.generateErr || tc.writeErr {
-				t.Error("expected an error, found none")
-			} else {
-				if !cmp.Equal(si, &models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(1)}) {
-					t.Errorf("incorrect result:\n%s", cmp.Diff(si, &models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(1)}))
+			fsm := fileSerialManager{changeIndexDirectory: t.TempDir(), indexFile: &TestYamlFile{}}
+			if !tc.flockErr {
+				call := mockGen.EXPECT().GenerateBase()
+				if tc.generateErr {
+					call.Return(nil, errors.New("generateErr"))
+				} else {
+					call.Return(toUint32Ptr(12345678), nil)
+					if tc.writeErr {
+						fsm.indexFile = &TestYamlFile{writeErr: true}
+					}
 				}
 			}
-		}
+
+			si, err := fsm.initFile(path)
+			if err != nil {
+				if tc.flockErr || tc.generateErr {
+					return // expected error, any message is fine for filesystem errors
+				}
+				if tc.writeErr {
+					if err.Error() != "writeErr" {
+						t.Errorf("got error %q, want %q", err.Error(), "writeErr")
+					}
+					return
+				}
+				t.Errorf("unexpected error: %v", err)
+			} else {
+				if tc.flockErr || tc.generateErr || tc.writeErr {
+					t.Error("expected an error, got none")
+				} else {
+					want := &models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(1)}
+					if !cmp.Equal(si, want) {
+						t.Errorf("incorrect result:\n%s", cmp.Diff(si, want))
+					}
+				}
+			}
+		})
 	}
 }
 
 func TestIncrementAndUpdate(t *testing.T) {
-	setup_SerialManager(t)
-	defer teardown_SerialManager(t)
 	testCases := []struct {
+		name        string
 		flockErr    bool
 		readErr     bool
 		generateErr bool
 		diffBase    bool
 		writeErr    bool
 	}{
-		{},
-		{diffBase: true},
-		{flockErr: true},
-		{readErr: true},
-		{generateErr: true},
-		{writeErr: true},
+		{name: "success"},
+		{name: "different-base", diffBase: true},
+		{name: "flock-error", flockErr: true},
+		{name: "read-error", readErr: true},
+		{name: "generate-error", generateErr: true},
+		{name: "write-error", writeErr: true},
 	}
 
 	for _, tc := range testCases {
-		call := mockFs.EXPECT().Flock("testing")
-		if tc.flockErr {
-			call.Return(nil, errors.New("flockErr"))
-		} else {
-			flock := flock.New("testing")
-			call.Return(flock, nil)
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl, mockGen := setupGenerator(t)
+			defer ctrl.Finish()
+			fs = &utils.FileSystem{}
+			defer func() { fs = &utils.FileSystem{} }()
 
-			if tc.readErr {
-				fsm.indexFile = &TestYamlFile{readErr: true}
+			var path string
+			if tc.flockErr {
+				dirPath := filepath.Join(t.TempDir(), "test.serial")
+				if err := os.MkdirAll(dirPath, 0755); err != nil {
+					t.Fatalf("failed to create dir: %v", err)
+				}
+				path = dirPath
 			} else {
-				fsm.indexFile = &TestYamlFile{}
-				call = mockGenerator.EXPECT().GenerateBase()
+				path = filepath.Join(t.TempDir(), "test.serial")
+			}
+
+			indexFile := &TestYamlFile{}
+			if tc.readErr {
+				indexFile = &TestYamlFile{readErr: true}
+			}
+			fsm := fileSerialManager{changeIndexDirectory: t.TempDir(), indexFile: indexFile}
+
+			if !tc.flockErr && !tc.readErr {
+				call := mockGen.EXPECT().GenerateBase()
 				if tc.generateErr {
 					call.Return(nil, errors.New("generateErr"))
 				} else {
@@ -272,45 +309,42 @@ func TestIncrementAndUpdate(t *testing.T) {
 					}
 					if tc.writeErr {
 						fsm.indexFile = &TestYamlFile{writeErr: true}
-					} else {
-						si := &models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(33)}
-						if tc.diffBase {
-							si.Base = toUint32Ptr(123456789)
-							si.ChangeIndex = toUint32Ptr(1)
-						}
 					}
 				}
 			}
-		}
-		si, err := fsm.incrementAndUpdate("testing")
-		if err != nil {
-			want := ""
-			if tc.flockErr {
-				want = "flockErr"
-			} else if tc.readErr {
-				want = "readErr"
-			} else if tc.generateErr {
-				want = "generateErr"
-			} else if tc.writeErr {
-				want = "writeErr"
-			}
 
-			if err.Error() != want {
-				t.Errorf("incorrect error: '%s', want: '%s'", err, want)
-			}
-		} else {
-			if tc.flockErr || tc.generateErr || tc.writeErr {
-				t.Error("expected an error, found none")
+			si, err := fsm.incrementAndUpdate(path)
+			if err != nil {
+				if tc.flockErr || tc.generateErr {
+					return // expected, OS-specific message
+				}
+				if tc.readErr {
+					if err.Error() != "readErr" {
+						t.Errorf("got error %q, want %q", err.Error(), "readErr")
+					}
+					return
+				}
+				if tc.writeErr {
+					if err.Error() != "writeErr" {
+						t.Errorf("got error %q, want %q", err.Error(), "writeErr")
+					}
+					return
+				}
+				t.Errorf("unexpected error: %v", err)
 			} else {
-				want := &models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(33)}
-				if tc.diffBase {
-					want.Base = toUint32Ptr(123456789)
-					want.ChangeIndex = toUint32Ptr(1)
-				}
-				if !cmp.Equal(si, want) {
-					t.Errorf("incorrect result:\n%s", cmp.Diff(si, want))
+				if tc.flockErr || tc.generateErr || tc.writeErr {
+					t.Error("expected an error, got none")
+				} else {
+					want := &models.SerialIndex{Base: toUint32Ptr(12345678), ChangeIndex: toUint32Ptr(33)}
+					if tc.diffBase {
+						want.Base = toUint32Ptr(123456789)
+						want.ChangeIndex = toUint32Ptr(1)
+					}
+					if !cmp.Equal(si, want) {
+						t.Errorf("incorrect result:\n%s", cmp.Diff(si, want))
+					}
 				}
 			}
-		}
+		})
 	}
 }

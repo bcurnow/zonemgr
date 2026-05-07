@@ -23,88 +23,76 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/plugins"
 )
 
 func TestNormalize_APlugin(t *testing.T) {
-	setup(t)
-	defer teardown(t)
-	tc := &testConfig{
-		plugin:     &BuiltinPluginA{},
-		pluginType: plugins.A,
-		rrType:     models.A,
+	testCases := []struct {
+		name       string
+		identifier string
+		rr         *models.ResourceRecord
+		wantErr    string
+	}{
+		{
+			name:       "valid",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.A, Name: "host.example.com", Value: "1.2.3.4"},
+		},
+		{
+			name:       "name-defaulting",
+			identifier: "host.example.com",
+			rr:         &models.ResourceRecord{Type: models.A, Value: "1.2.3.4"},
+		},
+		{
+			name:       "wrong-type",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.CNAME, Name: "host.example.com", Value: "1.2.3.4"},
+			wantErr:    "this plugin does not handle resource records of type 'CNAME' only '[A]', identifier: 'record1'",
+		},
+		{
+			name:       "invalid-name",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.A, Name: "-invalid", Value: "1.2.3.4"},
+			wantErr:    "invalid A record, cannot start or end with a hyphen (-): '-invalid', identifier: 'record1'",
+		},
+		{
+			name:       "not-an-ip",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.A, Name: "host.example.com", Value: "not-an-ip"},
+			wantErr:    "invalid A record, 'not-an-ip' must be a valid IP address, identifier: 'record1'",
+		},
 	}
-	rr := &models.ResourceRecord{
-		Type:  tc.rrType,
-		Name:  "aplugin",
-		Value: "1.2.3.4",
-	}
-	tc.expects = normalizeExpects_APlugin(true, false, false)
-	testCommonValidations(t, tc, rr)
-	tc.expects = normalizeExpects_APlugin(false, true, false)
-	testEnsureValidNameOrWildcard(t, tc, rr)
-	tc.expects = normalizeExpects_APlugin(false, false, true)
-	testEnsureIP(t, tc, rr)
 
-	// Test name defaulting
-	identifier := "testing-name-defaulting"
-	noName := &models.ResourceRecord{
-		Type:  tc.rrType,
-		Value: "1.2.3.4",
-	}
-	mockValidator.EXPECT().CommonValidations(identifier, noName, tc.pluginType)
-	// Make sure the name defaulted
-	mockValidator.EXPECT().EnsureValidNameOrWildcard(identifier, identifier, rr.Type)
-	mockValidator.EXPECT().EnsureIP(identifier, noName.RetrieveSingleValue(), rr.Type)
-
-	if err := tc.plugin.Normalize(identifier, noName); err != nil {
-		t.Errorf("unexpected error:\n'%s'", err)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			checkErr(t, (&BuiltinPluginA{}).Normalize(tc.identifier, tc.rr), tc.wantErr)
+		})
 	}
 }
 
 func TestRender_APlugin(t *testing.T) {
-	setup(t)
-	defer teardown(t)
-	rr := &models.ResourceRecord{
-		Type: models.A,
-		Name: "render",
-	}
-	plugin := &BuiltinPluginA{}
-	pluginType := plugins.A
-	testRender(t, testConfig{
-		plugin:     plugin,
-		pluginType: pluginType,
-		rrType:     rr.Type,
-		expects: func(identifier string, rr *models.ResourceRecord, err bool) {
-			call := mockValidator.EXPECT().EnsureSupportedPluginType(identifier, rr.Type, pluginType)
-			if err {
-				call.Return(testingError)
-			}
+	testCases := []struct {
+		name       string
+		identifier string
+		rr         *models.ResourceRecord
+		wantErr    string
+	}{
+		{
+			name:       "valid",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.A, Name: "host.example.com", Value: "1.2.3.4"},
 		},
-	}, rr)
-	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().EnsureSupportedPluginType("testing", rr.Type, pluginType)
-	_, err := plugin.Render("testing", rr)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
+		{
+			name:       "wrong-type",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.CNAME, Name: "host.example.com"},
+			wantErr:    "this plugin does not handle resource records of type 'CNAME' only '[A]', identifier: 'record1'",
+		},
 	}
-}
 
-func normalizeExpects_APlugin(commonValidationsErr bool, isValidNameOrWildcardErr bool, ensureIPErr bool) func(identifier string, rr *models.ResourceRecord, err bool) {
-	return func(identifier string, rr *models.ResourceRecord, err bool) {
-		call := mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.A)
-		if commonValidationsErr && err {
-			call.Return(testingError)
-			return
-		}
-		call = mockValidator.EXPECT().EnsureValidNameOrWildcard(identifier, rr.Name, rr.Type)
-		if isValidNameOrWildcardErr && err {
-			call.Return(testingError)
-			return
-		}
-		call = mockValidator.EXPECT().EnsureIP(identifier, rr.RetrieveSingleValue(), rr.Type)
-		if ensureIPErr && err {
-			call.Return(testingError)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := (&BuiltinPluginA{}).Render(tc.identifier, tc.rr)
+			checkErr(t, err, tc.wantErr)
+		})
 	}
 }

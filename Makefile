@@ -19,11 +19,13 @@ test:
 
 test-with-coverage:
 	go test ./... -cover -coverprofile=coverage.out
-	go tool cover -func coverage.out
+	grep -v -e "mock_" -e "\.pb\.go" -e "/examples/" coverage.out > coverage.filtered.out
+	go tool cover -func coverage.filtered.out
 
 test-with-html-coverage:
 	go test ./... -cover -coverprofile=coverage.out
-	go tool cover -html=coverage.out
+	grep -v -e "mock_" -e "\.pb\.go" -e "/examples/" coverage.out > coverage.filtered.out
+	go tool cover -html=coverage.filtered.out
 
 format:
 	gofmt -l -w -s .
@@ -42,7 +44,7 @@ lint-fix:
 mocks: mocks-gen
 
 mocks-gen:
-	go install github.com/golang/mock/mockgen@v1.6.0
+	go install go.uber.org/mock/mockgen@latest
 	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_normalizer.go
 	mockgen -source=dns/parser.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_parser.go
 	mockgen -source=dns/zone_file_generator.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_zone_file_generator.go

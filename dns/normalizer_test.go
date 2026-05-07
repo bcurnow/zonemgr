@@ -41,10 +41,11 @@ func TestNormalize(t *testing.T) {
 		validateZoneErr          bool
 		normalizeErr             bool
 		missingPluginMetadataErr bool
+		useRealPlugins           bool
 	}{
 		{name: "no-zones", zones: make(map[string]*models.Zone)},
-		{name: "no-config-defaulting", expectedConfig: testZone.Config, zones: testZones},
-		{name: "config-defaulting", expectedConfig: globalConfig, zones: map[string]*models.Zone{"nil-config-zone": {Config: nil}}},
+		{name: "no-config-defaulting", expectedConfig: testZone.Config, zones: testZones, useRealPlugins: true},
+		{name: "config-defaulting", expectedConfig: globalConfig, zones: map[string]*models.Zone{"nil-config-zone": {Config: nil}}, useRealPlugins: true},
 		{name: "abs-path-error", expectedConfig: testZone.Config, zones: testZones, absPathErr: true},
 		{name: "no-plugin-for-resource-record-type", expectedConfig: testZone.Config, zones: testZones, missingPluginErr: true},
 		{name: "missing-plugin-metadata", expectedConfig: testZone.Config, zones: testZones, missingPluginMetadataErr: true},
@@ -82,6 +83,10 @@ func TestNormalize(t *testing.T) {
 					return nil
 				} else {
 					mockFs.EXPECT().ToAbsoluteFilePath(tc.expectedConfig.SerialChangeIndexDirectory).Return(tc.expectedConfig.SerialChangeIndexDirectory, nil)
+				}
+
+				if tc.useRealPlugins {
+					return nil
 				}
 
 				// If we don't have any plugins, Configure won't get called
@@ -123,12 +128,13 @@ func TestNormalize(t *testing.T) {
 		}
 
 		thePlugins := mockPlugins
-		if tc.missingPluginErr {
-			thePlugins = make(map[plugins.Type]plugins.ZoneMgrPlugin)
-		}
-
 		theMetadata := mockMetadata
-		if tc.missingPluginMetadataErr {
+		if tc.useRealPlugins {
+			thePlugins = realPlugins
+			theMetadata = realMetadata
+		} else if tc.missingPluginErr {
+			thePlugins = make(map[plugins.Type]plugins.ZoneMgrPlugin)
+		} else if tc.missingPluginMetadataErr {
 			theMetadata = make(map[plugins.Type]*plugins.Metadata)
 		}
 

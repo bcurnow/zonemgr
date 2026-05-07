@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	flock "github.com/gofrs/flock"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockFileSystemOperations is a mock of FileSystemOperations interface.

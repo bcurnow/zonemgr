@@ -23,113 +23,87 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
-	"github.com/bcurnow/zonemgr/plugins"
 )
 
 func TestNSNormalize(t *testing.T) {
-	setup(t)
-	defer teardown(t)
-	tc := &testConfig{
-		plugin:     &BuiltinPluginNS{},
-		pluginType: plugins.NS,
-		rrType:     models.NS,
+	testCases := []struct {
+		name       string
+		identifier string
+		rr         *models.ResourceRecord
+		wantErr    string
+	}{
+		{
+			name:       "valid",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.NS, Name: "ns.example.com", Value: "ns1.example.com."},
+		},
+		{
+			name:       "name-defaults-to-wildcard",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.NS, Value: "ns1.example.com."},
+		},
+		{
+			name:       "value-defaults-to-identifier",
+			identifier: "ns1.example.com.",
+			rr:         &models.ResourceRecord{Type: models.NS, Name: "ns.example.com"},
+		},
+		{
+			name:       "wrong-type",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.A, Name: "ns.example.com", Value: "ns1.example.com."},
+			wantErr:    "this plugin does not handle resource records of type 'A' only '[NS]', identifier: 'record1'",
+		},
+		{
+			name:       "invalid-name",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.NS, Name: "-invalid", Value: "ns1.example.com."},
+			wantErr:    "invalid NS record, cannot start or end with a hyphen (-): '-invalid', identifier: 'record1'",
+		},
+		{
+			name:       "value-is-ip",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.NS, Name: "ns.example.com", Value: "1.2.3.4"},
+			wantErr:    "invalid NS record, '1.2.3.4' must not be an IP address, identifier: 'record1'",
+		},
+		{
+			name:       "value-not-fqdn",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.NS, Name: "ns.example.com", Value: "ns1.example.com"},
+			wantErr:    "invalid NS record, must end with a trailing dot: 'ns1.example.com', identifier: 'record1'",
+		},
 	}
-	rr := &models.ResourceRecord{
-		Type:  tc.rrType,
-		Name:  "nsrecord",
-		Value: "ns1.example.com.",
-	}
-	tc.expects = normalizeExpects_NSPlugin(true, false, false, false)
-	testCommonValidations(t, tc, rr)
-	tc.expects = normalizeExpects_NSPlugin(false, true, false, false)
-	testEnsureValidNameOrWildcard(t, tc, rr)
-	tc.expects = normalizeExpects_NSPlugin(false, false, true, false)
-	testEnsureNotIP(t, tc, rr)
-	tc.expects = normalizeExpects_NSPlugin(false, false, false, true)
-	testEnsureFullyQualified(t, tc, rr)
 
-	// Test value defaulting
-	identifier := "testing-value-defaulting"
-	noValue := &models.ResourceRecord{
-		Name: "valuedefaulting",
-		Type: tc.rrType,
-	}
-	mockValidator.EXPECT().CommonValidations(identifier, noValue, plugins.NS)
-	mockValidator.EXPECT().EnsureValidNameOrWildcard(identifier, noValue.Name, noValue.Type)
-	// Make sure the name defaulted
-	mockValidator.EXPECT().EnsureNotIP(identifier, identifier, noValue.Type)
-	mockValidator.EXPECT().EnsureFullyQualified(identifier, identifier, noValue.Type)
-
-	if err := tc.plugin.Normalize(identifier, noValue); err != nil {
-		t.Errorf("unexpected error:\n'%s'", err)
-	}
-
-	// Test name defaulting
-	identifier = "testing-name-defaulting"
-	noName := &models.ResourceRecord{
-		Type:  tc.rrType,
-		Value: "ns1.example.com.",
-	}
-	mockValidator.EXPECT().CommonValidations(identifier, noName, plugins.NS)
-	// Make sure the name defaulted
-	mockValidator.EXPECT().EnsureValidNameOrWildcard(identifier, "@", noName.Type)
-	mockValidator.EXPECT().EnsureNotIP(identifier, noName.RetrieveSingleValue(), noName.Type)
-	mockValidator.EXPECT().EnsureFullyQualified(identifier, noName.RetrieveSingleValue(), noName.Type)
-
-	if err := tc.plugin.Normalize(identifier, noName); err != nil {
-		t.Errorf("unexpected error:\n'%s'", err)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			checkErr(t, (&BuiltinPluginNS{}).Normalize(tc.identifier, tc.rr), tc.wantErr)
+		})
 	}
 }
 
 func TestNSRender(t *testing.T) {
-	setup(t)
-	defer teardown(t)
-	rr := &models.ResourceRecord{
-		Type: models.NS,
-		Name: "render",
-	}
-	plugin := &BuiltinPluginNS{}
-	pluginType := plugins.NS
-	testRender(t, testConfig{
-		plugin:     plugin,
-		pluginType: pluginType,
-		rrType:     rr.Type,
-		expects: func(identifier string, rr *models.ResourceRecord, err bool) {
-			call := mockValidator.EXPECT().EnsureSupportedPluginType(identifier, rr.Type, pluginType)
-			if err {
-				call.Return(testingError)
-			}
+	testCases := []struct {
+		name       string
+		identifier string
+		rr         *models.ResourceRecord
+		wantErr    string
+	}{
+		{
+			name:       "valid",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.NS, Name: "ns.example.com", Value: "ns1.example.com."},
 		},
-	}, rr)
-	//Render uses the standard method so we're going to cheat
-	mockValidator.EXPECT().EnsureSupportedPluginType("testing", rr.Type, pluginType)
-	_, err := plugin.Render("testing", rr)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
+		{
+			name:       "wrong-type",
+			identifier: "record1",
+			rr:         &models.ResourceRecord{Type: models.A, Name: "ns.example.com"},
+			wantErr:    "this plugin does not handle resource records of type 'A' only '[NS]', identifier: 'record1'",
+		},
 	}
-}
 
-func normalizeExpects_NSPlugin(commonValidationsErr bool, isValidNameOrWildcardErr bool, ensureIPErr bool, isFullyQualifiedErr bool) func(identifier string, rr *models.ResourceRecord, err bool) {
-	return func(identifier string, rr *models.ResourceRecord, err bool) {
-		call := mockValidator.EXPECT().CommonValidations(identifier, rr, plugins.NS)
-		if commonValidationsErr && err {
-			call.Return(testingError)
-			return
-		}
-		call = mockValidator.EXPECT().EnsureValidNameOrWildcard(identifier, rr.Name, rr.Type)
-		if isValidNameOrWildcardErr && err {
-			call.Return(testingError)
-			return
-		}
-		call = mockValidator.EXPECT().EnsureNotIP(identifier, rr.RetrieveSingleValue(), rr.Type)
-		if ensureIPErr && err {
-			call.Return(testingError)
-			return
-		}
-		call = mockValidator.EXPECT().EnsureFullyQualified(identifier, rr.RetrieveSingleValue(), rr.Type)
-		if isFullyQualifiedErr && err {
-			call.Return(testingError)
-			return
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := (&BuiltinPluginNS{}).Render(tc.identifier, tc.rr)
+			checkErr(t, err, tc.wantErr)
+		})
 	}
 }

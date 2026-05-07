@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	plugins "github.com/bcurnow/zonemgr/plugins"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockPluginManager is a mock of PluginManager interface.

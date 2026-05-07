@@ -32,9 +32,9 @@ import (
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/grpc_plugins"
 	"github.com/bcurnow/zonemgr/utils"
-	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
+	"go.uber.org/mock/gomock"
 )
 
 var (

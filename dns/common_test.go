@@ -22,10 +22,12 @@ package dns
 import (
 	"testing"
 
+	"go.uber.org/mock/gomock"
+
+	"github.com/bcurnow/zonemgr/internal/plugins/builtin"
 	models "github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
-	"github.com/golang/mock/gomock"
 )
 
 var (
@@ -34,6 +36,8 @@ var (
 	mockCNAMEPlugin *plugins.MockZoneMgrPlugin
 	mockPlugins     map[plugins.Type]plugins.ZoneMgrPlugin
 	mockMetadata    map[plugins.Type]*plugins.Metadata
+	realPlugins     map[plugins.Type]plugins.ZoneMgrPlugin
+	realMetadata    map[plugins.Type]*plugins.Metadata
 	mockFs          *utils.MockFileSystemOperations
 	testZone        *models.Zone
 	testZones       map[string]*models.Zone
@@ -53,6 +57,15 @@ func dnsSetup(t *testing.T) {
 	mockMetadata[plugins.A] = &plugins.Metadata{Name: string(plugins.A), Command: "none", BuiltIn: true}
 	mockMetadata[plugins.CNAME] = &plugins.Metadata{Name: string(plugins.CNAME), Command: "none", BuiltIn: true}
 
+	realPlugins = map[plugins.Type]plugins.ZoneMgrPlugin{
+		plugins.A:     &builtin.BuiltinPluginA{},
+		plugins.CNAME: &builtin.BuiltinPluginCNAME{},
+	}
+	realMetadata = map[plugins.Type]*plugins.Metadata{
+		plugins.A:     {Name: string(plugins.A), Command: "Built In", BuiltIn: true},
+		plugins.CNAME: {Name: string(plugins.CNAME), Command: "Built In", BuiltIn: true},
+	}
+
 	mockFs = utils.NewMockFileSystemOperations(mockController)
 	fs = mockFs
 
@@ -63,8 +76,8 @@ func dnsSetup(t *testing.T) {
 			GenerateReverseLookupZones: true,
 		},
 		ResourceRecords: map[string]*models.ResourceRecord{
-			"record1": {Type: models.A},
-			"record2": {Type: models.CNAME},
+			"record1": {Type: models.A, Value: "1.2.3.4"},
+			"record2": {Type: models.CNAME, Value: "record1"},
 		},
 		TTL: &models.TTL{
 			Value:   toInt32Ptr(30),

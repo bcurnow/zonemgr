@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	models "github.com/bcurnow/zonemgr/models"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockZoneMgrPlugin is a mock of ZoneMgrPlugin interface.

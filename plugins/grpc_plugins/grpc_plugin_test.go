@@ -26,7 +26,7 @@ import (
 
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/proto"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc"
 )
 

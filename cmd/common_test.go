@@ -25,7 +25,7 @@ import (
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/plugins/plugin_manager"
 	"github.com/bcurnow/zonemgr/utils"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 var (

@@ -47,8 +47,8 @@ func TestGenerateZone(t *testing.T) {
 	fs = &utils.FileSystem{}
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
-	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("record1", nil)
-	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME}).Return("record2", nil)
+	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A, Value: "1.2.3.4"}).Return("record1", nil)
+	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME, Value: "record1"}).Return("record2", nil)
 
 	if err := PluginZoneFileGenerator(mockPlugins, mockMetadata).GenerateZone("testing", testZone, "."); err != nil {
 		t.Errorf("unexpected error: %s", err)
@@ -119,7 +119,7 @@ func TestGenerate_RenderError(t *testing.T) {
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
 	want := "testing error"
-	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("", errors.New(want))
+	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A, Value: "1.2.3.4"}).Return("", errors.New(want))
 
 	_, err := g.generate("testing", testZone)
 	if err == nil {
@@ -140,8 +140,8 @@ func TestGenerate_NoTTL(t *testing.T) {
 	testZone.TTL = nil
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
-	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("record1", nil)
-	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME}).Return("record2", nil)
+	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A, Value: "1.2.3.4"}).Return("record1", nil)
+	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME, Value: "record1"}).Return("record2", nil)
 
 	content, err := g.generate("testing", testZone)
 	if err != nil {
@@ -162,8 +162,8 @@ func TestGenerate_WithTTL(t *testing.T) {
 
 	mockAPlugin.EXPECT().Configure(testZone.Config)
 	mockCNAMEPlugin.EXPECT().Configure(testZone.Config)
-	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A}).Return("record1", nil)
-	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME}).Return("record2", nil)
+	mockAPlugin.EXPECT().Render("record1", &models.ResourceRecord{Type: models.A, Value: "1.2.3.4"}).Return("record1", nil)
+	mockCNAMEPlugin.EXPECT().Render("record2", &models.ResourceRecord{Type: models.CNAME, Value: "record1"}).Return("record2", nil)
 
 	content, err := g.generate("testing", testZone)
 	if err != nil {
