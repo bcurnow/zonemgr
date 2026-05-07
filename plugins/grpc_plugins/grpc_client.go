@@ -56,10 +56,7 @@ func (c *GRPCClient) PluginTypes() ([]plugins.Type, error) {
 
 func (c *GRPCClient) Configure(config *models.Config) error {
 	_, err := c.client.Configure(context.Background(), &proto.ConfigureRequest{Config: grpc.ConfigToProtoBuf(config)})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (c *GRPCClient) Normalize(identifier string, rr *models.ResourceRecord) error {
@@ -82,10 +79,7 @@ func (c *GRPCClient) ValidateZone(name string, zone *models.Zone) error {
 		Name: name,
 		Zone: grpc.ZoneToProtoBuf(zone),
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (c *GRPCClient) Render(identifier string, rr *models.ResourceRecord) (string, error) {

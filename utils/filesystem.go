@@ -95,9 +95,8 @@ func (fs *FileSystem) CreateFile(path string, mode os.FileMode, contentFn func()
 	bytesWritten, err := outputFile.Write(content)
 	if err != nil {
 		return fmt.Errorf("error writing content for output file '%s': %w", path, err)
-	} else {
-		hclog.L().Trace("Wrote content to output file", "outputFile", path, "bytesWritten", bytesWritten)
 	}
+	hclog.L().Trace("Wrote content to output file", "outputFile", path, "bytesWritten", bytesWritten)
 
 	return nil
 }
@@ -143,7 +142,7 @@ func (fs *FileSystem) ToAbsoluteFilePath(path string) (string, error) {
 
 	absPath, err := abs(path)
 	if err != nil {
-		hclog.L().Error(fmt.Sprintf("Could not convert '%s' into an absolute path", path))
+		hclog.L().Error("could not convert into an absolute path", "path", path)
 		return "", err
 	}
 	return absPath, nil

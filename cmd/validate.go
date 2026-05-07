@@ -66,9 +66,7 @@ var (
 
 func init() {
 	validateCmd.PersistentFlags().StringVar(&inputFile, "input", "", "The input file to validate")
-	if err := validateCmd.MarkPersistentFlagRequired("input"); err != nil {
-		panic(err) // This should never happen in init
-	}
+	cobra.CheckErr(validateCmd.MarkPersistentFlagRequired("input"))
 	validateCmd.AddCommand(validateYamlCmd)
 	rootCmd.AddCommand(validateCmd)
 }

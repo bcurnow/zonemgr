@@ -49,7 +49,7 @@ func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone,
 	if err != nil || strings.HasPrefix(rel, "..") {
 		return fmt.Errorf("zone name %q resolves outside output directory", name)
 	}
-	return fs.CreateFile(outputFileName, 0755, func() ([]byte, error) {
+	return fs.CreateFile(outputFileName, 0640, func() ([]byte, error) {
 		hclog.L().Info("Generating zone file", "outputFile", outputFileName, "zone", name)
 		return zfg.generate(name, zone)
 	})

@@ -87,33 +87,23 @@ func generateReverseLookupZones(name string, zone *models.Zone) error {
 		return nil
 	}
 
-	if zone.Config.GenerateReverseLookupZones {
-		hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
-		reverseLookupZones, err := zoneReverser.ReverseZone(name, zone)
-		if err != nil {
-			return err
-		}
-		if err := normalizer.Normalize(reverseLookupZones); err != nil {
-			return err
-		}
-
-		if err := models.WithSortedZones(reverseLookupZones, func(name string, zone *models.Zone) error {
-			if err := zoneFileGenerator.GenerateZone(name, zone, outputDir); err != nil {
-				return err
-			}
-			return nil
-		}); err != nil {
-			return err
-		}
+	hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
+	reverseLookupZones, err := zoneReverser.ReverseZone(name, zone)
+	if err != nil {
+		return err
 	}
-	return nil
+	if err := normalizer.Normalize(reverseLookupZones); err != nil {
+		return err
+	}
+
+	return models.WithSortedZones(reverseLookupZones, func(name string, zone *models.Zone) error {
+		return zoneFileGenerator.GenerateZone(name, zone, outputDir)
+	})
 }
 
 func init() {
 	generateCmd.Flags().StringVar(&inputFile, "input-file", "zones.yaml", "Input YAML file")
-	if err := generateCmd.MarkFlagRequired("input-file"); err != nil {
-		panic(err) // This should never happen in init
-	}
+	cobra.CheckErr(generateCmd.MarkFlagRequired("input-file"))
 	generateCmd.Flags().StringVar(&outputDir, "output-dir", ".", "Directory to output the BIND zone file(s) to")
 
 	rootCmd.AddCommand(generateCmd)

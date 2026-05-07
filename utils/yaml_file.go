@@ -102,7 +102,7 @@ func unmarshalYaml[T any](path string) (T, error) {
 }
 
 func marshalYaml[T any](path string, content T) error {
-	file, err := openFile(path, marshalFileMode, 0644)
+	file, err := openFile(path, marshalFileMode, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open '%s': %w", path, err)
 	}
