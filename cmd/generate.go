@@ -62,7 +62,7 @@ var (
 )
 
 func generateZoneFile() error {
-	hclog.L().Info("Generating BIND zone file(s)", "outputDir", outputDir, "inputFile", inputFile)
+	hclog.L().Info("generating BIND zone file(s)", "outputDir", outputDir, "inputFile", inputFile)
 	zones, err := parser.Parse(inputFile)
 	if err != nil {
 		return fmt.Errorf("failed to parse input file %s: %w", inputFile, err)
@@ -87,7 +87,7 @@ func generateReverseLookupZones(name string, zone *models.Zone) error {
 		return nil
 	}
 
-	hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
+	hclog.L().Debug("zone has generate reverse lookup zones turned on", "zone", name)
 	reverseLookupZones, err := zoneReverser.ReverseZone(name, zone)
 	if err != nil {
 		return err

@@ -254,8 +254,8 @@ func TestHandleOverride(t *testing.T) {
 		want       string
 	}{
 		{havePlugin: false},
-		{havePlugin: true, builtin: false, want: "Replacing non-default plugin"},
-		{havePlugin: true, builtin: true, want: "Replacing default plugin"},
+		{havePlugin: true, builtin: false, want: "replacing non-default plugin"},
+		{havePlugin: true, builtin: true, want: "replacing default plugin"},
 	}
 
 	for _, tc := range testCases {

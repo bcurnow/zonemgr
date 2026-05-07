@@ -106,14 +106,14 @@ func setupLogging() {
 
 	if level == hclog.NoLevel {
 		level = hclog.Info
-		hclog.L().Error("Invalid log level specified, defaulting to Info", "level", v.GetString("log-level"))
+		hclog.L().Error("invalid log level specified, defaulting to Info", "level", v.GetString("log-level"))
 	}
 	utils.ConfigureLogging(level, v.GetBool("log-json"), !v.GetBool("log-time"), v.GetBool("log-color"))
-	hclog.L().Trace("Log level set", "level", hclog.L().GetLevel())
+	hclog.L().Trace("log level set", "level", hclog.L().GetLevel())
 }
 
 // Ensures that any created plugin clients are properly cleaned up
 func cleanup() {
-	hclog.L().Trace("Cleaning up clients")
+	hclog.L().Trace("cleaning up clients")
 	cleanupClients()
 }

@@ -62,7 +62,7 @@ func (pm *pluginManager) Metadata() map[plugins.Type]*plugins.Metadata {
 
 func (pm *pluginManager) LoadPlugins(pluginDir string) error {
 	maps.Copy(pm.plugins, builtin.BuiltinPlugins())
-	logger().Debug("Loaded built-in plugins", "pluginCount", len(pm.plugins))
+	logger().Debug("loaded built-in plugins", "pluginCount", len(pm.plugins))
 	maps.Copy(pm.metadata, builtin.BuiltinMetadata())
 
 	if err := pm.loadExternalPlugins(pluginDir); err != nil {
@@ -73,14 +73,14 @@ func (pm *pluginManager) LoadPlugins(pluginDir string) error {
 }
 
 func (pm *pluginManager) loadExternalPlugins(pluginDir string) error {
-	logger().Debug("Loading plugins", "pluginDir", pluginDir)
+	logger().Debug("loading plugins", "pluginDir", pluginDir)
 	executables, err := fs.WalkExecutables(pluginDir, false)
 
 	if err != nil {
 		return err
 	}
 
-	logger().Trace("Found executables", "pluginDir", pluginDir, "executableCount", len(executables))
+	logger().Trace("found executables", "pluginDir", pluginDir, "executableCount", len(executables))
 
 	for pluginPath, pluginCmd := range executables {
 		pluginName := filepath.Base(pluginPath)
@@ -113,15 +113,15 @@ func (pm *pluginManager) handleOverride(pluginType plugins.Type, existingMetadat
 		// If the plugin already exists then we are overriding. If what we're overriding isn't the default
 		// then there are multiple plugins in the path which support the same resource record types and we should warn the user
 		if existingMetadata.BuiltIn {
-			logger().Debug("Replacing default plugin", "pluginType", pluginType, "oldPluginName", existingMetadata.Name, "newPluginName", newMetadata.Name)
+			logger().Debug("replacing default plugin", "pluginType", pluginType, "oldPluginName", existingMetadata.Name, "newPluginName", newMetadata.Name)
 		} else {
-			logger().Warn("Replacing non-default plugin", "pluginType", pluginType, "oldPluginName", existingMetadata.Name, "newPluginName", newMetadata.Name)
+			logger().Warn("replacing non-default plugin", "pluginType", pluginType, "oldPluginName", existingMetadata.Name, "newPluginName", newMetadata.Name)
 		}
 	}
 }
 
 func (pm *pluginManager) buildClient(pluginName string, pluginCmd string) *goplugin.Client {
-	logger().Debug("Building a plugin client", "pluginName", pluginName, "pluginCmd", pluginCmd)
+	logger().Debug("building a plugin client", "pluginName", pluginName, "pluginCmd", pluginCmd)
 
 	clientConfig := &goplugin.ClientConfig{
 		HandshakeConfig: plugins.HandshakeConfig,
@@ -142,20 +142,20 @@ func (pm *pluginManager) buildClient(pluginName string, pluginCmd string) *goplu
 }
 
 func (pm *pluginManager) pluginInstance(pluginName string, client *goplugin.Client) (plugins.ZoneMgrPlugin, error) {
-	logger().Trace("Getting the ClientProtocol from the client", "pluginName", pluginName)
+	logger().Trace("getting the ClientProtocol from the client", "pluginName", pluginName)
 	// Get the RPC Client from the plugin definition
 	clientProtocol, err := client.Client()
 	if err != nil {
 		return nil, err
 	}
 
-	logger().Trace("Dispensing plugin", "pluginName", pluginName)
+	logger().Trace("dispensing plugin", "pluginName", pluginName)
 	// Get the actual client so we can use it
 	raw, err := clientProtocol.Dispense(pluginName)
 	if err != nil {
 		return nil, err
 	}
-	logger().Debug("Plugin dispensed", "pluginName", pluginName, "protocol", client.Protocol())
+	logger().Debug("plugin dispensed", "pluginName", pluginName, "protocol", client.Protocol())
 
 	// Cast the raw plugin to the TypeHandler interface so we have access to the methods
 	return raw.(plugins.ZoneMgrPlugin), nil

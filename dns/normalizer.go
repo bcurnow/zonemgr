@@ -41,7 +41,7 @@ func PluginNormalizer(plugins map[plugins.Type]plugins.ZoneMgrPlugin, metadata m
 }
 
 func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
-	logger().Trace("Normalizing zones", "count", len(zones))
+	logger().Trace("normalizing zones", "count", len(zones))
 	if len(zones) == 0 {
 		return fmt.Errorf("no zones found")
 	}
@@ -58,7 +58,7 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 		// Then all the zone validation
 		// If we do this in a single loop, we'd end up calling ValidateZone before all the normalization for the zone is complete
 		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.Type, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
-			logger().Debug("Calling Configure", "zoneName", name, "pluginName", metadata.Name)
+			logger().Debug("calling Configure", "zoneName", name, "pluginName", metadata.Name)
 			return p.Configure(zone.Config)
 		}); err != nil {
 			return err
@@ -70,7 +70,7 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 
 		// Now perform any validations on the zone itself
 		if err := plugins.WithSortedPlugins(n.plugins, n.metadata, func(pluginType plugins.Type, p plugins.ZoneMgrPlugin, metadata *plugins.Metadata) error {
-			logger().Debug("Calling ValidateZone", "zoneName", name, "pluginName", metadata.Name)
+			logger().Debug("calling ValidateZone", "zoneName", name, "pluginName", metadata.Name)
 			if err := p.ValidateZone(name, zone); err != nil {
 				return err
 			}
@@ -84,12 +84,12 @@ func (n *pluginNormalizer) Normalize(zones map[string]*models.Zone) error {
 
 func (n *pluginNormalizer) normalizeConfig(name string, zone *models.Zone) error {
 	if nil == zone.Config {
-		logger().Debug("Zone missing config, setting to default values", "zoneName", name, "defaults", &models.Config{})
+		logger().Debug("zone missing config, setting to default values", "zoneName", name, "defaults", &models.Config{})
 		zone.Config = &models.Config{}
 	}
 
 	// Ensure that the serial change index directory is an absolute path
-	logger().Trace("Ensuring serial-change-index-directory is an absolute path", "serialChangeIndexDirectory", zone.Config.SerialChangeIndexDirectory)
+	logger().Trace("ensuring serial-change-index-directory is an absolute path", "serialChangeIndexDirectory", zone.Config.SerialChangeIndexDirectory)
 	absSerialChangeIndexDirectory, err := fs.ToAbsoluteFilePath(zone.Config.SerialChangeIndexDirectory)
 	if err != nil {
 		return err
@@ -99,15 +99,15 @@ func (n *pluginNormalizer) normalizeConfig(name string, zone *models.Zone) error
 }
 
 func (n *pluginNormalizer) normalizeZone(name string, zone *models.Zone) error {
-	logger().Debug("Normalizing zone", "name", name)
+	logger().Debug("normalizing zone", "name", name)
 	if err := zone.WithSortedResourceRecords(func(identifier string, rr *models.ResourceRecord) error {
-		logger().Trace("Normalizing record", "identifier", identifier, "zoneName", name)
+		logger().Trace("normalizing record", "identifier", identifier, "zoneName", name)
 		// We only call normalize on the resource record types we have plugins for, no need to loop
 		plugin := n.plugins[plugins.Type(rr.Type)]
 		if nil == plugin {
 			return fmt.Errorf("unable to normalize zone '%s', no plugin for resource record type '%s', identifier: '%s'", name, rr.Type, identifier)
 		}
-		logger().Trace("Calling Normalize on plugin", "identifier", identifier, "resourceRecordType", rr.Type, "zoneName", name, "plugin", plugin)
+		logger().Trace("calling Normalize on plugin", "identifier", identifier, "resourceRecordType", rr.Type, "zoneName", name, "plugin", plugin)
 		err := plugin.Normalize(identifier, rr)
 		if err != nil {
 			return err

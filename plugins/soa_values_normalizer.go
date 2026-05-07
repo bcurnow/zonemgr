@@ -52,7 +52,7 @@ func (svn *SOAValuesNormalizer) Normalize(identifier string, rr *models.Resource
 	}
 
 	if generateSerial && numValues != 6 {
-		logger().Debug("Ignoring serial number of SOA record, using generated one", "identifier", identifier, "serialNumber", rr.Values[2].Value, "generateSerial", generateSerial, "generatedSerialNumber", serial)
+		logger().Debug("ignoring serial number of SOA record, using generated one", "identifier", identifier, "serialNumber", rr.Values[2].Value, "generateSerial", generateSerial, "generatedSerialNumber", serial)
 	}
 
 	if !generateSerial && numValues == 6 {

@@ -85,13 +85,13 @@ func (sir *SerialIndexYamlFile) Write(path string, content *models.SerialIndex) 
 
 func unmarshalYaml[T any](path string) (T, error) {
 	var nilT T
-	logger().Debug("Opening file", "path", path)
+	logger().Debug("opening file", "path", path)
 	inputBytes, err := readFile(path)
 	if err != nil {
 		return nilT, fmt.Errorf("failed to open '%s': %w", path, err)
 	}
 
-	logger().Debug("Unmarshaling YAML", "path", path)
+	logger().Debug("unmarshaling YAML", "path", path)
 	var yaml T
 	if err := unmarshal(inputBytes, &yaml); err != nil {
 		return nilT, fmt.Errorf("failed to parse input YAML: %w", err)
