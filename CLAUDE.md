@@ -1,0 +1,32 @@
+## Directives
+- DO NOT assume, ask questions if you're unsure or need to choose between multiple options
+- Don't re-read files after writing them.
+- Batch verification: build/test once per logical group of changes, not per file. Run `make format`, then `make lint`, then tests.
+- Use Makefile for building (`make build`) and testing (`make test`) and linting (`make lint`) wherever possible.
+- Use full, descriptive variable names. No abbreviated names like `rt`, `st`, `cfg`, `exec`, `mgr`, `sched`. Use `runtime`, `store`, `config`, `executor`, `manager`, `scheduler`.
+- Monitor code complexity: functions over 50 lines, deeply nested conditionals (3+ levels), or multiple responsibilities are candidates for refactoring. Extract focused methods with single responsibilities.
+- Proto changes: edit `proto/**/*.proto` → `make proto`; never read/edit `gen/`; LSP on `gen/` unreliable, `go build ./...` is authoritative.
+- Use offset+limit when file location is known; grep for symbol lookups; spawn Explore only for 5+ directory searches.
+- No subagents for research answerable in 1-2 tool calls.
+- No preamble ("I'll now...", "Let me..."). Start with the action or answer.
+- No end-of-turn summary unless asked.
+- One-sentence status updates.
+- No unsolicited refactor, test, or adjacent-code improvement suggestions.
+- No comment changes unless the task requires it.
+- No abstractions, helpers, or error handling beyond task scope.
+- Don't create extraneous documentation files; CHANGELOG.md is fine but individual refactors/improvements don't need separate .md files.
+- When adding test infrastructure for internal methods, use `export_test.go` pattern with wrapper types that expose private fields/methods via public getters and wrapper methods.
+- Testing guidelines:
+  - Use table-driven tests for functions with multiple input/output scenarios
+  - Test edge cases: nil, empty, boundary conditions, invalid inputs
+  - Integration tests go in `*_integration_test.go` or `*_test.go` with clear naming
+  - Unit tests for pure functions should validate determinism and uniqueness
+  - Use `t.Helper()` for test utility functions
+  - Target 80%+ coverage for new code; critical paths should have 90%+
+  - Test both success and failure paths, especially for error handling
+  - Use descriptive test names: `TestFunctionName_Scenario` pattern
+  - For concurrent code, test race conditions and cancellation
+  - Mock external dependencies; use `mockcons` for console interactions
+- Security: before finalizing any code, consider injection, path traversal, privilege escalation, secret exposure, and untrusted-input risks. Propose mitigations proactively; ask the user if the right approach is unclear.
+- Before creating build outputs, binaries, or temp files, verify the path is covered by `.gitignore`; add an entry if it is not.
+- Where possible, generate commit messages from your knowledge of the steps you took rather than reading the uncommited file diffs. You already know what you did.
