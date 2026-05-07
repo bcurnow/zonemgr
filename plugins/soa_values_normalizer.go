@@ -26,6 +26,10 @@ import (
 	"github.com/hashicorp/go-hclog"
 )
 
+func logger() hclog.Logger {
+	return hclog.L().Named("plugins")
+}
+
 const generatedSerialNumberComment = "Zonemgr generated serial number"
 
 type ValuesNormalizer interface {
@@ -48,7 +52,7 @@ func (svn *SOAValuesNormalizer) Normalize(identifier string, rr *models.Resource
 	}
 
 	if generateSerial && numValues != 6 {
-		hclog.L().Debug("Ignoring serial number of SOA record, using generated one", "identifier", identifier, "serialNumber", rr.Values[2].Value, "generateSerial", generateSerial, "generatedSerialNumber", serial)
+		logger().Debug("Ignoring serial number of SOA record, using generated one", "identifier", identifier, "serialNumber", rr.Values[2].Value, "generateSerial", generateSerial, "generatedSerialNumber", serial)
 	}
 
 	if !generateSerial && numValues == 6 {

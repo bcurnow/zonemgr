@@ -8,6 +8,10 @@ import (
 
 // This function updates the hclog.DefaultOptions. It should be called as early as possible because
 // and hclog.Default() or hclog.L() calls made before this is called will get the defaults
+func logger() hclog.Logger {
+	return hclog.L().Named("utils")
+}
+
 func ConfigureLogging(level hclog.Level, jsonFormat bool, disableTime bool, logColor bool) {
 	if logColor {
 		hclog.DefaultOptions.Color = hclog.AutoColor

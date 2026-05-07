@@ -114,6 +114,6 @@ func setupLogging() {
 
 // Ensures that any created plugin clients are properly cleaned up
 func cleanup() {
-	hclog.L().Trace("Cleaning up the clients...")
+	hclog.L().Trace("Cleaning up clients")
 	cleanupClients()
 }

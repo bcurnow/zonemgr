@@ -16,16 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with zonemgr.  If not, see <https://www.gnu.org/licenses/>.
  */
+package models
 
-package dns
-
-import (
-	"github.com/bcurnow/zonemgr/utils"
-	"github.com/hashicorp/go-hclog"
-)
-
-var fs utils.FileSystemOperations = &utils.FileSystem{}
+import "github.com/hashicorp/go-hclog"
 
 func logger() hclog.Logger {
-	return hclog.L().Named("dns")
+	return hclog.L().Named("models")
 }

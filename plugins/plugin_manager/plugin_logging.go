@@ -26,6 +26,10 @@ import (
 	"github.com/hashicorp/go-hclog"
 )
 
+func logger() hclog.Logger {
+	return hclog.L().Named("plugin_manager")
+}
+
 func PluginLogger() hclog.Logger {
 	if pluginDebug {
 		return hclog.L().Named("plugin")

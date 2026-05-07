@@ -26,7 +26,6 @@ import (
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/go-playground/validator/v10"
-	"github.com/hashicorp/go-hclog"
 	"gopkg.in/yaml.v3"
 )
 
@@ -86,13 +85,13 @@ func (sir *SerialIndexYamlFile) Write(path string, content *models.SerialIndex) 
 
 func unmarshalYaml[T any](path string) (T, error) {
 	var nilT T
-	hclog.L().Debug("Opening file", "path", path)
+	logger().Debug("Opening file", "path", path)
 	inputBytes, err := readFile(path)
 	if err != nil {
 		return nilT, fmt.Errorf("failed to open '%s': %w", path, err)
 	}
 
-	hclog.L().Debug("Unmarshaling YAML", "path", path)
+	logger().Debug("Unmarshaling YAML", "path", path)
 	var yaml T
 	if err := unmarshal(inputBytes, &yaml); err != nil {
 		return nilT, fmt.Errorf("failed to parse input YAML: %w", err)

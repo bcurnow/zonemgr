@@ -20,8 +20,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/hashicorp/go-hclog"
 )
 
 const (
@@ -61,7 +59,7 @@ func (rr *ResourceRecord) RetrieveSingleValue() string {
 
 	if valueCount > 0 {
 		if valueCount > 1 {
-			hclog.L().Trace("Resource record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount, "values", rr.Values)
+			logger().Trace("Resource record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount, "values", rr.Values)
 		}
 		return rr.Values[0].Value
 	}
@@ -77,7 +75,7 @@ func (rr *ResourceRecord) RetrieveSingleComment() string {
 	valueCount := len(rr.Values)
 	if valueCount > 0 && rr.Values[0].Comment != "" {
 		if valueCount > 1 {
-			hclog.L().Trace("Resource record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount, "values", rr.Values)
+			logger().Trace("Resource record has more than 1 value, returning the first", "name", rr.Name, "valueCount", valueCount, "values", rr.Values)
 		}
 		return rr.Values[0].Comment
 	}

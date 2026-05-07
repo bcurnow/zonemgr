@@ -42,6 +42,10 @@ var (
 	fs        utils.FileSystemOperations = &utils.FileSystem{}
 )
 
+func logger() hclog.Logger {
+	return hclog.L().Named("serial")
+}
+
 type fileSerialManager struct {
 	changeIndexDirectory string
 	indexFile            utils.YamlFile[*models.SerialIndex]
@@ -61,14 +65,14 @@ func (m *fileSerialManager) Next(zoneName string) (string, error) {
 	// Make sure the file exists
 	var serialIndex *models.SerialIndex
 	if fs.Exists(path) {
-		hclog.L().Trace("Serial change index file exists, processing", "file", path)
+		logger().Trace("Serial change index file exists, processing", "file", path)
 		si, err := m.incrementAndUpdate(path)
 		if err != nil {
 			return "", err
 		}
 		serialIndex = si
 	} else {
-		hclog.L().Trace("Serial change index file does not exist, creating new one", "file", path)
+		logger().Trace("Serial change index file does not exist, creating new one", "file", path)
 		si, err := m.initFile(path)
 		if err != nil {
 			return "", err
@@ -80,12 +84,12 @@ func (m *fileSerialManager) Next(zoneName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	hclog.L().Trace("Returning next serial number", "serialNumber", serialNumber)
+	logger().Trace("Returning next serial number", "serialNumber", serialNumber)
 	return serialNumber, nil
 }
 
 func (m *fileSerialManager) initFile(path string) (*models.SerialIndex, error) {
-	hclog.L().Debug("Creating new serial file", "file", path)
+	logger().Debug("Creating new serial file", "file", path)
 	//Lock the file so no other process modifies it while we're updating
 	fileLock, err := fs.Flock(path)
 	if err != nil {
@@ -130,7 +134,7 @@ func (m *fileSerialManager) incrementAndUpdate(path string) (*models.SerialIndex
 		return nil, err
 	}
 
-	hclog.L().Trace("Comparing base serial numbers", "current", *serialIndex.Base, "new", *newBase)
+	logger().Trace("Comparing base serial numbers", "current", *serialIndex.Base, "new", *newBase)
 	if *serialIndex.Base != *newBase {
 		serialIndex.Base = newBase
 		// Again with the constant/pointer workaround
@@ -140,7 +144,7 @@ func (m *fileSerialManager) incrementAndUpdate(path string) (*models.SerialIndex
 		*serialIndex.ChangeIndex++
 	}
 
-	hclog.L().Trace("Writing updated serial change index file", "file", path, "baseSerialNumber", *serialIndex.Base, "changeIndex", *serialIndex.ChangeIndex)
+	logger().Trace("Writing updated serial change index file", "file", path, "baseSerialNumber", *serialIndex.Base, "changeIndex", *serialIndex.ChangeIndex)
 	// Write the updated values back to the file
 	err = m.indexFile.Write(path, serialIndex)
 	if err != nil {

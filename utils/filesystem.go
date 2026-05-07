@@ -27,7 +27,6 @@ import (
 	"strings"
 
 	"github.com/gofrs/flock"
-	"github.com/hashicorp/go-hclog"
 )
 
 // This package wraps standard methods from the filepath and os packages
@@ -96,7 +95,7 @@ func (fs *FileSystem) CreateFile(path string, mode os.FileMode, contentFn func()
 	if err != nil {
 		return fmt.Errorf("error writing content for output file '%s': %w", path, err)
 	}
-	hclog.L().Trace("Wrote content to output file", "outputFile", path, "bytesWritten", bytesWritten)
+	logger().Trace("Wrote content to output file", "outputFile", path, "bytesWritten", bytesWritten)
 
 	return nil
 }
@@ -111,14 +110,14 @@ func (fs *FileSystem) Flock(path string) (*flock.Flock, error) {
 	// Create a file lock, this doesn't lock the file...yet
 	fileLock := newFlock(path)
 
-	hclog.L().Trace("Attempting to lock file exclusively", "file", path)
+	logger().Trace("Attempting to lock file exclusively", "file", path)
 	locked, err := fileLock.TryLock()
 	if err != nil {
 		return nil, err
 	}
 
 	if locked {
-		hclog.L().Trace("Locked file", "file", path)
+		logger().Trace("Locked file", "file", path)
 		return fileLock, nil
 	}
 
@@ -142,7 +141,7 @@ func (fs *FileSystem) ToAbsoluteFilePath(path string) (string, error) {
 
 	absPath, err := abs(path)
 	if err != nil {
-		hclog.L().Error("could not convert into an absolute path", "path", path)
+		logger().Error("Could not convert into an absolute path", "path", path)
 		return "", err
 	}
 	return absPath, nil
@@ -153,12 +152,12 @@ func (fs *FileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 	err := walkDir(root, func(path string, d os.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			if os.IsNotExist(walkErr) {
-				hclog.L().Trace("Could not walk path", "path", path)
+				logger().Trace("Could not walk path", "path", path)
 				return nil
 			}
 			return walkErr
 		}
-		hclog.L().Trace("Processing path", "path", path)
+		logger().Trace("Processing path", "path", path)
 
 		// Don't traverse sub-directories, this is arbitrary but we are keeping it simple
 		if d.IsDir() && path != root {
@@ -166,7 +165,7 @@ func (fs *FileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 				// We don't do anything with this dir but indicate no errors
 				return nil
 			} else {
-				hclog.L().Trace("Subdirectories are not supported, skipping", "path", path)
+				logger().Trace("Subdirectories are not supported, skipping", "path", path)
 				return filepath.SkipDir
 			}
 		}
@@ -180,7 +179,7 @@ func (fs *FileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 		if info.Mode().IsRegular() {
 			// 0111 checks for the execute bit to be set
 			if info.Mode()&0111 == 0 {
-				hclog.L().Trace("Skipping non-executable file", "path", path)
+				logger().Trace("Skipping non-executable file", "path", path)
 				return nil
 			}
 
@@ -189,7 +188,7 @@ func (fs *FileSystem) WalkExecutables(root string, includeSubDirs bool) (map[str
 			if err != nil {
 				return err
 			}
-			hclog.L().Trace("Adding executable", "executable", absPath)
+			logger().Trace("Adding executable", "executable", absPath)
 			// We need to add the fully path here because if we find the same executable with two different name
 			executables[path] = absPath
 		}

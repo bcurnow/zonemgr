@@ -27,7 +27,6 @@ import (
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
-	"github.com/hashicorp/go-hclog"
 )
 
 type ZoneFileGenerator interface {
@@ -50,7 +49,7 @@ func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone,
 		return fmt.Errorf("zone name %q resolves outside output directory", name)
 	}
 	return fs.CreateFile(outputFileName, 0640, func() ([]byte, error) {
-		hclog.L().Info("Generating zone file", "outputFile", outputFileName, "zone", name)
+		logger().Info("Generating zone file", "outputFile", outputFileName, "zone", name)
 		return zfg.generate(name, zone)
 	})
 }
