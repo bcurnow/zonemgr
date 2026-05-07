@@ -89,7 +89,10 @@ func generateReverseLookupZones(name string, zone *models.Zone) error {
 
 	if zone.Config.GenerateReverseLookupZones {
 		hclog.L().Debug("Zone has generate reverse lookup zones turned on", "zone", name)
-		reverseLookupZones := zoneReverser.ReverseZone(name, zone)
+		reverseLookupZones, err := zoneReverser.ReverseZone(name, zone)
+		if err != nil {
+			return err
+		}
 		if err := normalizer.Normalize(reverseLookupZones); err != nil {
 			return err
 		}

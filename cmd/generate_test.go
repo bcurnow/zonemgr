@@ -119,12 +119,14 @@ func TestRunE_Generate(t *testing.T) {
 	testCases := []struct {
 		parseErr                    bool
 		zoneFileGeneratorErr        bool
+		reverseZoneErr              bool
 		normalizerErr               bool
 		reverseZoneFileGeneratorErr bool
 	}{
 		{},
 		{parseErr: true},
 		{zoneFileGeneratorErr: true},
+		{reverseZoneErr: true},
 		{normalizerErr: true},
 		{reverseZoneFileGeneratorErr: true},
 	}
@@ -156,20 +158,25 @@ func TestRunE_Generate(t *testing.T) {
 				reverseZoneTwo := &models.Zone{}
 				reverseZones["reverse-one"] = reverseZoneOne
 				reverseZones["reverse-two"] = reverseZoneTwo
-				mockZoneReverser.EXPECT().ReverseZone("two", zoneTwo).Return(reverseZones)
-
-				call = mockNormalizer.EXPECT().Normalize(reverseZones)
-				if tc.normalizerErr {
-					call.Return(errors.New("normalizerErr"))
+				call = mockZoneReverser.EXPECT().ReverseZone("two", zoneTwo)
+				if tc.reverseZoneErr {
+					call.Return(nil, errors.New("reverseZoneErr"))
 				} else {
-					call.Return(nil)
+					call.Return(reverseZones, nil)
 
-					call = mockZoneFileGenerator.EXPECT().GenerateZone("reverse-one", reverseZoneOne, outputDir)
-					if tc.reverseZoneFileGeneratorErr {
-						call.Return(errors.New("reverseZoneFileGeneratorErr"))
+					call = mockNormalizer.EXPECT().Normalize(reverseZones)
+					if tc.normalizerErr {
+						call.Return(errors.New("normalizerErr"))
 					} else {
 						call.Return(nil)
-						mockZoneFileGenerator.EXPECT().GenerateZone("reverse-two", reverseZoneTwo, outputDir).Return(nil)
+
+						call = mockZoneFileGenerator.EXPECT().GenerateZone("reverse-one", reverseZoneOne, outputDir)
+						if tc.reverseZoneFileGeneratorErr {
+							call.Return(errors.New("reverseZoneFileGeneratorErr"))
+						} else {
+							call.Return(nil)
+							mockZoneFileGenerator.EXPECT().GenerateZone("reverse-two", reverseZoneTwo, outputDir).Return(nil)
+						}
 					}
 				}
 			}
@@ -181,6 +188,8 @@ func TestRunE_Generate(t *testing.T) {
 				want = "failed to parse input file testing: parseErr"
 			} else if tc.zoneFileGeneratorErr {
 				want = "zoneFileGeneratorErr"
+			} else if tc.reverseZoneErr {
+				want = "reverseZoneErr"
 			} else if tc.normalizerErr {
 				want = "normalizerErr"
 			} else if tc.reverseZoneFileGeneratorErr {
@@ -191,7 +200,7 @@ func TestRunE_Generate(t *testing.T) {
 				t.Errorf("incorrect error: '%s', want: '%s'", err, want)
 			}
 		} else {
-			if tc.parseErr || tc.zoneFileGeneratorErr || tc.normalizerErr || tc.reverseZoneFileGeneratorErr {
+			if tc.parseErr || tc.zoneFileGeneratorErr || tc.reverseZoneErr || tc.normalizerErr || tc.reverseZoneFileGeneratorErr {
 				t.Error("expected an error, found none")
 			}
 		}

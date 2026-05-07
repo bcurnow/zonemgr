@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/utils"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -58,7 +59,11 @@ func TestToPTR(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		ptr := (&zoneReverser{}).toPTR("example.com", tc.rr)
+		ip, err := utils.ParseIP(tc.rr.Value)
+		if err != nil {
+			t.Fatalf("failed to parse test IP %q: %v", tc.rr.Value, err)
+		}
+		ptr := (&zoneReverser{}).toPTR("example.com", ip, tc.rr)
 
 		if !cmp.Equal(ptr, tc.want) {
 			t.Errorf("unexpected result for %s:\n%s", tc.name, cmp.Diff(ptr, tc.want))
@@ -109,7 +114,10 @@ func TestReverseZone(t *testing.T) {
 		},
 	}
 
-	reverseZones := (&zoneReverser{}).ReverseZone("testing.example.com.", zone)
+	reverseZones, err := (&zoneReverser{}).ReverseZone("testing.example.com.", zone)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	t.Log(reverseZones)
 	if len(reverseZones) != len(wantedReverseZones) {
 		t.Errorf("expected %d reverse zones, got %d", len(wantedReverseZones), len(reverseZones))
@@ -137,9 +145,30 @@ func TestReverseZone_NoResourceRecords(t *testing.T) {
 		ResourceRecords: map[string]*models.ResourceRecord{},
 	}
 
-	reverseZones := (&zoneReverser{}).ReverseZone("testing.example.com.", zone)
+	reverseZones, err := (&zoneReverser{}).ReverseZone("testing.example.com.", zone)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if len(reverseZones) != 0 {
 		t.Errorf("expected no zones but found %d", len(reverseZones))
+	}
+}
+
+func TestReverseZone_InvalidIP(t *testing.T) {
+	dnsSetup(t)
+	defer dnsTeardown(t)
+
+	zone := &models.Zone{
+		Config: &models.Config{},
+		TTL:    &models.TTL{},
+		ResourceRecords: map[string]*models.ResourceRecord{
+			"record1": {Type: models.A, Name: "bad-record", Value: "not-an-ip"},
+		},
+	}
+
+	_, err := (&zoneReverser{}).ReverseZone("testing.example.com.", zone)
+	if err == nil {
+		t.Fatal("expected an error for invalid IP, found none")
 	}
 }
 

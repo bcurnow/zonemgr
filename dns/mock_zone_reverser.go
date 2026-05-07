@@ -35,11 +35,12 @@ func (m *MockZoneReverser) EXPECT() *MockZoneReverserMockRecorder {
 }
 
 // ReverseZone mocks base method.
-func (m *MockZoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) map[string]*models.Zone {
+func (m *MockZoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) (map[string]*models.Zone, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReverseZone", sourceZoneName, zone)
 	ret0, _ := ret[0].(map[string]*models.Zone)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ReverseZone indicates an expected call of ReverseZone.

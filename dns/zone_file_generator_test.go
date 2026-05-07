@@ -56,6 +56,20 @@ func TestGenerateZone(t *testing.T) {
 	defer os.Remove("./testing")
 }
 
+func TestGenerateZone_PathTraversal(t *testing.T) {
+	dnsSetup(t)
+	defer dnsTeardown(t)
+
+	err := PluginZoneFileGenerator(mockPlugins, mockMetadata).GenerateZone("../../etc/passwd", testZone, ".")
+	if err == nil {
+		t.Fatal("expected an error for path traversal, found none")
+	}
+	want := `zone name "../../etc/passwd" resolves outside output directory`
+	if err.Error() != want {
+		t.Errorf("incorrect error: %q, want: %q", err, want)
+	}
+}
+
 func TestGenerate_MissingPluginMetadata(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)

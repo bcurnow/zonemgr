@@ -20,6 +20,8 @@
 package dns
 
 import (
+	"fmt"
+
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
@@ -28,7 +30,7 @@ import (
 var validations = plugins.V()
 
 type ZoneReverser interface {
-	ReverseZone(sourceZoneName string, zone *models.Zone) map[string]*models.Zone
+	ReverseZone(sourceZoneName string, zone *models.Zone) (map[string]*models.Zone, error)
 }
 
 type zoneReverser struct {
@@ -39,13 +41,16 @@ func Reverser() ZoneReverser {
 	return &zoneReverser{}
 }
 
-func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) map[string]*models.Zone {
+func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) (map[string]*models.Zone, error) {
 	reverseLookupZones := make(map[string]*models.Zone)
 
 	for _, rr := range zone.ResourceRecords {
 		// We only care about A and AAAA records as they're the ones we're trying to reverse
 		if rr.Type == models.A || rr.Type == models.AAAA {
-			ip, _ := utils.ParseIP(rr.Value)
+			ip, err := utils.ParseIP(rr.Value)
+			if err != nil {
+				return nil, fmt.Errorf("invalid IP address in %s record %q: %w", rr.Type, rr.Name, err)
+			}
 			zoneName := ip.ReverseZoneName()
 			reverseZone, ok := reverseLookupZones[zoneName]
 			if !ok {
@@ -58,7 +63,7 @@ func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) ma
 				// Add the SOA record for the zone
 				sourceSOA := zone.SOARecord()
 				reverseZone.ResourceRecords[zoneName] = &models.ResourceRecord{
-					// Copy the values from the SOZ record in the source zone
+					// Copy the values from the SOA record in the source zone
 					Name:    zoneName,
 					Type:    models.SOA,
 					Class:   sourceSOA.Class,
@@ -70,17 +75,15 @@ func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) ma
 				reverseLookupZones[zoneName] = reverseZone
 			}
 
-			ptr := zr.toPTR(sourceZoneName, rr)
+			ptr := zr.toPTR(sourceZoneName, ip, rr)
 			reverseZone.ResourceRecords[ptr.Name] = ptr
 		}
 	}
 
-	return reverseLookupZones
+	return reverseLookupZones, nil
 }
 
-func (zr *zoneReverser) toPTR(sourceZoneName string, rr *models.ResourceRecord) *models.ResourceRecord {
-	ip, _ := utils.ParseIP(rr.Value)
-
+func (zr *zoneReverser) toPTR(sourceZoneName string, ip utils.IP, rr *models.ResourceRecord) *models.ResourceRecord {
 	// The PTR record must be fully qualified
 	ptrName := rr.Name
 	if err := validations.EnsureFullyQualified("generated record", ptrName, rr.Type); err != nil {

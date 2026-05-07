@@ -23,6 +23,7 @@ import (
 	"bytes"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
@@ -44,6 +45,10 @@ func PluginZoneFileGenerator(plugins map[plugins.Type]plugins.ZoneMgrPlugin, met
 
 func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone, outputDir string) error {
 	outputFileName := filepath.Join(outputDir, name)
+	rel, err := filepath.Rel(outputDir, outputFileName)
+	if err != nil || strings.HasPrefix(rel, "..") {
+		return fmt.Errorf("zone name %q resolves outside output directory", name)
+	}
 	return fs.CreateFile(outputFileName, 0755, func() ([]byte, error) {
 		hclog.L().Info("Generating zone file", "outputFile", outputFileName, "zone", name)
 		return zfg.generate(name, zone)
