@@ -122,9 +122,9 @@ func (rr *ResourceRecord) IsCommentSetInOnePlace() bool {
 func (rr *ResourceRecord) RenderResourceWithoutValue() string {
 	var record strings.Builder
 
-	record.WriteString(fmt.Sprintf(ResourceRecordNameFormatString, rr.Name))
+	fmt.Fprintf(&record, ResourceRecordNameFormatString, rr.Name)
 	record.WriteString(" ")
-	record.WriteString(fmt.Sprintf(ResourceRecordTypeFormatString, rr.Type))
+	fmt.Fprintf(&record, ResourceRecordTypeFormatString, rr.Type)
 	record.WriteString(" ")
 	if rr.Class != "" {
 		record.WriteString(string(rr.Class))
@@ -159,16 +159,16 @@ func (rr *ResourceRecord) RenderMultivalueResource() string {
 	record.WriteString("(\n")
 	indentFormatString := "%" + strconv.Itoa(record.Len()-2) + "s"
 	for _, value := range rr.Values {
-		record.WriteString(fmt.Sprintf(indentFormatString, ""))                         // This will ensure that all the values are indented
-		record.WriteString(fmt.Sprintf(ResourceRecordMultivalueIndentFormatString, "")) // This will add an indent inside the parens
-		record.WriteString(fmt.Sprintf(ResourceRecordNameFormatString, value.Value))
+		fmt.Fprintf(&record, indentFormatString, "")                         // This will ensure that all the values are indented
+		fmt.Fprintf(&record, ResourceRecordMultivalueIndentFormatString, "") // This will add an indent inside the parens
+		fmt.Fprintf(&record, ResourceRecordNameFormatString, value.Value)
 		if value.Comment != "" {
 			record.WriteString(" ;")
 			record.WriteString(value.Comment)
 		}
 		record.WriteString("\n")
 	}
-	record.WriteString(fmt.Sprintf(indentFormatString, ""))
+	fmt.Fprintf(&record, indentFormatString, "")
 	record.WriteString(")")
 
 	return record.String()

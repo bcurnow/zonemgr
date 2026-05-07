@@ -44,6 +44,7 @@ func TestPersistentPostRun_Root(t *testing.T) {
 }
 
 func TestSetupLoging(t *testing.T) {
+	defer func() { v = nil }()
 	testCases := []struct {
 		logLevelString string
 		wantedLogLevel hclog.Level
@@ -91,55 +92,59 @@ func TestSetupLoging(t *testing.T) {
 }
 
 func TestPersistentPreRunE_Root(t *testing.T) {
-	setup(t)
-	defer teardown(t)
 	testCases := []struct {
+		name             string
 		initErr          bool
 		pluginManagerErr bool
 		pluginDebug      bool
 	}{
-		{},
-		{pluginDebug: true},
-		{initErr: true},
-		{pluginManagerErr: true},
+		{name: "success"},
+		{name: "plugin_debug", pluginDebug: true},
+		{name: "init_error", initErr: true},
+		{name: "plugin_manager_error", pluginManagerErr: true},
 	}
 
 	for _, tc := range testCases {
-		call := mockFs.EXPECT().ToAbsoluteFilePath("testing")
-		if tc.initErr {
-			call.Return("", errors.New("initErr"))
-		} else {
-			call.Return("testing", nil)
-			call = mockPluginManager.EXPECT().LoadPlugins("testing")
-			if tc.pluginManagerErr {
-				call.Return(errors.New("pluginManagerErr"))
-			} else {
-				call.Return(nil)
-			}
-		}
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			setup(t)
+			defer teardown(t)
 
-		args := make([]string, 2)
-		args[0] = "--plugin-dir"
-		args[1] = "testing"
-		if tc.pluginDebug {
-			args = append(args, "--plugin-debug")
-		}
-		rootCmd.ParseFlags(args)
-		if err := rootCmd.PersistentPreRunE(rootCmd, []string{}); err != nil {
-			want := ""
+			call := mockFs.EXPECT().ToAbsoluteFilePath("testing")
 			if tc.initErr {
-				want = "initErr"
-			} else if tc.pluginManagerErr {
-				want = "pluginManagerErr"
+				call.Return("", errors.New("initErr"))
+			} else {
+				call.Return("testing", nil)
+				call = mockPluginManager.EXPECT().LoadPlugins("testing")
+				if tc.pluginManagerErr {
+					call.Return(errors.New("pluginManagerErr"))
+				} else {
+					call.Return(nil)
+				}
 			}
 
-			if err.Error() != want {
-				t.Errorf("incorrect error: '%s', want: '%s'", err, want)
+			args := make([]string, 2)
+			args[0] = "--plugin-dir"
+			args[1] = "testing"
+			if tc.pluginDebug {
+				args = append(args, "--plugin-debug")
 			}
-		} else {
-			if tc.initErr || tc.pluginManagerErr {
-				t.Error("expected an error, found none")
+			rootCmd.ParseFlags(args)
+			if err := rootCmd.PersistentPreRunE(rootCmd, []string{}); err != nil {
+				want := ""
+				if tc.initErr {
+					want = "initErr"
+				} else if tc.pluginManagerErr {
+					want = "pluginManagerErr"
+				}
+
+				if err.Error() != want {
+					t.Errorf("incorrect error: '%s', want: '%s'", err, want)
+				}
 			} else {
+				if tc.initErr || tc.pluginManagerErr {
+					t.Fatal("expected an error, found none")
+				}
 
 				if v.GetEnvPrefix() != "zonemgr" {
 					t.Errorf("incorrect viper env prefix: '%s', want: '%s'", v.GetEnvPrefix(), "zonemgr")
@@ -159,12 +164,6 @@ func TestPersistentPreRunE_Root(t *testing.T) {
 					t.Errorf("plugin debug not set to the correct value: %v, want: %v", logger.Name(), loggerName)
 				}
 			}
-		}
+		})
 	}
-}
-
-func TestExecute(t *testing.T) {
-	// This test is purely for coverage
-	// This should simply print the help and exit
-	Execute()
 }

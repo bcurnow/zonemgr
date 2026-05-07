@@ -74,5 +74,6 @@ func setup(t *testing.T) {
 func teardown(_ *testing.T) {
 	defer func() { fs = &utils.FileSystem{} }()
 	defer func() { pluginManager = plugin_manager.Manager() }()
-	mockController.Finish()
+	defer func() { v = nil }()
+	defer mockController.Finish()
 }

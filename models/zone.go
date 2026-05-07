@@ -44,7 +44,7 @@ func (z *Zone) String() string {
 		})
 		if err != nil {
 			// This should never happen since our function returns nil
-			rrString.WriteString(fmt.Sprintf("Error iterating resource records: %v\n", err))
+			fmt.Fprintf(&rrString, "Error iterating resource records: %v\n", err)
 		}
 	}
 

@@ -53,7 +53,7 @@ func (zfg *pluginZoneFileGenerator) GenerateZone(name string, zone *models.Zone,
 func (zfg *pluginZoneFileGenerator) generate(name string, zone *models.Zone) ([]byte, error) {
 	var content bytes.Buffer
 	// Write out the origin
-	content.WriteString(fmt.Sprintf("$ORIGIN %s\n", name))
+	fmt.Fprintf(&content, "$ORIGIN %s\n", name)
 
 	if zone.TTL != nil {
 		content.WriteString(zone.TTL.Render())

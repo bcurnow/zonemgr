@@ -89,7 +89,7 @@ func TestConfigure(t *testing.T) {
 		// validate that the value of the internal config is the expectedConfig
 		// We're going to use some reflection here sinze plugins.ZoneMgrPlugin doesn't expose a getter for Config
 		value := reflect.ValueOf(pluginTest.plugin)
-		if value.Kind() == reflect.Ptr {
+		if value.Kind() == reflect.Pointer {
 			value = value.Elem()
 		}
 		if value.Kind() != reflect.Struct {
