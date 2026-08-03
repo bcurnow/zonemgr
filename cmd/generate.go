@@ -49,6 +49,7 @@ var (
 			zoneFileGenerator = dns.PluginZoneFileGenerator(pluginManager.Plugins(), pluginManager.Metadata())
 			normalizer = dns.PluginNormalizer(pluginManager.Plugins(), pluginManager.Metadata())
 			parser = dns.YamlZoneParser(normalizer)
+			catalogGenerator = dns.PluginCatalogGenerator(pluginManager.Plugins(), pluginManager.Metadata())
 
 			return nil
 		},
@@ -59,6 +60,7 @@ var (
 	zoneReverser      dns.ZoneReverser = dns.Reverser()
 	zoneFileGenerator dns.ZoneFileGenerator
 	normalizer        dns.Normalizer
+	catalogGenerator  dns.CatalogGenerator
 )
 
 func generateZoneFile() error {
@@ -68,36 +70,110 @@ func generateZoneFile() error {
 		return fmt.Errorf("failed to parse input file %s: %w", inputFile, err)
 	}
 
+	var memberZoneNames []string
+	catalogZones := make(map[string]*models.Zone)
+	reverseZones := make(map[string]*models.Zone)
+
+	// Pass 1: compute the full set of forward, reverse and catalog zones without writing anything.
+	// A catalog zone needs to know about every other zone before its file can be written, so nothing
+	// is written until this pass completes.
 	if err := models.WithSortedZones(zones, func(name string, zone *models.Zone) error {
-		if err := zoneFileGenerator.GenerateZone(name, zone, outputDir); err != nil {
+		if zone.Config.IsCatalog {
+			// Catalog zones are never members of any catalog, not even themselves, and have no
+			// reverse-lookup zones of their own.
+			catalogZones[name] = zone
+			return nil
+		}
+
+		memberZoneNames = append(memberZoneNames, name)
+
+		if !zone.Config.GenerateReverseLookupZones {
+			return nil
+		}
+
+		hclog.L().Debug("zone has generate reverse lookup zones turned on", "zone", name)
+		zoneReverseZones, err := zoneReverser.ReverseZone(name, zone)
+		if err != nil {
 			return err
 		}
-		if err := generateReverseLookupZones(name, zone); err != nil {
-			return err
-		}
-		return nil
+		return mergeReverseZones(reverseZones, zoneReverseZones)
 	}); err != nil {
 		return err
+	}
+
+	if len(reverseZones) > 0 {
+		if err := normalizer.Normalize(reverseZones); err != nil {
+			return err
+		}
+	}
+
+	if err := populateCatalogZones(catalogZones, memberZoneNames, reverseZones); err != nil {
+		return err
+	}
+
+	// Pass 2: write everything now that every zone is fully populated.
+	if err := models.WithSortedZones(zones, func(name string, zone *models.Zone) error {
+		if zone.Config.IsCatalog {
+			return nil
+		}
+		return zoneFileGenerator.GenerateZone(name, zone, outputDir)
+	}); err != nil {
+		return err
+	}
+
+	if err := models.WithSortedZones(reverseZones, func(name string, zone *models.Zone) error {
+		return zoneFileGenerator.GenerateZone(name, zone, outputDir)
+	}); err != nil {
+		return err
+	}
+
+	return models.WithSortedZones(catalogZones, func(name string, zone *models.Zone) error {
+		return zoneFileGenerator.GenerateZone(name, zone, outputDir)
+	})
+}
+
+// mergeReverseZones merges newZones into accumulated. The first source zone (in processing order) to
+// produce a given reverse zone name establishes that zone's Config, TTL and SOA record; later source
+// zones producing the same reverse zone (e.g. two forward zones with hosts in the same subnet)
+// contribute only their PTR records, rather than overwriting the earlier zone entirely.
+func mergeReverseZones(accumulated, newZones map[string]*models.Zone) error {
+	for zoneName, newZone := range newZones {
+		existing, ok := accumulated[zoneName]
+		if !ok {
+			accumulated[zoneName] = newZone
+			continue
+		}
+
+		for identifier, rr := range newZone.ResourceRecords {
+			if rr.Type == models.SOA {
+				// The zone that first established this reverse zone owns its SOA record.
+				continue
+			}
+			if existingRR, ok := existing.ResourceRecords[identifier]; ok {
+				if existingRR.Value != rr.Value {
+					return fmt.Errorf("conflicting PTR record for '%s' in reverse zone '%s': '%s' vs '%s'", identifier, zoneName, existingRR.Value, rr.Value)
+				}
+				continue
+			}
+			existing.ResourceRecords[identifier] = rr
+		}
 	}
 	return nil
 }
 
-func generateReverseLookupZones(name string, zone *models.Zone) error {
-	if !zone.Config.GenerateReverseLookupZones {
-		return nil
+// populateCatalogZones injects the RFC 9432 catalog records into each catalog zone found during pass 1.
+func populateCatalogZones(catalogZones map[string]*models.Zone, memberZoneNames []string, reverseZones map[string]*models.Zone) error {
+	reverseZoneNames := make([]string, 0, len(reverseZones))
+	for name := range reverseZones {
+		reverseZoneNames = append(reverseZoneNames, name)
 	}
 
-	hclog.L().Debug("zone has generate reverse lookup zones turned on", "zone", name)
-	reverseLookupZones, err := zoneReverser.ReverseZone(name, zone)
-	if err != nil {
-		return err
-	}
-	if err := normalizer.Normalize(reverseLookupZones); err != nil {
-		return err
-	}
-
-	return models.WithSortedZones(reverseLookupZones, func(name string, zone *models.Zone) error {
-		return zoneFileGenerator.GenerateZone(name, zone, outputDir)
+	return models.WithSortedZones(catalogZones, func(name string, zone *models.Zone) error {
+		members := memberZoneNames
+		if zone.Config.CatalogIncludeReverseZones {
+			members = append(append([]string{}, memberZoneNames...), reverseZoneNames...)
+		}
+		return catalogGenerator.AddCatalogRecords(name, zone, members)
 	})
 }
 

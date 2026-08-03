@@ -135,6 +135,43 @@ func TestReverseZone(t *testing.T) {
 	}
 }
 
+func TestReverseZone_SOAValuesNotAliased(t *testing.T) {
+	dnsSetup(t)
+	defer dnsTeardown(t)
+
+	sourceValues := []*models.ResourceRecordValue{
+		{Value: "n1.example.com.", Comment: "primary"},
+		{Value: "admin.example.com.", Comment: "rname"},
+	}
+
+	zone := &models.Zone{
+		Config: &models.Config{},
+		TTL:    &models.TTL{},
+		ResourceRecords: map[string]*models.ResourceRecord{
+			"record1": {Type: models.A, Name: "one", Value: "1.2.3.4"},
+			"record5": {Type: models.SOA, Name: "SOA", Values: sourceValues},
+		},
+	}
+
+	reverseZones, err := (&zoneReverser{}).ReverseZone("testing.example.com.", zone)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	reverseZone, ok := reverseZones["3.2.1.in-addr.arpa."]
+	if !ok {
+		t.Fatal("expected to find reverse zone '3.2.1.in-addr.arpa.' but it was missing")
+	}
+
+	reverseSOA := reverseZone.ResourceRecords["3.2.1.in-addr.arpa."]
+	// Mutate the reverse zone's SOA values, as normalization would, and confirm the source zone is untouched
+	reverseSOA.Values[1].Value = "mutated.example.com."
+
+	if zone.ResourceRecords["record5"].Values[1].Value != "admin.example.com." {
+		t.Errorf("source zone SOA values were mutated by changes to the reverse zone's SOA values: %s", zone.ResourceRecords["record5"].Values[1].Value)
+	}
+}
+
 func TestReverseZone_NoResourceRecords(t *testing.T) {
 	dnsSetup(t)
 	defer dnsTeardown(t)

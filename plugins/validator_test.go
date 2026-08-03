@@ -97,6 +97,7 @@ func TestEnsureValidRFC1035Name(t *testing.T) {
 		{name: "$bogus", err: fmt.Sprintf("invalid A record, does not match regexp '%s': '$bogus', identifier: 'testing'", dnsNameRegexRFC1035String)},
 		{name: "withhyphenstart.-valid", err: "invalid A record, cannot start or end with a hyphen (-): 'withhyphenstart.-valid', identifier: 'testing'"},
 		{name: "withhyphenend.valid-", err: "invalid A record, cannot start or end with a hyphen (-): 'withhyphenend.valid-', identifier: 'testing'"},
+		{name: `admin\.name.example.com.`},
 	}
 
 	for _, tc := range testCases {

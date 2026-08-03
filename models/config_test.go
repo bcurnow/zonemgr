@@ -26,15 +26,17 @@ func TestString_Config(t *testing.T) {
 		GenerateSerial:             true,
 		GenerateReverseLookupZones: true,
 		SerialChangeIndexDirectory: "testing",
+		IsCatalog:                  true,
+		CatalogIncludeReverseZones: true,
 	}
 
-	want := "Config{ GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: testing }"
+	want := "Config{ GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: testing, IsCatalog: true, CatalogIncludeReverseZones: true }"
 	if c.String() != want {
 		t.Errorf("incorrect string:\n%s\nwant:\n%s", c.String(), want)
 	}
 
 	c = &Config{}
-	want = "Config{ GenerateSerial: false, GenerateReverseLookupZones: false, SerialChangeIndexDirectory:  }"
+	want = "Config{ GenerateSerial: false, GenerateReverseLookupZones: false, SerialChangeIndexDirectory: , IsCatalog: false, CatalogIncludeReverseZones: false }"
 	if c.String() != want {
 		t.Errorf("incorrect string:\n%s\nwant:\n%s", c.String(), want)
 	}

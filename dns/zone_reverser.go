@@ -68,7 +68,7 @@ func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) (m
 					Type:    models.SOA,
 					Class:   sourceSOA.Class,
 					TTL:     sourceSOA.TTL,
-					Values:  sourceSOA.Values,
+					Values:  copyResourceRecordValues(sourceSOA.Values),
 					Value:   sourceSOA.Value,
 					Comment: sourceSOA.Comment,
 				}
@@ -81,6 +81,20 @@ func (zr *zoneReverser) ReverseZone(sourceZoneName string, zone *models.Zone) (m
 	}
 
 	return reverseLookupZones, nil
+}
+
+// copyResourceRecordValues returns a deep copy of values so a reverse zone's SOA record doesn't share
+// backing storage with the source zone's SOA record; normalizing one would otherwise mutate the other.
+func copyResourceRecordValues(values []*models.ResourceRecordValue) []*models.ResourceRecordValue {
+	if values == nil {
+		return nil
+	}
+	copied := make([]*models.ResourceRecordValue, len(values))
+	for i, v := range values {
+		valueCopy := *v
+		copied[i] = &valueCopy
+	}
+	return copied
 }
 
 func (zr *zoneReverser) toPTR(sourceZoneName string, ip utils.IP, rr *models.ResourceRecord) *models.ResourceRecord {

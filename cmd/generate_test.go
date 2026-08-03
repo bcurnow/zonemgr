@@ -57,8 +57,8 @@ func TestPreRunE_Generate(t *testing.T) {
 				call.Return("", errors.New("absErrInput"))
 			} else {
 				call.Return("testing", nil)
-				mockPluginManager.EXPECT().Plugins().Return(testPlugins).Times(2)
-				mockPluginManager.EXPECT().Metadata().Return(testMetadata).Times(2)
+				mockPluginManager.EXPECT().Plugins().Return(testPlugins).Times(3)
+				mockPluginManager.EXPECT().Metadata().Return(testMetadata).Times(3)
 			}
 		}
 
@@ -108,6 +108,10 @@ func TestPreRunE_Generate(t *testing.T) {
 			if parser == mockParser {
 				t.Errorf("expected parser to not be a mock")
 			}
+
+			if catalogGenerator == mockCatalogGenerator {
+				t.Errorf("expected catalogGenerator to not be a mock")
+			}
 		}
 	}
 }
@@ -145,30 +149,31 @@ func TestRunE_Generate(t *testing.T) {
 			zones["two"] = zoneTwo
 			call.Return(zones, nil)
 
-			call = mockZoneFileGenerator.EXPECT().GenerateZone("one", zoneOne, outputDir)
-
-			if tc.zoneFileGeneratorErr {
-				call.Return(errors.New("zoneFileGeneratorErr"))
+			// Pass 1 (compute) runs to completion, for every zone, before any file is written in pass 2 -
+			// so ReverseZone/Normalize are always attempted regardless of how pass 2 (GenerateZone) will fare.
+			reverseZones := make(map[string]*models.Zone)
+			reverseZoneOne := &models.Zone{}
+			reverseZoneTwo := &models.Zone{}
+			reverseZones["reverse-one"] = reverseZoneOne
+			reverseZones["reverse-two"] = reverseZoneTwo
+			call = mockZoneReverser.EXPECT().ReverseZone("two", zoneTwo)
+			if tc.reverseZoneErr {
+				call.Return(nil, errors.New("reverseZoneErr"))
 			} else {
-				call.Return(nil)
-				mockZoneFileGenerator.EXPECT().GenerateZone("two", zoneTwo, outputDir).Return(nil)
+				call.Return(reverseZones, nil)
 
-				reverseZones := make(map[string]*models.Zone)
-				reverseZoneOne := &models.Zone{}
-				reverseZoneTwo := &models.Zone{}
-				reverseZones["reverse-one"] = reverseZoneOne
-				reverseZones["reverse-two"] = reverseZoneTwo
-				call = mockZoneReverser.EXPECT().ReverseZone("two", zoneTwo)
-				if tc.reverseZoneErr {
-					call.Return(nil, errors.New("reverseZoneErr"))
+				call = mockNormalizer.EXPECT().Normalize(reverseZones)
+				if tc.normalizerErr {
+					call.Return(errors.New("normalizerErr"))
 				} else {
-					call.Return(reverseZones, nil)
+					call.Return(nil)
 
-					call = mockNormalizer.EXPECT().Normalize(reverseZones)
-					if tc.normalizerErr {
-						call.Return(errors.New("normalizerErr"))
+					call = mockZoneFileGenerator.EXPECT().GenerateZone("one", zoneOne, outputDir)
+					if tc.zoneFileGeneratorErr {
+						call.Return(errors.New("zoneFileGeneratorErr"))
 					} else {
 						call.Return(nil)
+						mockZoneFileGenerator.EXPECT().GenerateZone("two", zoneTwo, outputDir).Return(nil)
 
 						call = mockZoneFileGenerator.EXPECT().GenerateZone("reverse-one", reverseZoneOne, outputDir)
 						if tc.reverseZoneFileGeneratorErr {
@@ -204,5 +209,171 @@ func TestRunE_Generate(t *testing.T) {
 				t.Error("expected an error, found none")
 			}
 		}
+	}
+}
+
+func TestRunE_Generate_CatalogZone(t *testing.T) {
+	setup(t)
+	defer teardown(t)
+
+	inputFile = "testing"
+	outputDir = "testing-dir"
+
+	zoneOne := &models.Zone{Config: &models.Config{}}
+	catalogZone := &models.Zone{Config: &models.Config{IsCatalog: true}}
+	zones := map[string]*models.Zone{
+		"one":                  zoneOne,
+		"catalog.example.com.": catalogZone,
+	}
+
+	mockParser.EXPECT().Parse(inputFile).Return(zones, nil)
+	mockCatalogGenerator.EXPECT().AddCatalogRecords("catalog.example.com.", catalogZone, []string{"one"}).Return(nil)
+	mockZoneFileGenerator.EXPECT().GenerateZone("one", zoneOne, outputDir).Return(nil)
+	mockZoneFileGenerator.EXPECT().GenerateZone("catalog.example.com.", catalogZone, outputDir).Return(nil)
+
+	if err := generateCmd.RunE(generateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRunE_Generate_CatalogZone_IncludeReverseZones(t *testing.T) {
+	setup(t)
+	defer teardown(t)
+
+	inputFile = "testing"
+	outputDir = "testing-dir"
+
+	zoneOne := &models.Zone{Config: &models.Config{GenerateReverseLookupZones: true}}
+	catalogZone := &models.Zone{Config: &models.Config{IsCatalog: true, CatalogIncludeReverseZones: true}}
+	zones := map[string]*models.Zone{
+		"one":                  zoneOne,
+		"catalog.example.com.": catalogZone,
+	}
+	reverseZones := map[string]*models.Zone{
+		"reverse.arpa.": {},
+	}
+
+	mockParser.EXPECT().Parse(inputFile).Return(zones, nil)
+	mockZoneReverser.EXPECT().ReverseZone("one", zoneOne).Return(reverseZones, nil)
+	mockNormalizer.EXPECT().Normalize(reverseZones).Return(nil)
+	mockCatalogGenerator.EXPECT().AddCatalogRecords("catalog.example.com.", catalogZone, []string{"one", "reverse.arpa."}).Return(nil)
+	mockZoneFileGenerator.EXPECT().GenerateZone("one", zoneOne, outputDir).Return(nil)
+	mockZoneFileGenerator.EXPECT().GenerateZone("reverse.arpa.", reverseZones["reverse.arpa."], outputDir).Return(nil)
+	mockZoneFileGenerator.EXPECT().GenerateZone("catalog.example.com.", catalogZone, outputDir).Return(nil)
+
+	if err := generateCmd.RunE(generateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRunE_Generate_CatalogGeneratorErr(t *testing.T) {
+	setup(t)
+	defer teardown(t)
+
+	inputFile = "testing"
+	outputDir = "testing-dir"
+
+	zoneOne := &models.Zone{Config: &models.Config{}}
+	catalogZone := &models.Zone{Config: &models.Config{IsCatalog: true}}
+	zones := map[string]*models.Zone{
+		"one":                  zoneOne,
+		"catalog.example.com.": catalogZone,
+	}
+
+	mockParser.EXPECT().Parse(inputFile).Return(zones, nil)
+	mockCatalogGenerator.EXPECT().AddCatalogRecords("catalog.example.com.", catalogZone, []string{"one"}).Return(errors.New("catalogGeneratorErr"))
+	// No GenerateZone calls are expected: nothing should be written until every zone, including
+	// catalog zones, has been fully computed.
+
+	err := generateCmd.RunE(generateCmd, []string{})
+	if err == nil {
+		t.Fatal("expected an error, found none")
+	}
+	if err.Error() != "catalogGeneratorErr" {
+		t.Errorf("incorrect error: '%s', want: 'catalogGeneratorErr'", err)
+	}
+}
+
+func TestRunE_Generate_MergesReverseZonesFromMultipleSourceZones(t *testing.T) {
+	setup(t)
+	defer teardown(t)
+
+	inputFile = "testing"
+	outputDir = "testing-dir"
+
+	zoneOne := &models.Zone{Config: &models.Config{GenerateReverseLookupZones: true}}
+	zoneTwo := &models.Zone{Config: &models.Config{GenerateReverseLookupZones: true}}
+	zones := map[string]*models.Zone{
+		"one": zoneOne,
+		"two": zoneTwo,
+	}
+
+	sharedZoneFromOne := &models.Zone{
+		ResourceRecords: map[string]*models.ResourceRecord{
+			"shared.arpa.": {Type: models.SOA, Name: "shared.arpa.", Value: "SOA-from-one"},
+			"1":            {Type: models.PTR, Name: "1", Value: "host-one.example.com."},
+		},
+	}
+	sharedZoneFromTwo := &models.Zone{
+		ResourceRecords: map[string]*models.ResourceRecord{
+			"shared.arpa.": {Type: models.SOA, Name: "shared.arpa.", Value: "SOA-from-two"},
+			"2":            {Type: models.PTR, Name: "2", Value: "host-two.example.com."},
+		},
+	}
+
+	mockParser.EXPECT().Parse(inputFile).Return(zones, nil)
+	mockZoneReverser.EXPECT().ReverseZone("one", zoneOne).Return(map[string]*models.Zone{"shared.arpa.": sharedZoneFromOne}, nil)
+	mockZoneReverser.EXPECT().ReverseZone("two", zoneTwo).Return(map[string]*models.Zone{"shared.arpa.": sharedZoneFromTwo}, nil)
+	mockNormalizer.EXPECT().Normalize(map[string]*models.Zone{"shared.arpa.": sharedZoneFromOne}).Return(nil)
+	mockZoneFileGenerator.EXPECT().GenerateZone("one", zoneOne, outputDir).Return(nil)
+	mockZoneFileGenerator.EXPECT().GenerateZone("two", zoneTwo, outputDir).Return(nil)
+	mockZoneFileGenerator.EXPECT().GenerateZone("shared.arpa.", sharedZoneFromOne, outputDir).Return(nil)
+
+	if err := generateCmd.RunE(generateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// "one" sorts first, so it establishes the SOA; "two"'s PTR is merged in alongside "one"'s.
+	if sharedZoneFromOne.ResourceRecords["shared.arpa."].Value != "SOA-from-one" {
+		t.Errorf("expected the first source zone's SOA to be retained, got: %s", sharedZoneFromOne.ResourceRecords["shared.arpa."].Value)
+	}
+	if sharedZoneFromOne.ResourceRecords["2"] == nil || sharedZoneFromOne.ResourceRecords["2"].Value != "host-two.example.com." {
+		t.Error("expected the second source zone's PTR record to be merged in")
+	}
+}
+
+func TestRunE_Generate_MergesReverseZones_Conflict(t *testing.T) {
+	setup(t)
+	defer teardown(t)
+
+	inputFile = "testing"
+	outputDir = "testing-dir"
+
+	zoneOne := &models.Zone{Config: &models.Config{GenerateReverseLookupZones: true}}
+	zoneTwo := &models.Zone{Config: &models.Config{GenerateReverseLookupZones: true}}
+	zones := map[string]*models.Zone{
+		"one": zoneOne,
+		"two": zoneTwo,
+	}
+
+	sharedZoneFromOne := &models.Zone{
+		ResourceRecords: map[string]*models.ResourceRecord{
+			"1": {Type: models.PTR, Name: "1", Value: "host-one.example.com."},
+		},
+	}
+	sharedZoneFromTwo := &models.Zone{
+		ResourceRecords: map[string]*models.ResourceRecord{
+			"1": {Type: models.PTR, Name: "1", Value: "host-two.example.com."},
+		},
+	}
+
+	mockParser.EXPECT().Parse(inputFile).Return(zones, nil)
+	mockZoneReverser.EXPECT().ReverseZone("one", zoneOne).Return(map[string]*models.Zone{"shared.arpa.": sharedZoneFromOne}, nil)
+	mockZoneReverser.EXPECT().ReverseZone("two", zoneTwo).Return(map[string]*models.Zone{"shared.arpa.": sharedZoneFromTwo}, nil)
+	// No further calls are expected: the conflict is detected during pass 1, before Normalize or any writes.
+
+	err := generateCmd.RunE(generateCmd, []string{})
+	if err == nil {
+		t.Fatal("expected an error, found none")
 	}
 }

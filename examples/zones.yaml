@@ -45,3 +45,29 @@ example.com.: # The origin, each origin in the file will receive it's own zone f
       type: TXT
       value: v=spf1 -all
       comment: SPF record denying all senders
+catalog.example.com.: # An RFC 9432 catalog zone listing every other zone in this file, see the README's Catalog Zones section
+  config:
+    is_catalog: true
+    catalog_include_reverse_zones: true # Also list the reverse lookup zones generated above as catalog members
+  ttl:
+    value: 3600
+  resource_records:
+    catalog.example.com.:
+      type: SOA
+      values:
+        - value: n1.example.com.
+          comment: primary name server for the catalog zone
+        - value: admin@example.com
+          comment: The mailbox of the person responsible for the zone
+        - value: 1
+          comment: Serial number for the zone
+        - value: 7200
+          comment: refresh (2 hours)
+        - value: 600
+          comment: retry (10 minutes)
+        - value: 3600000
+          comment: expire (~42 days)
+        - value: 172800
+          comment: minimum (2 days)
+    ns1.example.com.:
+      type: NS

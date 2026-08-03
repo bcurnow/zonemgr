@@ -36,7 +36,10 @@ func TestConfigFromProtoBuf(t *testing.T) {
 		{config: nil, proto: nil},
 		{config: nil, proto: &proto.Config{}},
 		{config: &models.Config{}, proto: nil},
-		{config: &models.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing"}, proto: &proto.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing"}},
+		{
+			config: &models.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing", IsCatalog: true, CatalogIncludeReverseZones: true},
+			proto:  &proto.Config{GenerateSerial: true, GenerateReverseLookupZones: true, SerialChangeIndexDirectory: "testing", IsCatalog: true, CatalogIncludeReverseZones: true},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -63,11 +66,15 @@ func TestConfigToProtoBuf(t *testing.T) {
 				GenerateSerial:             true,
 				GenerateReverseLookupZones: true,
 				SerialChangeIndexDirectory: "testing",
+				IsCatalog:                  true,
+				CatalogIncludeReverseZones: true,
 			},
 			proto: &proto.Config{
 				GenerateSerial:             true,
 				GenerateReverseLookupZones: true,
 				SerialChangeIndexDirectory: "testing",
+				IsCatalog:                  true,
+				CatalogIncludeReverseZones: true,
 			},
 		},
 	}

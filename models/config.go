@@ -19,11 +19,15 @@ package models
 import "fmt"
 
 type Config struct {
-	GenerateSerial             bool   `yaml:"generate_serial" validate:"boolean"`
-	SerialChangeIndexDirectory string `yaml:"serial_change_index_directory" validate:"omitempty,dirpath"`
+	GenerateSerial bool `yaml:"generate_serial" validate:"boolean"`
+	// Not validated as a dirpath: FileSerialManager.Next() already creates this directory itself via
+	// MkdirAll, so requiring it to pre-exist is unnecessary and breaks first-time setup.
+	SerialChangeIndexDirectory string `yaml:"serial_change_index_directory" validate:"omitempty"`
 	GenerateReverseLookupZones bool   `yaml:"generate_reverse_lookup_zones" validate:"boolean"`
+	IsCatalog                  bool   `yaml:"is_catalog" validate:"boolean"`
+	CatalogIncludeReverseZones bool   `yaml:"catalog_include_reverse_zones" validate:"boolean"`
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Config{ GenerateSerial: %t, GenerateReverseLookupZones: %t, SerialChangeIndexDirectory: %s }", c.GenerateSerial, c.GenerateReverseLookupZones, c.SerialChangeIndexDirectory)
+	return fmt.Sprintf("Config{ GenerateSerial: %t, GenerateReverseLookupZones: %t, SerialChangeIndexDirectory: %s, IsCatalog: %t, CatalogIncludeReverseZones: %t }", c.GenerateSerial, c.GenerateReverseLookupZones, c.SerialChangeIndexDirectory, c.IsCatalog, c.CatalogIncludeReverseZones)
 }

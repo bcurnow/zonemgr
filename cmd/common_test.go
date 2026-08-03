@@ -36,6 +36,7 @@ var (
 	mockZoneReverser      *dns.MockZoneReverser
 	mockZoneFileGenerator *dns.MockZoneFileGenerator
 	mockNormalizer        *dns.MockNormalizer
+	mockCatalogGenerator  *dns.MockCatalogGenerator
 	testPlugin            *plugins.MockZoneMgrPlugin
 	testPlugins           map[plugins.Type]plugins.ZoneMgrPlugin
 	testMetadata          map[plugins.Type]*plugins.Metadata
@@ -60,6 +61,9 @@ func setup(t *testing.T) {
 
 	mockNormalizer = dns.NewMockNormalizer(mockController)
 	normalizer = mockNormalizer
+
+	mockCatalogGenerator = dns.NewMockCatalogGenerator(mockController)
+	catalogGenerator = mockCatalogGenerator
 
 	testPlugin = plugins.NewMockZoneMgrPlugin(mockController)
 	testPlugins = make(map[plugins.Type]plugins.ZoneMgrPlugin)

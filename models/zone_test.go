@@ -35,7 +35,7 @@ func TestString_Zone(t *testing.T) {
 		TTL: &TTL{Value: toInt32Ptr(33), Comment: "ttl comment"},
 	}
 	want := "Zone{\n" +
-		"   Config: Config{ GenerateSerial: false, GenerateReverseLookupZones: false, SerialChangeIndexDirectory:  }\n" +
+		"   Config: Config{ GenerateSerial: false, GenerateReverseLookupZones: false, SerialChangeIndexDirectory: , IsCatalog: false, CatalogIncludeReverseZones: false }\n" +
 		"   ResourceRecords:\n" +
 		"     example.com. -> ResourceRecord{\n" +
 		"       Name: \n" +

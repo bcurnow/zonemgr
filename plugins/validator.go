@@ -29,9 +29,14 @@ import (
 )
 
 // This regex is based on RFC1035 and allows for:
-//   - Label: Up to 63 characters a-z, A-Z, 0-9, and hyphen which does not start (?!-) or end (?<=\w) with a hypen
+//   - Label: Up to 63 units of a-z, A-Z, 0-9, hyphen, or a backslash-escaped character (\X, per RFC1035 5.1),
+//     which does not start (?!-) or end (?<=\w) with a hypen
 //   - Domain: Any number of sub-domain entries separate by "." which follow the same rules as the label
-const dnsNameRegexRFC1035String = `^([A-Za-z0-9-]{1,63})(\.[A-Za-z0-9-]{1,63})*\.{0,1}$`
+//
+// A backslash-escaped character counts as a single unit so a name that has already been through
+// FormatEmail (which escapes a literal "." in the RNAME local part as "\.") can be re-validated
+// without rejecting its own escaping.
+const dnsNameRegexRFC1035String = `^((?:[A-Za-z0-9-]|\\.){1,63})(\.(?:[A-Za-z0-9-]|\\.){1,63})*\.{0,1}$`
 
 var dnsNameRegexRFC1035 = regexp.MustCompile(dnsNameRegexRFC1035String)
 

@@ -24,6 +24,8 @@
 	* [Plugin Behavior](#PluginBehavior)
 		* [NS](#NS)
 		* [SOA](#SOA)
+		* [TXT](#TXT)
+* [Catalog Zones](#CatalogZones)
 * [Examples Files](#ExamplesFiles)
 	* [zones.yaml](#zones.yaml)
 	* [comment-override/zonemgr-a-record-comment-override-plugin](#comment-overridezonemgr-a-record-comment-override-plugin)
@@ -142,6 +144,8 @@ Zonemgr parses a YAML with the following format:
     generate_serial: yes|no|true|false # If true, a serial number will be generated for you and any serial number specified will be ignored
     serial_change_index: integer # This value is only used if generate_serial is set to true, this value will be added to the end of the generated serial number to allow for multiple changes in the same day
     serial_change_index_directory: string # This value is only used if generate_serial is set to true, this value will be used as the directory to store the zone specific serial_change_index file which keeps track of how many changes have been made
+    is_catalog: true|false # If true, this zone is treated as an RFC 9432 catalog zone, see Catalog Zones below
+    catalog_include_reverse_zones: true|false # Only used if is_catalog is true. If true, generated reverse lookup zones are included as catalog members alongside the forward zones, defaults to false
   ttl:
     value: 14400
     comment: Optional 32 bit time interval in seconds, the default TTL for each resource record that doesn't explicitly define one
@@ -392,6 +396,41 @@ The following describe the behaviors of the built-in plugins.
 * If a single `value` is used, it is automatically split into one or more 255 byte (per RFC1035) character-strings when rendered
 * If `values` is used, each entry is treated as an explicit, already-split character-string and rendered as its own quoted string; unlike the `value` shortcut, each entry must already be 255 bytes or fewer, this is a validation error rather than being automatically split
 * The value(s) are expected to already contain any escaping required by the RFC1035 5.1 master file `<character-string>` syntax (e.g. `\"` for a literal quote, `\\` for a literal backslash, or `\DDD` for an arbitrary byte); an already-escaped `\` sequence is passed through unchanged rather than being escaped again. The one exception is a bare, unescaped `"`, which is always escaped automatically so it can't prematurely end the quoted string being rendered
+
+## <a name='CatalogZones'></a>Catalog Zones
+
+zonemgr can generate an [RFC 9432](https://www.rfc-editor.org/rfc/rfc9432) catalog zone: a zone whose contents list the other zones a server should load, allowing secondaries to pick up zone additions/removals via ordinary zone transfer instead of manual configuration.
+
+A catalog zone is declared exactly like any other zone in the YAML file; its key is the catalog zone's own name. Set `is_catalog: true` in that zone's `config` block, and author its `SOA` (and, typically, `NS`) records the same way you would for any other zone. zonemgr additively injects the records RFC 9432 requires:
+
+* A `version` TXT record (`version.<catalog-zone-name>`) with the value `2`
+* One `PTR` record per member zone, at `<label>.zones.<catalog-zone-name>`, where `<label>` is the SHA-1 hash (hex encoded) of the member zone's name in DNS wire format
+
+By default, the members of a catalog zone are every other (non-catalog) zone defined in the YAML file. Set `catalog_include_reverse_zones: true` to also include any reverse lookup zones generated via `generate_reverse_lookup_zones`. A catalog zone is never a member of any catalog, including itself.
+
+```yaml
+catalog.example.com.:
+  config:
+    is_catalog: true
+    catalog_include_reverse_zones: true
+  ttl:
+    value: 3600
+  resource_records:
+    catalog.example.com.:
+      type: SOA
+      values:
+        - value: n1.example.com.
+        - value: admin@example.com
+        - value: 1
+        - value: 7200
+        - value: 600
+        - value: 3600000
+        - value: 172800
+    ns1.example.com.:
+      type: NS
+```
+
+Note that a catalog zone needs a `ttl` block since the injected `version` and `PTR` records intentionally carry no explicit per-record TTL, relying instead on the zone's `$TTL`.
 
 ## <a name='ExamplesFiles'></a>Examples Files
 

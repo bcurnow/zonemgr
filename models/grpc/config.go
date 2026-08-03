@@ -13,6 +13,8 @@ func ConfigFromProtoBuf(p *proto.Config, c *models.Config) {
 	c.GenerateSerial = p.GenerateSerial
 	c.GenerateReverseLookupZones = p.GenerateReverseLookupZones
 	c.SerialChangeIndexDirectory = p.SerialChangeIndexDirectory
+	c.IsCatalog = p.IsCatalog
+	c.CatalogIncludeReverseZones = p.CatalogIncludeReverseZones
 }
 
 func ConfigToProtoBuf(c *models.Config) *proto.Config {
@@ -24,5 +26,7 @@ func ConfigToProtoBuf(c *models.Config) *proto.Config {
 		GenerateSerial:             c.GenerateSerial,
 		GenerateReverseLookupZones: c.GenerateReverseLookupZones,
 		SerialChangeIndexDirectory: c.SerialChangeIndexDirectory,
+		IsCatalog:                  c.IsCatalog,
+		CatalogIncludeReverseZones: c.CatalogIncludeReverseZones,
 	}
 }

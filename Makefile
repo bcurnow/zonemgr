@@ -45,6 +45,7 @@ mocks: mocks-gen
 
 mocks-gen:
 	go install go.uber.org/mock/mockgen@latest
+	mockgen -source=dns/catalog_generator.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_catalog_generator.go
 	mockgen -source=dns/normalizer.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_normalizer.go
 	mockgen -source=dns/parser.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_parser.go
 	mockgen -source=dns/zone_file_generator.go -package dns -self_package "github.com/bcurnow/zonemgr/dns">dns/mock_zone_file_generator.go

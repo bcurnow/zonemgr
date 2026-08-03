@@ -30,7 +30,10 @@ const (
 
 // A generic type that can represent a variety of records types as many follow this specific format (A, CNAME, etc.	)
 type ResourceRecord struct {
-	Name    string                 `yaml:"name" validate:"omitempty,fqdn"`
+	// Not validated here: go-playground's "fqdn" tag requires a real multi-label dotted name and rejects
+	// short, relative names (e.g. "www"), which are normal and valid in a zone file. The builtin plugins'
+	// own Normalize() methods (EnsureValidNameOrWildcard et al.) do the real, format-appropriate validation.
+	Name    string                 `yaml:"name" validate:"omitempty"`
 	Type    ResourceRecordType     `yaml:"type" validate:"required"`   //TODO see if we can use something similar to ResourceRecordClass instead, this would simplify validations
 	Class   ResourceRecordClass    `yaml:"class" validate:"omitempty"` //TODO See if we can use ResourceRecordClass instead, this would simplify validations
 	TTL     *int32                 `yaml:"ttl" validate:"omitempty,min=0,max=2147483647"`

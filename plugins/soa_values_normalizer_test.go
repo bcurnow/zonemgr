@@ -85,6 +85,32 @@ func TestNormalize(t *testing.T) {
 	}
 }
 
+// TestNormalize_IdempotentWithDottedLocalPartEmail guards against a regression where re-normalizing an
+// already-normalized SOA record (as happens when a reverse zone copies a source zone's SOA and then
+// normalizes it again) failed if the RNAME's local part contained a dot: the first pass escapes it to
+// "admin\.name.example.com.", and the second pass must accept that already-escaped value rather than
+// rejecting its own escaping.
+func TestNormalize_IdempotentWithDottedLocalPartEmail(t *testing.T) {
+	rr := customSOA("ns.example.com.", "admin.name@example.com", "1", "1", "1", "1", "1")
+
+	if err := (&SOAValuesNormalizer{}).Normalize("testing", rr, V(), false, ""); err != nil {
+		t.Fatalf("unexpected error on first normalization: %s", err)
+	}
+
+	wantRNAME := `admin\.name.example.com.`
+	if rr.Values[1].Value != wantRNAME {
+		t.Fatalf("incorrect RNAME after first normalization: '%s', want: '%s'", rr.Values[1].Value, wantRNAME)
+	}
+
+	if err := (&SOAValuesNormalizer{}).Normalize("testing", rr, V(), false, ""); err != nil {
+		t.Fatalf("unexpected error on second normalization: %s", err)
+	}
+
+	if rr.Values[1].Value != wantRNAME {
+		t.Errorf("RNAME changed on second normalization: '%s', want: '%s'", rr.Values[1].Value, wantRNAME)
+	}
+}
+
 func customSOA(ns string, admin string, values ...string) *models.ResourceRecord {
 	soaValues := make([]*models.ResourceRecordValue, len(values)+2)
 	soaValues[0] = &models.ResourceRecordValue{Value: ns}

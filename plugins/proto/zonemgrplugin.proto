@@ -22,6 +22,8 @@ message Config {
   bool generate_serial = 1;
   bool generate_reverse_lookup_zones = 2;
   string serial_change_index_directory = 3;
+  bool is_catalog = 4;
+  bool catalog_include_reverse_zones = 5;
 }
 
 message ResourceRecordValue {
