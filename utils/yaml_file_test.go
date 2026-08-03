@@ -26,6 +26,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/bcurnow/zonemgr/models"
 	"gopkg.in/yaml.v3"
 )
 
@@ -90,6 +91,27 @@ func TestWrite_SerialIndexYamlFile(t *testing.T) {
 				t.Errorf("incorrect file contents: '%s', want: 'testing'", content)
 			}
 		}
+	}
+}
+
+func TestStrictUnmarshal(t *testing.T) {
+	var config models.Config
+	if err := strictUnmarshal([]byte("generate_serial: true\n"), &config); err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if !config.GenerateSerial {
+		t.Error("expected GenerateSerial to be true")
+	}
+
+	config = models.Config{}
+	if err := strictUnmarshal([]byte("generate_serail: true\n"), &config); err == nil {
+		t.Error("expected an error for an unknown field, found none")
+	}
+
+	// A comment-only/empty document must not error, matching yaml.Unmarshal's behavior
+	config = models.Config{}
+	if err := strictUnmarshal([]byte("# just a comment\n"), &config); err != nil {
+		t.Errorf("unexpected error for an empty document: %s", err)
 	}
 }
 

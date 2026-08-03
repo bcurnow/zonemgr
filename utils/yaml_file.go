@@ -20,8 +20,10 @@
 package utils
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/bcurnow/zonemgr/models"
@@ -44,7 +46,7 @@ type SerialIndexYamlFile struct {
 var (
 	_               YamlFile[map[string]*models.Zone] = &ZoneYamlFile{}
 	_               YamlFile[*models.SerialIndex]     = &SerialIndexYamlFile{}
-	unmarshal                                         = yaml.Unmarshal
+	unmarshal                                         = strictUnmarshal
 	marshal                                           = yaml.Marshal
 	openFile                                          = os.OpenFile
 	marshalFileMode                                   = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
@@ -81,6 +83,19 @@ func (sir *SerialIndexYamlFile) Read(path string) (*models.SerialIndex, error) {
 
 func (sir *SerialIndexYamlFile) Write(path string, content *models.SerialIndex) error {
 	return marshalYaml(path, content)
+}
+
+// strictUnmarshal behaves like yaml.Unmarshal but rejects unknown fields (e.g. a misspelled config
+// key), which yaml.Unmarshal otherwise silently drops. Unlike yaml.Unmarshal, gopkg.in/yaml.v3's
+// Decoder returns io.EOF for a document with no content (e.g. a comment-only file); that case is
+// treated as success, leaving out at its zero value, to match yaml.Unmarshal's forgiving behavior.
+func strictUnmarshal(data []byte, out interface{}) error {
+	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder.KnownFields(true)
+	if err := decoder.Decode(out); err != nil && !errors.Is(err, io.EOF) {
+		return err
+	}
+	return nil
 }
 
 func unmarshalYaml[T any](path string) (T, error) {

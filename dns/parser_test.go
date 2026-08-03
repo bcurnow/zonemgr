@@ -49,6 +49,7 @@ func TestParse(t *testing.T) {
 		{1, "minimal.zones.yaml", ""},
 		{5, "multiple.zones.yaml", ""},
 		{5, "missing.zones.yaml", "failed to open 'missing.zones.yaml': open missing.zones.yaml: no such file or directory"},
+		{0, "unknown-key.zones.yaml", "failed to parse input YAML: yaml: unmarshal errors:\n  line 21: field generate_reverse_lokup_zones not found in type models.Config"},
 	}
 
 	mockNormalizer.EXPECT().Normalize(gomock.Any()).MaxTimes(len(testCases))

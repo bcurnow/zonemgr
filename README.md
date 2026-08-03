@@ -142,7 +142,6 @@ Zonemgr parses a YAML with the following format:
   config: // Optional element, will use environment variables or default values if not set
     generate_reverse_lookup_zones: true # If true, any necessary reverse lookup zones x.x.x.in-addr.arpa will be created automatically
     generate_serial: yes|no|true|false # If true, a serial number will be generated for you and any serial number specified will be ignored
-    serial_change_index: integer # This value is only used if generate_serial is set to true, this value will be added to the end of the generated serial number to allow for multiple changes in the same day
     serial_change_index_directory: string # This value is only used if generate_serial is set to true, this value will be used as the directory to store the zone specific serial_change_index file which keeps track of how many changes have been made
     is_catalog: true|false # If true, this zone is treated as an RFC 9432 catalog zone, see Catalog Zones below
     catalog_include_reverse_zones: true|false # Only used if is_catalog is true. If true, generated reverse lookup zones are included as catalog members alongside the forward zones, defaults to false
