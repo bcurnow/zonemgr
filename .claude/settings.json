@@ -12,7 +12,8 @@
       "Bash(go vet *)",
       "Bash(buf generate *)",
       "Bash(go install *)",
-      "Bash(mockgen *)"
+      "Bash(mockgen *)",
+      "Bash(make format *)"
     ]
   }
 }
