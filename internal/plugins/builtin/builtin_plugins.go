@@ -21,7 +21,7 @@ package builtin
 
 import "github.com/bcurnow/zonemgr/plugins"
 
-const BuiltinPluginCount = 6
+const BuiltinPluginCount = 7
 
 var builtins = make(map[plugins.Type]plugins.ZoneMgrPlugin)
 var metadata = make(map[plugins.Type]*plugins.Metadata)

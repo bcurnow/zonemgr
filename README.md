@@ -19,6 +19,7 @@
 		* [CNAME Record](#CNAMERecord)
 		* [SOA Record](#SOARecord)
 		* [PTR Record](#PTRRecord)
+		* [TXT Record](#TXTRecord)
 * [Built-In Plugins](#Built-InPlugins)
 	* [Plugin Behavior](#PluginBehavior)
 		* [NS](#NS)
@@ -314,6 +315,29 @@ Minimal Example:
   value: www
 ```
 
+#### <a name='TXTRecord'></a>TXT Record
+
+Full example:
+
+```yaml
+example.com.:
+  name: example.com.
+  type: TXT
+  class: IN
+  ttl: 14400
+  values:
+    - value: v=spf1 -all
+      comment: SPF record denying all senders
+```
+
+Minimal Example:
+
+```yaml
+example.com.:
+  type: TXT
+  value: v=spf1 -all
+```
+
 ## <a name='Built-InPlugins'></a>Built-In Plugins
 
 The following are the built-in plugins, these plugins may be overridden:
@@ -324,6 +348,7 @@ The following are the built-in plugins, these plugins may be overridden:
 * CNAME
 * SOA
 * PTR
+* TXT
 
 ### <a name='PluginBehavior'></a>Plugin Behavior
 
@@ -360,6 +385,13 @@ The following describe the behaviors of the built-in plugins.
 * If `generate_serial` is true but the explicit serial number is provided, it will be ignored.
 * The primary name server (MNAME) is a DNS name and therefore must be fully qualified (see above)
 * The administrator (RNAME) can either be specified as a valid email address (e.g. <admin@example.com>) or as the zone file specific format where the '@' is replaced by a dot ('.') (e.g. admin.example.com.). If using the latter, that's a specific name and needs to be fully qualified (see above)
+
+#### <a name='TXT'></a>TXT
+
+* The `name` element is optional, will default to the identifier if not specified
+* If a single `value` is used, it is automatically split into one or more 255 byte (per RFC1035) character-strings when rendered
+* If `values` is used, each entry is treated as an explicit, already-split character-string and rendered as its own quoted string; unlike the `value` shortcut, each entry must already be 255 bytes or fewer, this is a validation error rather than being automatically split
+* The value(s) are expected to already contain any escaping required by the RFC1035 5.1 master file `<character-string>` syntax (e.g. `\"` for a literal quote, `\\` for a literal backslash, or `\DDD` for an arbitrary byte); an already-escaped `\` sequence is passed through unchanged rather than being escaped again. The one exception is a bare, unescaped `"`, which is always escaped automatically so it can't prematurely end the quoted string being rendered
 
 ## <a name='ExamplesFiles'></a>Examples Files
 

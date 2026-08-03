@@ -37,6 +37,7 @@ var allPlugins = map[plugins.Type]plugins.ZoneMgrPlugin{
 	plugins.NS:    &BuiltinPluginNS{},
 	plugins.PTR:   &BuiltinPluginPTR{},
 	plugins.SOA:   &BuiltinPluginSOA{},
+	plugins.TXT:   &BuiltinPluginTXT{},
 }
 
 // Performs tests across all the builtin plugins where possible to simplify the actual plugin test files
@@ -79,6 +80,7 @@ func TestConfigure(t *testing.T) {
 		plugins.NS:    {plugin: &BuiltinPluginNS{}, expectedConfig: nil},
 		plugins.PTR:   {plugin: &BuiltinPluginPTR{}, expectedConfig: nil},
 		plugins.SOA:   {plugin: &BuiltinPluginSOA{}, expectedConfig: config},
+		plugins.TXT:   {plugin: &BuiltinPluginTXT{}, expectedConfig: nil},
 	}
 
 	for pluginType, pluginTest := range pluginsToTest {
@@ -112,6 +114,7 @@ func TestValidateZone(t *testing.T) {
 		plugins.A:   &BuiltinPluginA{},
 		plugins.NS:  &BuiltinPluginNS{},
 		plugins.PTR: &BuiltinPluginPTR{},
+		plugins.TXT: &BuiltinPluginTXT{},
 	}
 
 	for pluginType, plugin := range pluginsToTest {

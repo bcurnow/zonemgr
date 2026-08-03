@@ -45,6 +45,7 @@ func TestBuiltinPlugins(t *testing.T) {
 		{pluginType: plugins.NS, expectedInterface: &BuiltinPluginNS{}},
 		{pluginType: plugins.PTR, expectedInterface: &BuiltinPluginPTR{}},
 		{pluginType: plugins.SOA, expectedInterface: &BuiltinPluginSOA{}},
+		{pluginType: plugins.TXT, expectedInterface: &BuiltinPluginTXT{}},
 	}
 
 	for _, tc := range testCases {
@@ -78,6 +79,7 @@ func TestBuiltinMetadata(t *testing.T) {
 		{pluginType: plugins.NS, expectedMetadata: &plugins.Metadata{Name: string(plugins.NS), Command: "Built In", BuiltIn: true}},
 		{pluginType: plugins.PTR, expectedMetadata: &plugins.Metadata{Name: string(plugins.PTR), Command: "Built In", BuiltIn: true}},
 		{pluginType: plugins.SOA, expectedMetadata: &plugins.Metadata{Name: string(plugins.SOA), Command: "Built In", BuiltIn: true}},
+		{pluginType: plugins.TXT, expectedMetadata: &plugins.Metadata{Name: string(plugins.TXT), Command: "Built In", BuiltIn: true}},
 	}
 
 	for _, tc := range testCases {

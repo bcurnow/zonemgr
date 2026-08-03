@@ -40,3 +40,8 @@ example.com.: # The origin, each origin in the file will receive it's own zone f
     base:
       type: CNAME
       value: www
+    spf:
+      name: example.com.
+      type: TXT
+      value: v=spf1 -all
+      comment: SPF record denying all senders
