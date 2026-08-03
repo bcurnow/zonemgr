@@ -10,7 +10,9 @@
       "Bash(make format *)",
       "Bash(go test *)",
       "Bash(go vet *)",
-      "Bash(buf generate *)"
+      "Bash(buf generate *)",
+      "Bash(go install *)",
+      "Bash(mockgen *)"
     ]
   }
 }
