@@ -7,7 +7,8 @@
       "Bash(go get *)",
       "Bash(go mod *)",
       "Bash(go build *)",
-      "Bash(make format *)"
+      "Bash(make format *)",
+      "Bash(go test *)"
     ]
   }
 }
