@@ -9,7 +9,8 @@
       "Bash(go build *)",
       "Bash(make format *)",
       "Bash(go test *)",
-      "Bash(go vet *)"
+      "Bash(go vet *)",
+      "Bash(buf generate *)"
     ]
   }
 }
