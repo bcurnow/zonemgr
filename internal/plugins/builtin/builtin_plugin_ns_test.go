@@ -107,3 +107,40 @@ func TestNSRender(t *testing.T) {
 		})
 	}
 }
+
+func TestNSValidateZone(t *testing.T) {
+	testCases := []struct {
+		name    string
+		records map[string]*models.ResourceRecord
+		wantErr string
+	}{
+		{
+			name: "target-is-a-host",
+			records: map[string]*models.ResourceRecord{
+				"ns1": {Name: "@", Type: models.NS, Value: "ns1.example.com."},
+				"a":   {Name: "ns1", Type: models.A, Value: "1.2.3.4"},
+			},
+		},
+		{
+			name: "target-is-a-cname",
+			records: map[string]*models.ResourceRecord{
+				"ns1":   {Name: "@", Type: models.NS, Value: "ns1.example.com."},
+				"alias": {Name: "ns1", Type: models.CNAME, Value: "host"},
+			},
+			wantErr: "invalid NS record, 'ns1' has a value of 'ns1.example.com.' which is a CNAME, NS targets must not be aliases, zone: 'example.com'",
+		},
+		{
+			name: "unrelated-cname",
+			records: map[string]*models.ResourceRecord{
+				"ns1":   {Name: "@", Type: models.NS, Value: "ns1.example.com."},
+				"alias": {Name: "www", Type: models.CNAME, Value: "host"},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			checkErr(t, (&BuiltinPluginNS{}).ValidateZone("example.com", &models.Zone{ResourceRecords: tc.records}), tc.wantErr)
+		})
+	}
+}

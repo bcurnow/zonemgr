@@ -20,7 +20,6 @@
 package builtin
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/bcurnow/zonemgr/models"
@@ -72,85 +71,127 @@ func TestNormalize_CNAMEPlugin(t *testing.T) {
 
 func TestValidateZone_CNAMEPlugin(t *testing.T) {
 	plugin := &BuiltinPluginCNAME{}
+	record := func(name string, recordType models.ResourceRecordType, value string) *models.ResourceRecord {
+		return &models.ResourceRecord{Name: name, Type: recordType, Value: value}
+	}
 	testCases := []struct {
-		zone *models.Zone
-		err  error
+		name    string
+		records map[string]*models.ResourceRecord
+		wantErr string
 	}{
 		{
-			zone: &models.Zone{ResourceRecords: map[string]*models.ResourceRecord{}},
+			name:    "empty-zone",
+			records: map[string]*models.ResourceRecord{},
 		},
 		{
-			zone: &models.Zone{
-				ResourceRecords: map[string]*models.ResourceRecord{
-					"lonecname": {
-						Name: "lonecname",
-						Type: models.CNAME,
-					},
-				},
-			},
-			err: errors.New("found CNAME records but there are no A records present, all CNAMES must reference an A record name, zone: 'testing'"),
-		},
-		{
-			zone: &models.Zone{
-				ResourceRecords: map[string]*models.ResourceRecord{
-					"cname": {
-						Name:  "badcname",
-						Type:  models.CNAME,
-						Value: "notgoingtofindme",
-					},
-					"arecord": {
-						Name:  "nottherightone",
-						Type:  models.A,
-						Value: "1.2.3.4",
-					},
-				},
-			},
-			err: errors.New("invalid CNAME record, 'cname' has a value of 'notgoingtofindme' which does not match any defined A record name, zone: 'testing'"),
-		},
-		{
-			zone: &models.Zone{
-				ResourceRecords: map[string]*models.ResourceRecord{
-					"arecord": {
-						Name:  "arecord",
-						Type:  models.A,
-						Value: "1.2.3.4",
-					},
-					"cname": {
-						Name:  "cname",
-						Type:  models.CNAME,
-						Value: "arecord",
-					},
-				},
+			name: "target-is-a-record",
+			records: map[string]*models.ResourceRecord{
+				"arecord": record("arecord", models.A, "1.2.3.4"),
+				"cname":   record("cname", models.CNAME, "arecord"),
 			},
 		},
 		{
-			zone: &models.Zone{
-				ResourceRecords: map[string]*models.ResourceRecord{
-					"differentidentifier": {
-						Name:  "arecord",
-						Type:  models.A,
-						Value: "1.2.3.4",
-					},
-					"cname": {
-						Name:  "cname",
-						Type:  models.CNAME,
-						Value: "arecord",
-					},
-				},
+			name: "target-is-aaaa-record-only",
+			records: map[string]*models.ResourceRecord{
+				"arecord": record("arecord", models.AAAA, "::1"),
+				"cname":   record("cname", models.CNAME, "arecord"),
 			},
+		},
+		{
+			name: "target-does-not-exist-in-zone",
+			records: map[string]*models.ResourceRecord{
+				"cname": record("cname", models.CNAME, "notgoingtofindme"),
+			},
+		},
+		{
+			name: "target-in-another-zone",
+			records: map[string]*models.ResourceRecord{
+				"cname": record("cname", models.CNAME, "host.other.org."),
+			},
+		},
+		{
+			name: "multiple-names-alias-one-target",
+			records: map[string]*models.ResourceRecord{
+				"grafana":    record("grafana", models.AAAA, "::1"),
+				"dashboards": record("dashboards", models.CNAME, "grafana"),
+				"monitoring": record("monitoring", models.CNAME, "grafana"),
+			},
+		},
+		{
+			name: "cname-chain",
+			records: map[string]*models.ResourceRecord{
+				"first":  record("first", models.CNAME, "second"),
+				"second": record("second", models.CNAME, "third"),
+				"third":  record("third", models.A, "1.2.3.4"),
+			},
+		},
+		{
+			name: "target-from-values",
+			records: map[string]*models.ResourceRecord{
+				"cname": {Name: "cname", Type: models.CNAME, Values: []*models.ResourceRecordValue{{Value: "elsewhere"}}},
+			},
+		},
+		{
+			name: "relative-and-absolute-names-differ-by-owner",
+			records: map[string]*models.ResourceRecord{
+				"cname": record("www", models.CNAME, "host"),
+				"other": record("www.other.org.", models.A, "1.2.3.4"),
+			},
+		},
+		{
+			name: "cname-with-a-record",
+			records: map[string]*models.ResourceRecord{
+				"cname": record("www", models.CNAME, "host"),
+				"arec":  record("www", models.A, "1.2.3.4"),
+			},
+			wantErr: "invalid CNAME record, 'cname' has the name 'www' which also has a record of type 'A', a name with a CNAME cannot have any other record types, zone: 'example.com'",
+		},
+		{
+			name: "cname-with-other-record-relative-vs-absolute",
+			records: map[string]*models.ResourceRecord{
+				"cname": record("www", models.CNAME, "host"),
+				"txt":   record("WWW.example.com.", models.TXT, "hello"),
+			},
+			wantErr: "invalid CNAME record, 'cname' has the name 'www' which also has a record of type 'TXT', a name with a CNAME cannot have any other record types, zone: 'example.com'",
+		},
+		{
+			name: "cname-at-apex",
+			records: map[string]*models.ResourceRecord{
+				"soa":   record("example.com.", models.SOA, ""),
+				"cname": record("@", models.CNAME, "host"),
+			},
+			wantErr: "invalid CNAME record, 'cname' has the name '@' which also has a record of type 'SOA', a name with a CNAME cannot have any other record types, zone: 'example.com'",
+		},
+		{
+			name: "duplicate-cname",
+			records: map[string]*models.ResourceRecord{
+				"one": record("www", models.CNAME, "a"),
+				"two": record("www", models.CNAME, "b"),
+			},
+			wantErr: "invalid CNAME record, 'one' and 'two' both define a CNAME for the name 'www', a name can only have one CNAME, zone: 'example.com'",
+		},
+		{
+			name: "self-loop",
+			records: map[string]*models.ResourceRecord{
+				"loop": record("loop", models.CNAME, "loop"),
+			},
+			wantErr: "invalid CNAME record, 'loop' is part of a CNAME loop, zone: 'example.com'",
+		},
+		{
+			name: "multi-step-loop",
+			records: map[string]*models.ResourceRecord{
+				"a": record("a", models.CNAME, "b"),
+				"b": record("b", models.CNAME, "c"),
+				"c": record("c", models.CNAME, "a.example.com."),
+			},
+			wantErr: "invalid CNAME record, 'a' is part of a CNAME loop, zone: 'example.com'",
 		},
 	}
 
 	for _, tc := range testCases {
-		if err := plugin.ValidateZone("testing", tc.zone); err != nil {
-			if tc.err == nil {
-				t.Errorf("unexpected error: %s", err)
-			} else if err.Error() != tc.err.Error() {
-				t.Errorf("incorrect error: %s, want %s", err, tc.err)
-			}
-		} else if tc.err != nil {
-			t.Errorf("expected error %q, got nil", tc.err)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			checkErr(t, plugin.ValidateZone("example.com", &models.Zone{ResourceRecords: tc.records}), tc.wantErr)
+		})
 	}
 }
 

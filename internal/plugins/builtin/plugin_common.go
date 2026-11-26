@@ -18,6 +18,37 @@
  */
 package builtin
 
-import "github.com/bcurnow/zonemgr/plugins"
+import (
+	"sort"
+	"strings"
+
+	"github.com/bcurnow/zonemgr/models"
+	"github.com/bcurnow/zonemgr/plugins"
+)
 
 var validations plugins.Validator = plugins.V()
+
+func sortedIdentifiers(records map[string]*models.ResourceRecord) []string {
+	identifiers := make([]string, 0, len(records))
+	for identifier := range records {
+		identifiers = append(identifiers, identifier)
+	}
+	sort.Strings(identifiers)
+	return identifiers
+}
+
+// canonicalName produces a comparable form of a DNS name: lowercase (RFC 4343), with '@' and relative names
+// expanded against the zone name, and always ending in a trailing dot.
+func canonicalName(zoneName string, recordName string) string {
+	zone := strings.ToLower(strings.TrimSuffix(zoneName, ".")) + "."
+	recordName = strings.ToLower(recordName)
+
+	switch {
+	case recordName == "@" || recordName == "":
+		return zone
+	case strings.HasSuffix(recordName, "."):
+		return recordName
+	default:
+		return recordName + "." + zone
+	}
+}

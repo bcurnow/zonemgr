@@ -20,6 +20,8 @@
 package builtin
 
 import (
+	"fmt"
+
 	"github.com/bcurnow/zonemgr/models"
 	"github.com/bcurnow/zonemgr/plugins"
 	"github.com/bcurnow/zonemgr/utils"
@@ -76,8 +78,22 @@ func (p *BuiltinPluginNS) Normalize(identifier string, rr *models.ResourceRecord
 	return nil
 }
 
+// ValidateZone enforces RFC 2181 section 10.3: the target of an NS record must not be an alias, so it cannot be the name of a CNAME.
 func (p *BuiltinPluginNS) ValidateZone(name string, zone *models.Zone) error {
-	//no-op
+	resourceRecordsByType := zone.ResourceRecordsByType()
+	cnameOwnerNames := make(map[string]bool)
+	for _, cnameRecord := range resourceRecordsByType[models.CNAME] {
+		cnameOwnerNames[canonicalName(name, cnameRecord.Name)] = true
+	}
+
+	nsRecords := resourceRecordsByType[models.NS]
+	for _, identifier := range sortedIdentifiers(nsRecords) {
+		value := nsRecords[identifier].RetrieveSingleValue()
+		if cnameOwnerNames[canonicalName(name, value)] {
+			return fmt.Errorf("invalid NS record, '%s' has a value of '%s' which is a CNAME, NS targets must not be aliases, zone: '%s'", identifier, value, name)
+		}
+	}
+
 	return nil
 }
 
